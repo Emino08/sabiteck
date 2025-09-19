@@ -1,0 +1,217 @@
+version: '3.8'
+
+services:
+  # Database
+  mysql:
+    image: mysql:8.0
+    container_name: emergency_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: emergency_response
+      MYSQL_USER: emergency_user
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ../../database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ../../database/seed-data.sql:/docker-entrypoint-initdb.d/02-seed-data.sql
+    ports:
+      - "3306:3306"
+    networks:
+      - emergency_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Redis for caching and sessions
+  redis:
+    image: redis:7-alpine
+    container_name: emergency_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - emergency_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      timeout: 20s
+      retries: 10
+
+  # Backend API
+  backend:
+    build:
+      context: ../../backend
+      dockerfile: ../deployment/docker/Dockerfile.backend
+      target: production
+    container_name: emergency_backend
+    restart: unless-stopped
+    environment:
+      APP_ENV: production
+      DB_HOST: mysql
+      DB_DATABASE: emergency_response
+      DB_USERNAME: emergency_user
+      DB_PASSWORD: ${DB_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+    volumes:
+      - backend_storage:/var/www/html/storage
+      - backend_logs:/var/www/html/logs
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - emergency_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      timeout: 20s
+      retries: 10
+
+  # Nginx reverse proxy
+  nginx:
+    image: nginx:alpine
+    container_name: emergency_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - backend_storage:/var/www/html/storage:ro
+    depends_on:
+      - backend
+      - admin
+    networks:
+      - emergency_network
+
+  # Admin Console
+  admin:
+    build:
+      context: ../../frontend/admin
+      dockerfile: Dockerfile
+      target: production
+    container_name: emergency_admin
+    restart: unless-stopped
+    environment:
+      VITE_API_BASE_URL: ${API_BASE_URL}
+      VITE_MAPBOX_ACCESS_TOKEN: ${MAPBOX_ACCESS_TOKEN}
+    networks:
+      - emergency_network
+
+  # Background job processor
+  worker:
+    build:
+      context: ../../backend
+      dockerfile: ../deployment/docker/Dockerfile.backend
+      target: production
+    container_name: emergency_worker
+    restart: unless-stopped
+    command: php /var/www/html/bin/worker.php
+    environment:
+      APP_ENV: production
+      DB_HOST: mysql
+      DB_DATABASE: emergency_response
+      DB_USERNAME: emergency_user
+      DB_PASSWORD: ${DB_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+    volumes:
+      - backend_storage:/var/www/html/storage
+      - backend_logs:/var/www/html/logs
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - emergency_network
+
+  # WebSocket server for real-time updates
+  websocket:
+    build:
+      context: ../../backend
+      dockerfile: ../deployment/docker/Dockerfile.backend
+      target: production
+    container_name: emergency_websocket
+    restart: unless-stopped
+    command: php /var/www/html/bin/websocket.php
+    environment:
+      APP_ENV: production
+      DB_HOST: mysql
+      DB_DATABASE: emergency_response
+      DB_USERNAME: emergency_user
+      DB_PASSWORD: ${DB_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - emergency_network
+
+  # Monitoring with Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: emergency_prometheus
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - emergency_network
+
+  # Grafana for metrics visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: emergency_grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    ports:
+      - "3000:3000"
+    networks:
+      - emergency_network
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+  backend_storage:
+    driver: local
+  backend_logs:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  emergency_network:
+    driver: bridge

@@ -1,0 +1,15 @@
+{
+  "name": "sabi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "private": true,
+  "dependencies": {
+    "next-themes": "^0.4.6",
+    "node-fetch": "^3.3.2",
+    "sonner": "^2.0.7"
+  }
+}

@@ -1,0 +1,297 @@
+name: Emergency Response Platform CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  PHP_VERSION: '8.1'
+  NODE_VERSION: '18'
+  FLUTTER_VERSION: '3.10.0'
+
+jobs:
+  # Backend Tests
+  backend-tests:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: emergency_response_test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: --health-cmd="redis-cli ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ env.PHP_VERSION }}
+        extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_mysql, redis
+        coverage: xdebug
+
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: backend/vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+
+    - name: Install PHP dependencies
+      working-directory: ./backend
+      run: composer install --prefer-dist --no-progress
+
+    - name: Copy environment file
+      working-directory: ./backend
+      run: cp .env.example .env
+
+    - name: Set up environment variables
+      working-directory: ./backend
+      run: |
+        echo "DB_HOST=127.0.0.1" >> .env
+        echo "DB_PORT=3306" >> .env
+        echo "DB_DATABASE=emergency_response_test" >> .env
+        echo "DB_USERNAME=root" >> .env
+        echo "DB_PASSWORD=password" >> .env
+        echo "REDIS_HOST=127.0.0.1" >> .env
+        echo "REDIS_PORT=6379" >> .env
+
+    - name: Wait for MySQL
+      run: |
+        while ! mysqladmin ping -h127.0.0.1 -P3306 -uroot -ppassword --silent; do
+          sleep 1
+        done
+
+    - name: Set up database
+      working-directory: ./backend
+      run: |
+        mysql -h127.0.0.1 -P3306 -uroot -ppassword emergency_response_test < ../database/schema.sql
+
+    - name: Run PHPUnit tests
+      working-directory: ./backend
+      run: ./vendor/bin/phpunit --coverage-clover coverage.xml
+
+    - name: Run PHPStan analysis
+      working-directory: ./backend
+      run: ./vendor/bin/phpstan analyse src --level=8
+
+    - name: Run PHP CodeSniffer
+      working-directory: ./backend
+      run: ./vendor/bin/phpcs src tests --standard=PSR12
+
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./backend/coverage.xml
+        flags: backend
+
+  # Frontend Admin Tests
+  frontend-admin-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: frontend/admin/package-lock.json
+
+    - name: Install dependencies
+      working-directory: ./frontend/admin
+      run: npm ci
+
+    - name: Run linter
+      working-directory: ./frontend/admin
+      run: npm run lint
+
+    - name: Run tests
+      working-directory: ./frontend/admin
+      run: npm run test
+
+    - name: Build application
+      working-directory: ./frontend/admin
+      run: npm run build
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: admin-build
+        path: frontend/admin/dist
+
+  # Flutter Mobile Tests
+  flutter-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ env.FLUTTER_VERSION }}
+        cache: true
+
+    - name: Install dependencies
+      working-directory: ./frontend/mobile
+      run: flutter pub get
+
+    - name: Verify formatting
+      working-directory: ./frontend/mobile
+      run: dart format --output=none --set-exit-if-changed .
+
+    - name: Analyze project source
+      working-directory: ./frontend/mobile
+      run: dart analyze
+
+    - name: Run tests
+      working-directory: ./frontend/mobile
+      run: flutter test --coverage
+
+    - name: Upload coverage
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./frontend/mobile/coverage/lcov.info
+        flags: mobile
+
+  # Security Scanning
+  security-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+    - name: Run Semgrep security scan
+      uses: returntocorp/semgrep-action@v1
+      with:
+        config: auto
+
+  # Database Migration Tests
+  migration-tests:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: emergency_response_migration_test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Wait for MySQL
+      run: |
+        while ! mysqladmin ping -h127.0.0.1 -P3306 -uroot -ppassword --silent; do
+          sleep 1
+        done
+
+    - name: Test database schema
+      run: |
+        mysql -h127.0.0.1 -P3306 -uroot -ppassword emergency_response_migration_test < database/schema.sql
+
+    - name: Test seed data
+      run: |
+        mysql -h127.0.0.1 -P3306 -uroot -ppassword emergency_response_migration_test < database/seed-data.sql
+
+    - name: Verify database structure
+      run: |
+        mysql -h127.0.0.1 -P3306 -uroot -ppassword emergency_response_migration_test -e "SHOW TABLES;"
+
+  # Build and Push Docker Images (only on main branch)
+  build-docker:
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-admin-tests, migration-tests]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Build and push backend image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./backend
+        push: true
+        tags: emergency-response/backend:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Build and push admin frontend image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./frontend/admin
+        push: true
+        tags: emergency-response/admin:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  # Deploy to staging (only on develop branch)
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-admin-tests, migration-tests]
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Deploy to staging
+      run: |
+        echo "Deploying to staging environment..."
+        # Add your staging deployment commands here
+
+  # Deploy to production (only on main branch with manual approval)
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: [build-docker]
+    if: github.ref == 'refs/heads/main'
+    environment: production
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Deploy to production
+      run: |
+        echo "Deploying to production environment..."
+        # Add your production deployment commands here

@@ -1,0 +1,82 @@
+🔍 Testing Database Connection
+================================
+Configuration:
+Host: localhost
+Port: 4306
+Database: devco_db
+Username: root
+Password: ***
+
+✅ Database connection successful!
+✅ Test query successful: 1
+
+📋 Existing tables (47):
+  - admin_users
+  - analytics
+  - analytics_events
+  - analytics_page_views
+  - analytics_realtime
+  - analytics_sessions
+  - analytics_settings
+  - analytics_visitors
+  - announcements
+  - blog_posts
+  - company_content
+  - company_culture
+  - company_info
+  - company_mission
+  - company_values
+  - contacts
+  - content
+  - content_comments
+  - content_likes
+  - job_applications
+  - job_categories
+  - jobs
+  - newsletter_campaigns
+  - newsletter_subscribers
+  - newsletter_subscriptions
+  - newsletter_templates
+  - organizations
+  - page_content
+  - permissions
+  - portfolio
+  - portfolio_projects
+  - role_permissions
+  - roles
+  - route_settings
+  - scholarship_categories
+  - scholarships
+  - services
+  - settings
+  - site_settings
+  - social_posts
+  - team
+  - team_members
+  - testimonials
+  - user_organization_roles
+  - user_permissions
+  - user_roles
+  - users
+
+🛠️ Creating lookup tables for static data...
+
+✅ Created table: content_categories - Content categories (blog, news, etc.)
+✅ Created table: portfolio_categories - Portfolio project categories
+✅ Created table: service_categories - Service categories
+✅ Created table: job_categories - Job categories
+✅ Created table: scholarship_categories - Scholarship categories
+✅ Created table: organization_categories - Organization categories
+✅ Created table: content_types
+✅ Created table: announcement_types
+
+📊 Populating tables with static data...
+
+✅ Populated content_categories with 14 entries
+✅ Populated portfolio_categories with 10 entries
+✅ Populated service_categories with 8 entries
+✅ Populated content_types with 5 entries
+✅ Populated announcement_types with 5 entries
+
+🎉 Database setup completed successfully!
+📝 All static data has been moved from code to database tables.

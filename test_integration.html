@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend-Backend Integration Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .loading { background-color: #fff3cd; border-color: #ffeeba; }
+        button { margin: 5px; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-success { background-color: #28a745; color: white; }
+        .btn-warning { background-color: #ffc107; color: black; }
+        pre { background-color: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Sabiteck Frontend-Backend Integration Test</h1>
+    <p>Testing API integration between frontend and backend...</p>
+
+    <div>
+        <button class="btn-primary" onclick="testAPI()">Test API Status</button>
+        <button class="btn-success" onclick="testJobs()">Test Jobs Endpoint</button>
+        <button class="btn-warning" onclick="testContact()">Test Contact Form</button>
+        <button class="btn-primary" onclick="testScholarships()">Test Scholarships</button>
+        <button class="btn-success" onclick="testAdminLogin()">Test Admin Login</button>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+        const API_BASE = 'http://localhost:8002';
+
+        function addResult(title, status, data) {
+            const resultsDiv = document.getElementById('results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${status}`;
+            resultDiv.innerHTML = `
+                <h3>${title}</h3>
+                <p>Status: ${status.toUpperCase()}</p>
+                <pre>${JSON.stringify(data, null, 2)}</pre>
+            `;
+            resultsDiv.appendChild(resultDiv);
+        }
+
+        async function testAPI() {
+            try {
+                addResult('API Status Test', 'loading', 'Testing...');
+                const response = await fetch(`${API_BASE}/api/status`);
+                const data = await response.json();
+                addResult('API Status Test', 'success', data);
+            } catch (error) {
+                addResult('API Status Test', 'error', { error: error.message });
+            }
+        }
+
+        async function testJobs() {
+            try {
+                addResult('Jobs Endpoint Test', 'loading', 'Testing...');
+                const response = await fetch(`${API_BASE}/api/jobs`);
+                const data = await response.json();
+                addResult('Jobs Endpoint Test', 'success', data);
+            } catch (error) {
+                addResult('Jobs Endpoint Test', 'error', { error: error.message });
+            }
+        }
+
+        async function testContact() {
+            try {
+                addResult('Contact Form Test', 'loading', 'Testing...');
+                const response = await fetch(`${API_BASE}/api/contact`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: 'Integration Test',
+                        email: 'test@example.com',
+                        message: 'This is a test message from the integration test.'
+                    })
+                });
+                const data = await response.json();
+                addResult('Contact Form Test', 'success', data);
+            } catch (error) {
+                addResult('Contact Form Test', 'error', { error: error.message });
+            }
+        }
+
+        async function testScholarships() {
+            try {
+                addResult('Scholarships Test', 'loading', 'Testing...');
+                const response = await fetch(`${API_BASE}/api/scholarships`);
+                const data = await response.json();
+                addResult('Scholarships Test', 'success', data);
+            } catch (error) {
+                addResult('Scholarships Test', 'error', { error: error.message });
+            }
+        }
+
+        async function testAdminLogin() {
+            try {
+                addResult('Admin Login Test', 'loading', 'Testing...');
+                const response = await fetch(`${API_BASE}/api/admin/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: 'admin',
+                        password: 'admin123'
+                    })
+                });
+                const data = await response.json();
+                addResult('Admin Login Test', response.ok ? 'success' : 'error', data);
+            } catch (error) {
+                addResult('Admin Login Test', 'error', { error: error.message });
+            }
+        }
+
+        // Run automatic tests on page load
+        window.onload = function() {
+            setTimeout(testAPI, 500);
+            setTimeout(testJobs, 1000);
+            setTimeout(testScholarships, 1500);
+        }
+    </script>
+</body>
+</html>

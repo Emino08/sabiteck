@@ -1,0 +1,44 @@
+# Composer
+vendor/
+composer.lock
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Storage and temp files
+storage/
+temp/
+logs/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Runtime files
+*.log
+*.pid
+
+# SSL certificates
+ssl/
+*.pem
+*.key
+*.crt
+
+# Docker volumes
+docker-volumes/
+
+# Test coverage
+coverage/
+.phpunit.cache/
+
+# Cache files
+cache/
+.cache/

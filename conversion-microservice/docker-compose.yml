@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./storage:/app/storage
+      - ./temp:/app/temp
+      - ./logs:/app/logs
+    environment:
+      - APP_ENV=production
+      - REDIS_HOST=redis
+      - STORAGE_ROOT=/app/storage
+      - TEMP_DIR=/app/temp
+      - LOG_PATH=/app/logs/app.log
+    depends_on:
+      - redis
+    networks:
+      - conversion-network
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: php bin/worker.php
+    volumes:
+      - ./storage:/app/storage
+      - ./temp:/app/temp
+      - ./logs:/app/logs
+    environment:
+      - APP_ENV=production
+      - REDIS_HOST=redis
+      - STORAGE_ROOT=/app/storage
+      - TEMP_DIR=/app/temp
+      - LOG_PATH=/app/logs/worker.log
+    depends_on:
+      - redis
+    networks:
+      - conversion-network
+    deploy:
+      replicas: 3
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    networks:
+      - conversion-network
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - app
+    networks:
+      - conversion-network
+
+volumes:
+  redis-data:
+    driver: local
+
+networks:
+  conversion-network:
+    driver: bridge

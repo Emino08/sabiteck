@@ -1,0 +1,85 @@
+# Multi-stage build for Emergency Response Backend
+FROM php:8.1-fpm-alpine AS base
+
+# Install system dependencies and PHP extensions
+RUN apk add --no-cache \
+    git \
+    curl \
+    libpng-dev \
+    oniguruma-dev \
+    libxml2-dev \
+    zip \
+    unzip \
+    mysql-client \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+
+# Install Redis extension
+RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && apk del .build-deps
+
+# Get Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Set working directory
+WORKDIR /var/www/html
+
+# Copy composer files
+COPY composer.json composer.lock ./
+
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader --no-scripts
+
+# Development stage
+FROM base AS development
+
+# Install development dependencies
+RUN composer install --optimize-autoloader
+
+# Copy application code
+COPY . .
+
+# Set permissions
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html
+
+# Expose port 9000 for PHP-FPM
+EXPOSE 9000
+
+CMD ["php-fpm"]
+
+# Production stage
+FROM base AS production
+
+# Copy application code
+COPY . .
+
+# Remove development files
+RUN rm -rf tests/ phpunit.xml .git/
+
+# Set permissions
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html
+
+# Create logs directory
+RUN mkdir -p /var/www/html/logs \
+    && chown -R www-data:www-data /var/www/html/logs
+
+# Security configurations
+RUN echo "expose_php = Off" >> /usr/local/etc/php/conf.d/security.ini \
+    && echo "display_errors = Off" >> /usr/local/etc/php/conf.d/security.ini \
+    && echo "log_errors = On" >> /usr/local/etc/php/conf.d/security.ini \
+    && echo "error_log = /var/www/html/logs/php_errors.log" >> /usr/local/etc/php/conf.d/security.ini
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Expose port 9000 for PHP-FPM
+EXPOSE 9000
+
+# Use non-root user
+USER www-data
+
+CMD ["php-fpm"]
