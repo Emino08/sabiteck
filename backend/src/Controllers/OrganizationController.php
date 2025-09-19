@@ -273,33 +273,95 @@ class OrganizationController
 
     private function ensureTableExists($db)
     {
-        $stmt = $db->query("SHOW TABLES LIKE 'organizations'");
-        if ($stmt->rowCount() == 0) {
-            $db->exec("
-                CREATE TABLE organizations (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    name VARCHAR(255) NOT NULL,
-                    type VARCHAR(100),
-                    description TEXT,
-                    location VARCHAR(255),
-                    website VARCHAR(255),
-                    email VARCHAR(255),
-                    phone VARCHAR(50),
-                    founded YEAR,
-                    logo VARCHAR(500),
-                    active TINYINT(1) DEFAULT 1,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-                )
-            ");
+        $sql = "CREATE TABLE IF NOT EXISTS organizations (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            slug VARCHAR(255) UNIQUE,
+            description TEXT,
+            category VARCHAR(100),
+            website VARCHAR(255),
+            contact_email VARCHAR(255),
+            contact_phone VARCHAR(50),
+            address TEXT,
+            location VARCHAR(255),
+            type VARCHAR(100),
+            email VARCHAR(255),
+            phone VARCHAR(50),
+            founded YEAR,
+            size VARCHAR(50),
+            industry VARCHAR(100),
+            featured TINYINT DEFAULT 0,
+            active TINYINT DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
-            // Insert sample data
-            $db->exec("
-                INSERT INTO organizations (name, type, description, location, founded, active) VALUES
-                ('Sabiteck Limited', 'Technology', 'Leading technology solutions provider', 'Bo, Sierra Leone', 2020, 1),
-                ('Tech Innovators', 'Software', 'Software development company', 'Freetown, Sierra Leone', 2019, 1),
-                ('Digital Solutions Inc', 'Consulting', 'Digital transformation consultancy', 'Makeni, Sierra Leone', 2021, 1)
-            ");
+            -- Add indexes for better performance
+            INDEX idx_active (active),
+            INDEX idx_name (name),
+            INDEX idx_category (category),
+            INDEX idx_type (type)
+        )";
+
+        try {
+            $db->exec($sql);
+
+            // Check if slug column exists, if not add it
+            $result = $db->query("SHOW COLUMNS FROM organizations LIKE 'slug'");
+            if ($result->rowCount() == 0) {
+                $db->exec("ALTER TABLE organizations ADD COLUMN slug VARCHAR(255) UNIQUE AFTER name");
+            }
+
+            // Check if type column exists, if not add it
+            $result = $db->query("SHOW COLUMNS FROM organizations LIKE 'type'");
+            if ($result->rowCount() == 0) {
+                $db->exec("ALTER TABLE organizations ADD COLUMN type VARCHAR(100) AFTER location");
+            }
+
+            // Check if email column exists, if not add it
+            $result = $db->query("SHOW COLUMNS FROM organizations LIKE 'email'");
+            if ($result->rowCount() == 0) {
+                $db->exec("ALTER TABLE organizations ADD COLUMN email VARCHAR(255) AFTER type");
+            }
+
+            // Check if phone column exists, if not add it
+            $result = $db->query("SHOW COLUMNS FROM organizations LIKE 'phone'");
+            if ($result->rowCount() == 0) {
+                $db->exec("ALTER TABLE organizations ADD COLUMN phone VARCHAR(50) AFTER email");
+            }
+
+            // Check if founded column exists, if not add it
+            $result = $db->query("SHOW COLUMNS FROM organizations LIKE 'founded'");
+            if ($result->rowCount() == 0) {
+                $db->exec("ALTER TABLE organizations ADD COLUMN founded YEAR AFTER phone");
+            }
+
+            // Check if size column exists, if not add it
+            $result = $db->query("SHOW COLUMNS FROM organizations LIKE 'size'");
+            if ($result->rowCount() == 0) {
+                $db->exec("ALTER TABLE organizations ADD COLUMN size VARCHAR(50) AFTER founded");
+            }
+
+            // Check if industry column exists, if not add it
+            $result = $db->query("SHOW COLUMNS FROM organizations LIKE 'industry'");
+            if ($result->rowCount() == 0) {
+                $db->exec("ALTER TABLE organizations ADD COLUMN industry VARCHAR(100) AFTER size");
+            }
+
+        } catch (\Exception $e) {
+            // Log error but don't throw to avoid breaking the app
+            error_log('Organizations table creation/update error: ' . $e->getMessage());
         }
     }
+
+    private function generateSlug($name)
+    {
+        // Convert to lowercase and replace spaces/special chars with hyphens
+        $slug = strtolower(trim($name));
+        $slug = preg_replace('/[^a-z0-9-]/', '-', $slug);
+        $slug = preg_replace('/-+/', '-', $slug);
+        $slug = trim($slug, '-');
+
+        return $slug;
+    }
 }
+?>

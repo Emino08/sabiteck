@@ -56,15 +56,15 @@ const OrganizationManagement = () => {
             const response = await apiRequest(`/api/admin/organizations?${params.toString()}`);
             
             if (response && response.success) {
-                // Backend returns organizations directly, not nested under data
-                const organizationsData = response.organizations || [];
-                const paginationData = response.pagination || {};
+                // Backend returns data in response.data array
+                const organizationsData = response.data || [];
+                const totalCount = response.total || 0;
 
                 setOrganizations(Array.isArray(organizationsData) ? organizationsData : []);
                 setPagination(prev => ({
                     ...prev,
-                    total: paginationData.total || organizationsData.length || 0,
-                    pages: paginationData.pages || 1
+                    total: totalCount,
+                    pages: Math.ceil(totalCount / prev.limit)
                 }));
             } else {
                 // Handle case where response is not successful
@@ -118,8 +118,8 @@ const OrganizationManagement = () => {
             name: org.name,
             description: org.description || '',
             website: org.website || '',
-            industry: org.industry || '',
-            size: org.size || 'small',
+            industry: org.type || '',
+            size: org.employees || 'small',
             location: org.location || '',
             contact_email: org.contact_email || '',
             contact_phone: org.contact_phone || ''
@@ -266,12 +266,12 @@ const OrganizationManagement = () => {
                                             </div>
                                             <div>
                                                 <div className="font-medium text-gray-900">{org.name}</div>
-                                                <div className="text-sm text-gray-500">{org.slug}</div>
+                                                <div className="text-sm text-gray-500">{org.type}</div>
                                             </div>
                                         </div>
                                     </td>
                                     <td className="py-3 px-4">
-                                        <span className="text-gray-600">{org.industry || '-'}</span>
+                                        <span className="text-gray-600">{org.type || '-'}</span>
                                     </td>
                                     <td className="py-3 px-4">
                                         <div className="flex items-center space-x-1 text-gray-600">
@@ -282,13 +282,13 @@ const OrganizationManagement = () => {
                                     <td className="py-3 px-4">
                                         <div className="flex items-center space-x-1 text-gray-600">
                                             <Briefcase className="w-4 h-4" />
-                                            <span>{org.job_count}</span>
+                                            <span>{org.job_count || '0'}</span>
                                         </div>
                                     </td>
                                     <td className="py-3 px-4">
                                         <div className="flex items-center space-x-1 text-gray-600">
                                             <Users className="w-4 h-4" />
-                                            <span>{org.user_count}</span>
+                                            <span>{org.employees || '-'}</span>
                                         </div>
                                     </td>
                                     <td className="py-3 px-4">

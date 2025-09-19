@@ -28,6 +28,7 @@ import OrganizationManagement from '../admin/OrganizationManagement';
 import RouteSettingsManager from '../admin/RouteSettingsManager';
 import UserRoleManagement from '../admin/UserRoleManagement';
 import ServicesManagement from '../admin/ServicesManagement';
+import SettingsManager from '../admin/SettingsManager';
 import TeamManagement from '../admin/TeamManagement';
 import AboutManagement from '../admin/AboutManagement';
 import PortfolioManagement from '../admin/PortfolioManagement';
@@ -334,7 +335,7 @@ const Admin = () => {
       case 'routes':
         return <RouteSettingsManager />;
       case 'settings':
-        return <div className="p-6"><h2 className="text-2xl font-bold">Settings coming soon...</h2></div>;
+        return <SettingsManager />;
       default:
         return <DashboardOverview />;
     }

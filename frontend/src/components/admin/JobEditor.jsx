@@ -280,11 +280,11 @@ const JobEditor = ({ jobId, onSave, onCancel }) => {
                                 onChange={(e) => handleInputChange('job_type', e.target.value)}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             >
-                                <option value="full-time">Full-time</option>
-                                <option value="part-time">Part-time</option>
-                                <option value="contract">Contract</option>
-                                <option value="freelance">Freelance</option>
-                                <option value="internship">Internship</option>
+                                <option key="full-time" value="full-time">Full-time</option>
+                                <option key="part-time" value="part-time">Part-time</option>
+                                <option key="contract" value="contract">Contract</option>
+                                <option key="freelance" value="freelance">Freelance</option>
+                                <option key="internship" value="internship">Internship</option>
                             </select>
                         </div>
                     </div>
@@ -334,12 +334,12 @@ const JobEditor = ({ jobId, onSave, onCancel }) => {
                                 onChange={(e) => handleInputChange('experience_level', e.target.value)}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             >
-                                <option value="entry">Entry Level</option>
-                                <option value="junior">Junior</option>
-                                <option value="mid">Mid Level</option>
-                                <option value="senior">Senior</option>
-                                <option value="lead">Lead</option>
-                                <option value="executive">Executive</option>
+                                <option key="entry" value="entry">Entry Level</option>
+                                <option key="junior" value="junior">Junior</option>
+                                <option key="mid" value="mid">Mid Level</option>
+                                <option key="senior" value="senior">Senior</option>
+                                <option key="lead" value="lead">Lead</option>
+                                <option key="executive" value="executive">Executive</option>
                             </select>
                         </div>
 
@@ -352,12 +352,12 @@ const JobEditor = ({ jobId, onSave, onCancel }) => {
                                 onChange={(e) => handleInputChange('education_level', e.target.value)}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             >
-                                <option value="">No specific requirement</option>
-                                <option value="high-school">High School</option>
-                                <option value="associate">Associate Degree</option>
-                                <option value="bachelor">Bachelor's Degree</option>
-                                <option value="master">Master's Degree</option>
-                                <option value="phd">PhD</option>
+                                <option key="none" value="">No specific requirement</option>
+                                <option key="high-school" value="high-school">High School</option>
+                                <option key="associate" value="associate">Associate Degree</option>
+                                <option key="bachelor" value="bachelor">Bachelor's Degree</option>
+                                <option key="master" value="master">Master's Degree</option>
+                                <option key="phd" value="phd">PhD</option>
                             </select>
                         </div>
                     </div>
@@ -368,7 +368,7 @@ const JobEditor = ({ jobId, onSave, onCancel }) => {
                         </label>
                         <div className="flex flex-wrap gap-2 mb-3">
                             {Array.isArray(formData.skills_required) && formData.skills_required.map((skill, index) => (
-                                <span key={index} className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                <span key={`skill-${index}-${skill}`} className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                     {skill}
                                     <button
                                         type="button"
@@ -417,12 +417,12 @@ const JobEditor = ({ jobId, onSave, onCancel }) => {
                                 onChange={(e) => handleInputChange('salary_currency', e.target.value)}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             >
-                                <option value="USD">USD</option>
-                                <option value="EUR">EUR</option>
-                                <option value="GBP">GBP</option>
-                                <option value="CAD">CAD</option>
-                                <option value="AUD">AUD</option>
-                                <option value="SLL">SLL (Sierra Leone Leone)</option>
+                                <option key="USD" value="USD">USD</option>
+                                <option key="EUR" value="EUR">EUR</option>
+                                <option key="GBP" value="GBP">GBP</option>
+                                <option key="CAD" value="CAD">CAD</option>
+                                <option key="AUD" value="AUD">AUD</option>
+                                <option key="SLL" value="SLL">SLL (Sierra Leone Leone)</option>
                             </select>
                         </div>
 
@@ -579,9 +579,9 @@ const JobEditor = ({ jobId, onSave, onCancel }) => {
                                 onChange={(e) => handleInputChange('status', e.target.value)}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             >
-                                <option value="draft">Draft</option>
-                                <option value="active">Active</option>
-                                <option value="closed">Closed</option>
+                                <option key="draft" value="draft">Draft</option>
+                                <option key="active" value="active">Active</option>
+                                <option key="closed" value="closed">Closed</option>
                             </select>
                         </div>
                     </div>
@@ -666,3 +666,4 @@ const JobEditor = ({ jobId, onSave, onCancel }) => {
 };
 
 export default JobEditor;
+

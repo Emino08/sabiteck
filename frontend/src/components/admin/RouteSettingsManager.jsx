@@ -4,6 +4,8 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { Badge } from '../ui/badge';
+import Modal from '../ui/modal';
+import ConfirmModal from '../ui/confirm-modal';
 import {
   Save,
   RefreshCw,
@@ -26,7 +28,13 @@ const RouteSettingsManager = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [editingRoute, setEditingRoute] = useState(null);
-  const [isCreating, setIsCreating] = useState(false);
+  const [deletingRoute, setDeletingRoute] = useState(null);
+
+  // Modal states
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
   const [formData, setFormData] = useState({
     route_name: '',
     display_name: '',
@@ -164,7 +172,7 @@ const RouteSettingsManager = () => {
       display_order: route.display_order
     });
     setEditingRoute(route.route_name);
-    setIsCreating(true);
+    setShowEditModal(true);
   };
 
   const handleSubmit = async (e) => {
@@ -227,14 +235,19 @@ const RouteSettingsManager = () => {
     }
   };
 
-  const handleDelete = async (routeName) => {
-    if (!confirm('Are you sure you want to delete this route?')) return;
+  const handleDelete = (route) => {
+    setDeletingRoute(route);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletingRoute) return;
 
     try {
       setSaving(true);
       const token = localStorage.getItem('admin_token');
 
-      const response = await fetch(`${API_BASE_URL}/api/admin/route-settings/${routeName}`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/route-settings/${deletingRoute.route_name}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -243,14 +256,16 @@ const RouteSettingsManager = () => {
       });
 
       if (response.ok) {
-        setRoutes(prev => prev.filter(route => route.route_name !== routeName));
+        setRoutes(prev => prev.filter(route => route.route_name !== deletingRoute.route_name));
         setSuccess('Route deleted successfully');
       } else {
         setError('Failed to delete route');
         // For demo purposes, remove from local state
-        setRoutes(prev => prev.filter(route => route.route_name !== routeName));
+        setRoutes(prev => prev.filter(route => route.route_name !== deletingRoute.route_name));
       }
       setTimeout(() => setSuccess(null), 3000);
+      setShowDeleteModal(false);
+      setDeletingRoute(null);
     } catch (err) {
       console.error('Error deleting route:', err);
       setError('Failed to delete route');
@@ -268,7 +283,8 @@ const RouteSettingsManager = () => {
       display_order: routes.length + 1
     });
     setEditingRoute(null);
-    setIsCreating(false);
+    setShowEditModal(false);
+    setShowAddModal(false);
   };
 
   const moveRoute = (routeName, direction) => {
@@ -314,7 +330,7 @@ const RouteSettingsManager = () => {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => setIsCreating(true)} className="flex items-center gap-2">
+          <Button onClick={() => setShowAddModal(true)} className="flex items-center gap-2">
             <Plus className="h-4 w-4" />
             Add Route
           </Button>
@@ -344,90 +360,6 @@ const RouteSettingsManager = () => {
         </div>
       )}
 
-      {/* Create/Edit Form */}
-      {isCreating && (
-        <Card>
-          <CardHeader>
-            <CardTitle>{editingRoute ? 'Edit Route' : 'Create New Route'}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Route Name
-                  </label>
-                  <Input
-                    value={formData.route_name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, route_name: e.target.value }))}
-                    placeholder="e.g., about, services, contact"
-                    disabled={!!editingRoute}
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Display Name
-                  </label>
-                  <Input
-                    value={formData.display_name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, display_name: e.target.value }))}
-                    placeholder="About Us"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description
-                </label>
-                <Textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Brief description of this page"
-                  rows={3}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Display Order
-                  </label>
-                  <Input
-                    type="number"
-                    value={formData.display_order}
-                    onChange={(e) => setFormData(prev => ({ ...prev, display_order: parseInt(e.target.value) }))}
-                    min="1"
-                  />
-                </div>
-                <div className="flex items-center gap-2 pt-6">
-                  <input
-                    type="checkbox"
-                    id="is_visible"
-                    checked={formData.is_visible}
-                    onChange={(e) => setFormData(prev => ({ ...prev, is_visible: e.target.checked }))}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <label htmlFor="is_visible" className="text-sm font-medium text-gray-700">
-                    Visible in navigation
-                  </label>
-                </div>
-              </div>
-
-              <div className="flex gap-2">
-                <Button type="submit" disabled={saving}>
-                  {saving ? 'Saving...' : (editingRoute ? 'Update Route' : 'Create Route')}
-                </Button>
-                <Button type="button" variant="outline" onClick={resetForm}>
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Routes List */}
       <Card>
@@ -443,7 +375,7 @@ const RouteSettingsManager = () => {
               <Globe className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No routes configured</h3>
               <p className="text-gray-500 mb-4">Add your first navigation route to get started.</p>
-              <Button onClick={() => setIsCreating(true)}>
+              <Button onClick={() => setShowAddModal(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Route
               </Button>
@@ -518,7 +450,7 @@ const RouteSettingsManager = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleDelete(route.route_name)}
+                        onClick={() => handleDelete(route)}
                         className="flex items-center gap-1 text-red-600 hover:text-red-700"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -545,6 +477,183 @@ const RouteSettingsManager = () => {
           <p>• Changes are applied immediately when you toggle visibility or save routes</p>
         </CardContent>
       </Card>
+
+      {/* Add Route Modal */}
+      <Modal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        title="Add New Route"
+        size="md"
+      >
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Route Name
+              </label>
+              <Input
+                value={formData.route_name}
+                onChange={(e) => setFormData(prev => ({ ...prev, route_name: e.target.value }))}
+                placeholder="e.g., about, services, contact"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Display Name
+              </label>
+              <Input
+                value={formData.display_name}
+                onChange={(e) => setFormData(prev => ({ ...prev, display_name: e.target.value }))}
+                placeholder="About Us"
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Description
+            </label>
+            <Textarea
+              value={formData.description}
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              placeholder="Brief description of this page"
+              rows={3}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Display Order
+              </label>
+              <Input
+                type="number"
+                value={formData.display_order}
+                onChange={(e) => setFormData(prev => ({ ...prev, display_order: parseInt(e.target.value) }))}
+                min="1"
+              />
+            </div>
+            <div className="flex items-center gap-2 pt-6">
+              <input
+                type="checkbox"
+                id="is_visible_add"
+                checked={formData.is_visible}
+                onChange={(e) => setFormData(prev => ({ ...prev, is_visible: e.target.checked }))}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <label htmlFor="is_visible_add" className="text-sm font-medium text-gray-700">
+                Visible in navigation
+              </label>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4">
+            <Button type="button" variant="outline" onClick={resetForm}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? 'Creating...' : 'Create Route'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Edit Route Modal */}
+      <Modal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        title="Edit Route"
+        size="md"
+      >
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Route Name
+              </label>
+              <Input
+                value={formData.route_name}
+                onChange={(e) => setFormData(prev => ({ ...prev, route_name: e.target.value }))}
+                placeholder="e.g., about, services, contact"
+                disabled
+                className="bg-gray-50"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Display Name
+              </label>
+              <Input
+                value={formData.display_name}
+                onChange={(e) => setFormData(prev => ({ ...prev, display_name: e.target.value }))}
+                placeholder="About Us"
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Description
+            </label>
+            <Textarea
+              value={formData.description}
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              placeholder="Brief description of this page"
+              rows={3}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Display Order
+              </label>
+              <Input
+                type="number"
+                value={formData.display_order}
+                onChange={(e) => setFormData(prev => ({ ...prev, display_order: parseInt(e.target.value) }))}
+                min="1"
+              />
+            </div>
+            <div className="flex items-center gap-2 pt-6">
+              <input
+                type="checkbox"
+                id="is_visible_edit"
+                checked={formData.is_visible}
+                onChange={(e) => setFormData(prev => ({ ...prev, is_visible: e.target.checked }))}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <label htmlFor="is_visible_edit" className="text-sm font-medium text-gray-700">
+                Visible in navigation
+              </label>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4">
+            <Button type="button" variant="outline" onClick={resetForm}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? 'Updating...' : 'Update Route'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Route"
+        message={`Are you sure you want to delete the route "${deletingRoute?.display_name}"? This action cannot be undone.`}
+        confirmText="Delete"
+        variant="danger"
+        isLoading={saving}
+      />
     </div>
   );
 };

@@ -3,13 +3,16 @@
 require_once __DIR__ . '/controllers/BaseController.php';
 require_once __DIR__ . '/controllers/CategoryController.php';
 require_once __DIR__ . '/controllers/AdminController.php';
+require_once __DIR__ . '/Controllers/OrganizationController.php';
 
 use App\Controllers\CategoryController;
 use App\Controllers\AdminController;
+use DevCo\Controllers\OrganizationController;
 
 function handleRoutes($method, $path, $db) {
     $categoryController = new CategoryController($db);
     $adminController = new AdminController($db);
+    $organizationController = new OrganizationController();
 
     // Category routes - replace hardcoded data with database calls
     switch (true) {
@@ -102,6 +105,32 @@ function handleRoutes($method, $path, $db) {
 
         case ($path === '/api/admin/content' && $method === 'GET'):
             return $adminController->getContentStats();
+
+        // Admin Organization routes
+        case ($path === '/api/admin/organizations' && $method === 'GET'):
+            $request = \Slim\Psr7\Factory\ServerRequestFactory::createFromGlobals();
+            $response = new \Slim\Psr7\Response();
+            return $organizationController->getAllAdmin($request, $response, []);
+
+        case (preg_match('/^\/api\/admin\/organizations\/(\d+)$/', $path, $matches) && $method === 'GET'):
+            $request = \Slim\Psr7\Factory\ServerRequestFactory::createFromGlobals();
+            $response = new \Slim\Psr7\Response();
+            return $organizationController->getById($request, $response, ['id' => $matches[1]]);
+
+        case ($path === '/api/admin/organizations' && $method === 'POST'):
+            $request = \Slim\Psr7\Factory\ServerRequestFactory::createFromGlobals();
+            $response = new \Slim\Psr7\Response();
+            return $organizationController->create($request, $response, []);
+
+        case (preg_match('/^\/api\/admin\/organizations\/(\d+)$/', $path, $matches) && $method === 'PUT'):
+            $request = \Slim\Psr7\Factory\ServerRequestFactory::createFromGlobals();
+            $response = new \Slim\Psr7\Response();
+            return $organizationController->update($request, $response, ['id' => $matches[1]]);
+
+        case (preg_match('/^\/api\/admin\/organizations\/(\d+)$/', $path, $matches) && $method === 'DELETE'):
+            $request = \Slim\Psr7\Factory\ServerRequestFactory::createFromGlobals();
+            $response = new \Slim\Psr7\Response();
+            return $organizationController->delete($request, $response, ['id' => $matches[1]]);
 
         default:
             return false; // Route not handled by this system

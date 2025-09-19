@@ -380,8 +380,8 @@ const UserRoleManagement = () => {
             role: user.role || 'user',
             organization_id: user.organization_id || '',
             status: user.status || 'active',
-            email_verified: user.email_verified || true,
-            permissions: userPermissions
+            email_verified: user.email_verified !== undefined ? user.email_verified : true,
+            permissions: userPermissions || {}
         });
 
         setModalType('edit');
@@ -890,14 +890,14 @@ const UserRoleManagement = () => {
                                                                         <label className="flex items-center space-x-1">
                                                                             <input
                                                                                 type="checkbox"
-                                                                                checked={addUserForm.permissions[permission.id]?.read || false}
+                                                                                checked={!!(addUserForm.permissions && addUserForm.permissions[permission.id] && addUserForm.permissions[permission.id].read)}
                                                                                 onChange={(e) => {
                                                                                     setAddUserForm(prev => ({
                                                                                         ...prev,
                                                                                         permissions: {
                                                                                             ...prev.permissions,
                                                                                             [permission.id]: {
-                                                                                                ...prev.permissions[permission.id],
+                                                                                                ...(prev.permissions[permission.id] || {}),
                                                                                                 read: e.target.checked
                                                                                             }
                                                                                         }
@@ -910,16 +910,16 @@ const UserRoleManagement = () => {
                                                                         <label className="flex items-center space-x-1">
                                                                             <input
                                                                                 type="checkbox"
-                                                                                checked={addUserForm.permissions[permission.id]?.write || false}
+                                                                                checked={!!(addUserForm.permissions && addUserForm.permissions[permission.id] && addUserForm.permissions[permission.id].write)}
                                                                                 onChange={(e) => {
                                                                                     setAddUserForm(prev => ({
                                                                                         ...prev,
                                                                                         permissions: {
                                                                                             ...prev.permissions,
                                                                                             [permission.id]: {
-                                                                                                ...prev.permissions[permission.id],
+                                                                                                ...(prev.permissions[permission.id] || {}),
                                                                                                 write: e.target.checked,
-                                                                                                read: e.target.checked || prev.permissions[permission.id]?.read || false
+                                                                                                read: e.target.checked || (prev.permissions[permission.id] && prev.permissions[permission.id].read) || false
                                                                                             }
                                                                                         }
                                                                                     }));
@@ -1113,14 +1113,14 @@ const UserRoleManagement = () => {
                                                                         <label className="flex items-center space-x-1">
                                                                             <input
                                                                                 type="checkbox"
-                                                                                checked={addUserForm.permissions[permission.id]?.read || false}
+                                                                                checked={!!(addUserForm.permissions && addUserForm.permissions[permission.id] && addUserForm.permissions[permission.id].read)}
                                                                                 onChange={(e) => {
                                                                                     setAddUserForm(prev => ({
                                                                                         ...prev,
                                                                                         permissions: {
                                                                                             ...prev.permissions,
                                                                                             [permission.id]: {
-                                                                                                ...prev.permissions[permission.id],
+                                                                                                ...(prev.permissions[permission.id] || {}),
                                                                                                 read: e.target.checked
                                                                                             }
                                                                                         }
@@ -1133,16 +1133,16 @@ const UserRoleManagement = () => {
                                                                         <label className="flex items-center space-x-1">
                                                                             <input
                                                                                 type="checkbox"
-                                                                                checked={addUserForm.permissions[permission.id]?.write || false}
+                                                                                checked={!!(addUserForm.permissions && addUserForm.permissions[permission.id] && addUserForm.permissions[permission.id].write)}
                                                                                 onChange={(e) => {
                                                                                     setAddUserForm(prev => ({
                                                                                         ...prev,
                                                                                         permissions: {
                                                                                             ...prev.permissions,
                                                                                             [permission.id]: {
-                                                                                                ...prev.permissions[permission.id],
+                                                                                                ...(prev.permissions[permission.id] || {}),
                                                                                                 write: e.target.checked,
-                                                                                                read: e.target.checked || prev.permissions[permission.id]?.read || false
+                                                                                                read: e.target.checked || (prev.permissions[permission.id] && prev.permissions[permission.id].read) || false
                                                                                             }
                                                                                         }
                                                                                     }));

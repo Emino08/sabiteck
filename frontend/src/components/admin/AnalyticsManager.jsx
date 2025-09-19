@@ -64,11 +64,11 @@ const AnalyticsManager = () => {
       ])
 
       setAnalyticsData({
-        stats: statsRes?.data?.stats || {},
-        popularPages: pagesRes?.data?.pages || [],
-        referrers: referrersRes?.data?.referrers || [],
-        devices: devicesRes?.data?.devices || [],
-        geography: geoRes?.data?.geography || []
+        stats: statsRes?.data || {},
+        popularPages: pagesRes?.data || [],
+        referrers: referrersRes?.data || [],
+        devices: devicesRes?.data || {},
+        geography: geoRes?.data || []
       })
     } catch (error) {
       secureLog('error', 'Failed to load analytics data', { error: error.message })
@@ -229,7 +229,10 @@ const AnalyticsManager = () => {
                   <Users className="h-8 w-8 text-blue-600" />
                   <div className="ml-4">
                     <p className="text-sm font-medium text-muted-foreground">Unique Visitors</p>
-                    <p className="text-2xl font-bold">{formatNumber(analyticsData.stats.unique_visitors)}</p>
+                    <p className="text-2xl font-bold">{formatNumber(analyticsData.stats.visitors?.total)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {analyticsData.stats.visitors?.growth > 0 ? '+' : ''}{analyticsData.stats.visitors?.growth}% from last period
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -241,7 +244,10 @@ const AnalyticsManager = () => {
                   <Eye className="h-8 w-8 text-green-600" />
                   <div className="ml-4">
                     <p className="text-sm font-medium text-muted-foreground">Page Views</p>
-                    <p className="text-2xl font-bold">{formatNumber(analyticsData.stats.page_views)}</p>
+                    <p className="text-2xl font-bold">{formatNumber(analyticsData.stats.pageviews?.total)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {analyticsData.stats.pageviews?.growth > 0 ? '+' : ''}{analyticsData.stats.pageviews?.growth}% from last period
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -253,7 +259,10 @@ const AnalyticsManager = () => {
                   <BarChart3 className="h-8 w-8 text-purple-600" />
                   <div className="ml-4">
                     <p className="text-sm font-medium text-muted-foreground">Bounce Rate</p>
-                    <p className="text-2xl font-bold">{formatPercentage(analyticsData.stats.bounce_rate)}</p>
+                    <p className="text-2xl font-bold">{analyticsData.stats.bounce_rate?.rate}%</p>
+                    <p className="text-xs text-muted-foreground">
+                      {analyticsData.stats.bounce_rate?.growth > 0 ? '+' : ''}{analyticsData.stats.bounce_rate?.growth}% from last period
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -264,8 +273,11 @@ const AnalyticsManager = () => {
                 <div className="flex items-center">
                   <Activity className="h-8 w-8 text-red-600" />
                   <div className="ml-4">
-                    <p className="text-sm font-medium text-muted-foreground">Active Users</p>
-                    <p className="text-2xl font-bold">{formatNumber(analyticsData.stats.active_users)}</p>
+                    <p className="text-sm font-medium text-muted-foreground">Avg Session Duration</p>
+                    <p className="text-2xl font-bold">{formatDuration(analyticsData.stats.session_duration?.average)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {analyticsData.stats.session_duration?.growth > 0 ? '+' : ''}{analyticsData.stats.session_duration?.growth}% from last period
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -283,12 +295,12 @@ const AnalyticsManager = () => {
                   {analyticsData.popularPages.slice(0, 5).map((page, index) => (
                     <div key={index} className="flex items-center justify-between">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{page.page_path}</p>
-                        <p className="text-xs text-muted-foreground truncate">{page.page_title}</p>
+                        <p className="text-sm font-medium truncate">{page.page}</p>
+                        <p className="text-xs text-muted-foreground truncate">{page.bounce_rate}% bounce rate</p>
                       </div>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span>{formatNumber(page.page_views)} views</span>
-                        <span>{formatNumber(page.unique_visitors)} visitors</span>
+                        <span>{formatNumber(page.views)} views</span>
+                        <span>{formatNumber(page.unique_views)} unique</span>
                       </div>
                     </div>
                   ))}
@@ -309,14 +321,14 @@ const AnalyticsManager = () => {
                     <div key={index} className="flex items-center justify-between">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">
-                          {referrer.referrer_domain || 'Direct'}
+                          {referrer.source}
                         </p>
-                        <p className="text-xs text-muted-foreground capitalize">
-                          {referrer.referrer_type}
+                        <p className="text-xs text-muted-foreground">
+                          {referrer.percentage}% of traffic
                         </p>
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        {formatNumber(referrer.sessions)} sessions
+                        {formatNumber(referrer.visits)} visits
                       </div>
                     </div>
                   ))}
@@ -327,6 +339,124 @@ const AnalyticsManager = () => {
               </CardContent>
             </Card>
           </div>
+        </div>
+      )}
+
+      {/* Pages View */}
+      {activeView === 'pages' && (
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Top Pages</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {analyticsData.popularPages.map((page, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{page.page}</p>
+                      <p className="text-xs text-muted-foreground">{page.bounce_rate}% bounce rate</p>
+                    </div>
+                    <div className="flex items-center gap-6 text-sm">
+                      <div className="text-center">
+                        <p className="font-medium">{formatNumber(page.views)}</p>
+                        <p className="text-xs text-muted-foreground">Views</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="font-medium">{formatNumber(page.unique_views)}</p>
+                        <p className="text-xs text-muted-foreground">Unique</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {analyticsData.popularPages.length === 0 && (
+                  <p className="text-center text-muted-foreground py-8">No page data available</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Traffic Sources View */}
+      {activeView === 'traffic' && (
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Traffic Sources</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {analyticsData.referrers.map((referrer, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{referrer.source}</p>
+                      <p className="text-xs text-muted-foreground">{referrer.percentage}% of total traffic</p>
+                    </div>
+                    <div className="text-sm font-medium">
+                      {formatNumber(referrer.visits)} visits
+                    </div>
+                  </div>
+                ))}
+                {analyticsData.referrers.length === 0 && (
+                  <p className="text-center text-muted-foreground py-8">No referrer data available</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Devices View */}
+      {activeView === 'devices' && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {Object.entries(analyticsData.devices || {}).map(([deviceType, data]) => (
+              <Card key={deviceType}>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    {deviceType === 'desktop' && <Monitor className="h-8 w-8 text-blue-600" />}
+                    {deviceType === 'mobile' && <Smartphone className="h-8 w-8 text-green-600" />}
+                    {deviceType === 'tablet' && <Monitor className="h-8 w-8 text-purple-600" />}
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-muted-foreground capitalize">{deviceType}</p>
+                      <p className="text-2xl font-bold">{formatNumber(data?.visits)}</p>
+                      <p className="text-xs text-muted-foreground">{data?.percentage}% of visits</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            {Object.keys(analyticsData.devices || {}).length === 0 && (
+              <div className="col-span-3">
+                <p className="text-center text-muted-foreground py-8">No device data available</p>
+              </div>
+            )}
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Geographic Distribution</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {analyticsData.geography.map((country, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{country.country}</p>
+                      <p className="text-xs text-muted-foreground">{country.percentage}% of visitors</p>
+                    </div>
+                    <div className="text-sm font-medium">
+                      {formatNumber(country.visits)} visits
+                    </div>
+                  </div>
+                ))}
+                {analyticsData.geography.length === 0 && (
+                  <p className="text-center text-muted-foreground py-8">No geographic data available</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
 

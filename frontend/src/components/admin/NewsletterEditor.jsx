@@ -21,7 +21,7 @@ const NewsletterEditor = () => {
     name: '',
     subject: '',
     content: '',
-    template_id: null
+    template_id: ''
   })
   const [selectedFileText, setSelectedFileText] = useState(null)
   const [previewMode, setPreviewMode] = useState(false)
@@ -35,7 +35,7 @@ const NewsletterEditor = () => {
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [selectedSubscriber, setSelectedSubscriber] = useState(null)
   const [emailForm, setEmailForm] = useState({ subject: '', content: '' })
-  const [editForm, setEditForm] = useState({ email: '', name: '', active: true })
+  const [editForm, setEditForm] = useState({ email: '', name: '', active: false })
 
   useEffect(() => {
     console.log('📅 useEffect triggered - calling loadData')
@@ -203,9 +203,9 @@ const NewsletterEditor = () => {
   const handleEditSubscriber = (subscriber) => {
     setSelectedSubscriber(subscriber)
     setEditForm({
-      email: subscriber.email,
+      email: subscriber.email || '',
       name: subscriber.name || '',
-      active: subscriber.active
+      active: subscriber.status === 'active' || false
     })
     setShowEditDialog(true)
   }
