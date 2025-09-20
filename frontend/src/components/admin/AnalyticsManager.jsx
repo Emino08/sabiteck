@@ -99,7 +99,7 @@ const AnalyticsManager = () => {
       const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
       const response = await fetch(`${API_BASE_URL}/api/admin/analytics/export?format=${format}&period=${period}&type=overview`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token') || localStorage.getItem('admin_token') || localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
         }
       })
 

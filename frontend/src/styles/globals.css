@@ -111,6 +111,58 @@
   .shadow-colored {
     box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.2), 0 4px 6px -2px rgba(59, 130, 246, 0.1);
   }
+
+  .shadow-premium {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  }
+
+  /* Elite card effects */
+  .card-premium {
+    @apply bg-white/95 backdrop-blur-lg rounded-2xl shadow-lg border border-white/20 transition-all duration-300;
+  }
+
+  .card-premium:hover {
+    @apply shadow-2xl border-blue-200/50 transform -translate-y-2;
+  }
+
+  /* Job card specific styles */
+  .job-card {
+    @apply bg-white rounded-2xl shadow-sm border border-slate-200/50 hover:shadow-xl hover:border-blue-200/50 transition-all duration-300 overflow-hidden;
+  }
+
+  .job-badge-featured {
+    @apply bg-gradient-to-r from-amber-400 to-yellow-500 text-white;
+  }
+
+  .job-badge-urgent {
+    @apply bg-gradient-to-r from-red-500 to-red-600 text-white;
+  }
+
+  .job-badge-remote {
+    @apply bg-gradient-to-r from-green-500 to-green-600 text-white;
+  }
+
+  /* Line clamp utilities */
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
   
   @keyframes blob {
     0% { transform: translate(0px, 0px) scale(1); }

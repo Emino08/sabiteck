@@ -12,19 +12,7 @@ export const useRouteSettings = () => {
 };
 
 export const RouteSettingsProvider = ({ children }) => {
-  const [routeSettings, setRouteSettings] = useState({
-    home: { enabled: true },
-    about: { enabled: true },
-    services: { enabled: true },
-    portfolio: { enabled: true },
-    jobs: { enabled: true },
-    scholarships: { enabled: true },
-    blog: { enabled: true },
-    contact: { enabled: true },
-    team: { enabled: true },
-    news: { enabled: true },
-    tools: { enabled: true }
-  });
+  const [routeSettings, setRouteSettings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -34,28 +22,20 @@ export const RouteSettingsProvider = ({ children }) => {
       setError(null);
 
       // Use the public route settings endpoint (no auth required)
-      const response = await ApiService.getRouteSettings();
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8002';
+      const response = await fetch(`${API_BASE_URL}/api/settings/routes`);
+      const data = await response.json();
 
-      if (response && response.success) {
-        setRouteSettings(response.routes || {});
+      if (data && data.success) {
+        setRouteSettings(data.routes || []);
+      } else {
+        throw new Error('Failed to fetch route settings');
       }
     } catch (error) {
       console.error('Error fetching route settings:', error);
       setError('Failed to load route settings');
-      // Don't block the app - use default settings if API fails
-      setRouteSettings({
-        home: { enabled: true },
-        about: { enabled: true },
-        services: { enabled: true },
-        portfolio: { enabled: true },
-        jobs: { enabled: true },
-        scholarships: { enabled: true },
-        blog: { enabled: true },
-        contact: { enabled: true },
-        team: { enabled: true },
-        news: { enabled: true },
-        tools: { enabled: true }
-      });
+      // Don't block the app - use empty array if API fails
+      setRouteSettings([]);
     } finally {
       setLoading(false);
     }
@@ -83,17 +63,20 @@ export const RouteSettingsProvider = ({ children }) => {
 
   const isRouteEnabled = (routeName) => {
     if (!routeName) return true;
-    return routeSettings[routeName]?.enabled !== false;
+    const route = routeSettings.find(r => r.route_name === routeName);
+    return route ? route.is_visible : false;
   };
 
   const getActiveRoutes = () => {
-    return Object.keys(routeSettings).filter(routeName =>
-      routeSettings[routeName]?.enabled !== false
-    );
+    return routeSettings.filter(route => route.is_visible).map(route => route.route_name);
   };
 
   const getRouteInfo = (routeName) => {
-    return routeSettings[routeName] || { enabled: false };
+    return routeSettings.find(r => r.route_name === routeName) || { enabled: false };
+  };
+
+  const getAllRoutes = () => {
+    return routeSettings;
   };
 
   useEffect(() => {
@@ -108,7 +91,8 @@ export const RouteSettingsProvider = ({ children }) => {
     updateRouteSettings,
     isRouteEnabled,
     getActiveRoutes,
-    getRouteInfo
+    getRouteInfo,
+    getAllRoutes
   };
 
   return (

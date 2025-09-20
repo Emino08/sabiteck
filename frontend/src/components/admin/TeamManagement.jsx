@@ -69,7 +69,7 @@ const TeamManagement = () => {
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('auth_token');
       const url = editingMember ? `/api/admin/team/${editingMember.id}` : '/api/admin/team';
       const method = editingMember ? 'PUT' : 'POST';
 
@@ -108,7 +108,7 @@ const TeamManagement = () => {
     if (!confirm('Are you sure you want to remove this team member?')) return;
 
     try {
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('auth_token');
       const response = await apiRequest(`/api/admin/team/${memberId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
@@ -163,7 +163,7 @@ const TeamManagement = () => {
 
   const toggleMemberStatus = async (memberId, field, value) => {
     try {
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('auth_token');
       await apiRequest(`/api/admin/team/${memberId}`, {
         method: 'PATCH',
         headers: { 'Authorization': `Bearer ${token}` },

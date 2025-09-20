@@ -76,7 +76,7 @@ const ServicesManagement = () => {
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('auth_token');
       const url = editingService ? `/api/admin/services/${editingService.id}` : '/api/admin/services';
       const method = editingService ? 'PUT' : 'POST';
 
@@ -112,7 +112,7 @@ const ServicesManagement = () => {
     if (!confirm('Are you sure you want to delete this service?')) return;
 
     try {
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('auth_token');
       const response = await apiRequest(`/api/admin/services/${serviceId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
@@ -168,7 +168,7 @@ const ServicesManagement = () => {
 
   const toggleServiceStatus = async (serviceId, field, value) => {
     try {
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('auth_token');
       await apiRequest(`/api/admin/services/${serviceId}`, {
         method: 'PATCH',
         headers: { 'Authorization': `Bearer ${token}` },

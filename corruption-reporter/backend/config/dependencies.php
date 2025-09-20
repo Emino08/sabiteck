@@ -11,6 +11,8 @@ use App\Repositories\UserRepository;
 use App\Repositories\ReportRepository;
 use App\Repositories\InstitutionRepository;
 use App\Repositories\CategoryRepository;
+use App\Database\DatabaseManager;
+use App\Database\DatabaseConfig;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
@@ -21,40 +23,13 @@ use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 
 return function (Container $container) {
-    // Database
-    $container->set('db', function () {
-        $capsule = new Capsule;
-
-        $capsule->addConnection([
-            'driver' => 'mysql',
-            'host' => $_ENV['DB_HOST'],
-            'port' => $_ENV['DB_PORT'],
-            'database' => $_ENV['DB_DATABASE'],
-            'username' => $_ENV['DB_USERNAME'],
-            'password' => $_ENV['DB_PASSWORD'],
-            'charset' => 'utf8mb4',
-            'collation' => 'utf8mb4_unicode_ci',
-            'prefix' => '',
-            'options' => [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                PDO::ATTR_EMULATE_PREPARES => false,
-            ],
-        ]);
-
-        $capsule->setAsGlobal();
-        $capsule->bootEloquent();
-
-        return $capsule->getConnection();
-    });
-
-    // Logger
+    // Logger (initialized first as it's needed by DatabaseManager)
     $container->set(LoggerInterface::class, function () {
         $logger = new Logger('corruption-reporter');
 
         if ($_ENV['APP_ENV'] === 'production') {
             $logger->pushHandler(new RotatingFileHandler(
-                $_ENV['LOG_PATH'] . '/app.log',
+                $_ENV['LOG_PATH'] ?? './logs/app.log',
                 0,
                 Logger::INFO
             ));
@@ -65,14 +40,32 @@ return function (Container $container) {
         return $logger;
     });
 
+    // Database - Using our new DatabaseManager
+    $container->set('db', function (ContainerInterface $c) {
+        $logger = $c->get(LoggerInterface::class);
+        $config = DatabaseConfig::getConfig();
+
+        // Validate configuration
+        $errors = DatabaseConfig::validateConfig();
+        if (!empty($errors)) {
+            throw new \Exception('Database configuration errors: ' . implode(', ', $errors));
+        }
+
+        DatabaseManager::initialize($config, $logger);
+        return DatabaseManager::getConnection();
+    });
+
+    // Database Manager service for advanced operations
+    $container->set(DatabaseManager::class, function (ContainerInterface $c) {
+        // Ensure database is initialized
+        $c->get('db');
+        return DatabaseManager::class;
+    });
+
     // Redis
     $container->set('redis', function () {
-        return new RedisClient([
-            'scheme' => 'tcp',
-            'host' => $_ENV['REDIS_HOST'],
-            'port' => $_ENV['REDIS_PORT'],
-            'password' => $_ENV['REDIS_PASSWORD'] ?: null,
-        ]);
+        $config = DatabaseConfig::getRedisConfig();
+        return new RedisClient($config);
     });
 
     // Services

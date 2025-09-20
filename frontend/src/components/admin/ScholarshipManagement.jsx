@@ -173,7 +173,7 @@ const ScholarshipManagement = () => {
         }
 
         try {
-            const token = localStorage.getItem('admin_token');
+            const token = localStorage.getItem('auth_token');
             const response = await apiRequest(`/api/admin/scholarships/${scholarshipId}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }

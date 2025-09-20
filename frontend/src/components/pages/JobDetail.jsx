@@ -70,7 +70,7 @@ const JobDetail = () => {
 
     // Load job and check authentication status
     useEffect(() => {
-        if (!slug) {
+        if (!slug || slug === 'null' || slug === 'undefined') {
             setError('Invalid job identifier');
             setLoading(false);
             return;
@@ -89,11 +89,8 @@ const JobDetail = () => {
         try {
             setLoading(true);
             const response = await apiRequest(`/api/jobs/${slug}`);
-            if (response?.success && response?.job) {
-                setJob(response.job);
-            } else if (response?.job) {
-                // Backend returns job object in job property
-                setJob(response.job);
+            if (response?.success && response?.data) {
+                setJob(response.data);
             } else if (response?.id || response?.title) {
                 // Some backends may return the job object directly
                 setJob(response);

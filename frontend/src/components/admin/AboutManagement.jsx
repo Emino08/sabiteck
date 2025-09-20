@@ -102,7 +102,7 @@ const AboutManagement = () => {
   const saveAboutData = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('auth_token');
       const response = await apiRequest('/api/admin/about', {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}` },

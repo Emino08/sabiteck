@@ -52,7 +52,7 @@ const RouteSettingsManager = () => {
       setLoading(true);
       setError(null);
 
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('auth_token');
       if (!token) {
         setError('Authentication required. Please log in again.');
         return;
@@ -98,7 +98,7 @@ const RouteSettingsManager = () => {
   const toggleRouteVisibility = async (routeName, currentVisibility) => {
     try {
       setSaving(true);
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('auth_token');
 
       const response = await fetch(`${API_BASE_URL}/api/admin/route-settings/${routeName}/visibility`, {
         method: 'PUT',
@@ -139,7 +139,7 @@ const RouteSettingsManager = () => {
       setSaving(true);
       setError(null);
 
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(`${API_BASE_URL}/api/admin/route-settings`, {
         method: 'PUT',
         headers: {
@@ -179,7 +179,7 @@ const RouteSettingsManager = () => {
     e.preventDefault();
     try {
       setSaving(true);
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('auth_token');
 
       if (editingRoute) {
         // Update existing route
@@ -245,7 +245,7 @@ const RouteSettingsManager = () => {
 
     try {
       setSaving(true);
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('auth_token');
 
       const response = await fetch(`${API_BASE_URL}/api/admin/route-settings/${deletingRoute.route_name}`, {
         method: 'DELETE',

@@ -72,7 +72,7 @@ const SettingsManager = () => {
       setLoading(true);
       setError(null);
 
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('auth_token');
       if (!token) {
         setError('Authentication required. Please log in again.');
         return;
@@ -117,7 +117,7 @@ const SettingsManager = () => {
       setSaving(true);
       setError(null);
 
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(`${API_BASE_URL}/api/admin/settings`, {
         method: 'PUT',
         headers: {
@@ -180,7 +180,7 @@ const SettingsManager = () => {
         [editingSetting.category]: [editingSetting]
       };
 
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(`${API_BASE_URL}/api/admin/settings`, {
         method: 'PUT',
         headers: {
@@ -229,7 +229,7 @@ const SettingsManager = () => {
         [activeCategory]: [newSetting]
       };
 
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(`${API_BASE_URL}/api/admin/settings`, {
         method: 'PUT',
         headers: {
@@ -294,7 +294,7 @@ const SettingsManager = () => {
         [deletingSetting.category]: remainingSettings
       };
 
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(`${API_BASE_URL}/api/admin/settings`, {
         method: 'PUT',
         headers: {

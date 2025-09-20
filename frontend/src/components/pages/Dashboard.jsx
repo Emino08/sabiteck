@@ -32,7 +32,7 @@ import { toast } from 'sonner';
 
 const Dashboard = () => {
     const navigate = useNavigate();
-    const { user, isAuthenticated, isAdmin } = useAuth();
+    const { user, isAuthenticated, isAdmin, loading: authLoading } = useAuth();
 
     // State management
     const [dashboardData, setDashboardData] = useState(null);
@@ -42,12 +42,17 @@ const Dashboard = () => {
 
     // Load dashboard data on component mount
     useEffect(() => {
+        if (authLoading) {
+            return; // Wait for auth to load
+        }
+
         if (!isAuthenticated()) {
             navigate('/login');
             return;
         }
+
         loadDashboardData();
-    }, []);
+    }, [authLoading, isAuthenticated, navigate]);
 
     const loadDashboardData = async (showRefreshIndicator = false) => {
         try {
@@ -58,7 +63,7 @@ const Dashboard = () => {
             }
             setError(null);
 
-            const token = localStorage.getItem('admin_token') || localStorage.getItem('authToken');
+            const token = localStorage.getItem('auth_token');
             if (!token) {
                 throw new Error('No authentication token found');
             }
@@ -109,11 +114,15 @@ const Dashboard = () => {
         return `${Math.floor(diffDays / 30)} months ago`;
     };
     
-    if (loading) {
+    // Show loading while auth is being checked or dashboard data is loading
+    if (authLoading || loading) {
         return (
             <div className="min-h-screen bg-gray-50">
                 <div className="flex items-center justify-center pt-20">
-                    <LoadingSpinner size="large" />
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent mx-auto mb-2"></div>
+                        <p className="text-gray-600">{authLoading ? 'Checking authentication...' : 'Loading dashboard...'}</p>
+                    </div>
                 </div>
             </div>
         );

@@ -54,7 +54,7 @@ const AnnouncementManagement = () => {
 
   const fetchAnnouncements = async () => {
     try {
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(`${API_BASE_URL}/api/admin/announcements`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -109,7 +109,7 @@ const AnnouncementManagement = () => {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('auth_token');
       const url = editingAnnouncement
         ? `${API_BASE_URL}/api/admin/announcements/${editingAnnouncement.id}`
         : `${API_BASE_URL}/api/admin/announcements`;
@@ -177,7 +177,7 @@ const AnnouncementManagement = () => {
     if (!confirm('Are you sure you want to delete this announcement?')) return;
 
     try {
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(`${API_BASE_URL}/api/admin/announcements/${id}`, {
         method: 'DELETE',
         headers: {
@@ -202,7 +202,7 @@ const AnnouncementManagement = () => {
 
   const toggleVisibility = async (id, isActive) => {
     try {
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(`${API_BASE_URL}/api/admin/announcements/${id}/toggle`, {
         method: 'PATCH',
         headers: {

@@ -22,6 +22,8 @@ import Login from './components/pages/Login'
 import Register from './components/pages/Register'
 import Dashboard from './components/pages/Dashboard'
 import Profile from './components/pages/Profile'
+import AccountDetails from './components/pages/AccountDetails'
+import ChangePassword from './components/pages/ChangePassword'
 import { AuthProvider } from './contexts/AuthContext'
 import { RouteSettingsProvider } from './contexts/RouteSettingsContext'
 import { ToastProvider } from './components/ui/toast'
@@ -150,6 +152,8 @@ function App() {
                     <Route path="/register" element={<Register />} />
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/profile" element={<Profile />} />
+                    <Route path="/account-details" element={<AccountDetails />} />
+                    <Route path="/change-password" element={<ChangePassword />} />
                     <Route path="/admin" element={<Admin />} />
                   </Routes>
                 </main>

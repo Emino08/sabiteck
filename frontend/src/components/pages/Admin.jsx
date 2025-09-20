@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from 'sonner';
+import { useAuth } from '../../contexts/AuthContext';
 import {
   Briefcase,
   GraduationCap,
@@ -37,8 +38,8 @@ import AnnouncementManagement from '../admin/AnnouncementManagement';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8002';
 
 const Admin = () => {
+  const { user, token, isAuthenticated, isAdmin, logout, login } = useAuth();
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('admin_token'));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [dashboardData, setDashboardData] = useState(null);
@@ -58,8 +59,10 @@ const Admin = () => {
       if (!res.ok || !data?.success) {
         throw new Error(data?.error || data?.message || 'Login failed');
       }
-      localStorage.setItem('admin_token', data?.token || '');
-      setIsAuthenticated(true);
+
+      // Use the main AuthContext login function
+      login(data.data.user, data.data.token);
+      toast.success('Admin login successful!');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -68,17 +71,20 @@ const Admin = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('admin_token');
-    setIsAuthenticated(false);
+    logout();
   };
 
   const fetchDashboardData = async () => {
     try {
+      const authHeaders = {
+        'Authorization': `Bearer ${token || localStorage.getItem('auth_token')}`
+      };
+
       const [servicesRes, jobsRes, scholarshipsRes, settingsRes, teamRes, portfolioRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/admin/services`),
-        fetch(`${API_BASE_URL}/api/admin/jobs`),
-        fetch(`${API_BASE_URL}/api/admin/scholarships`),
-        fetch(`${API_BASE_URL}/api/admin/settings`),
+        fetch(`${API_BASE_URL}/api/admin/services`, { headers: authHeaders }),
+        fetch(`${API_BASE_URL}/api/admin/jobs`, { headers: authHeaders }),
+        fetch(`${API_BASE_URL}/api/admin/scholarships`, { headers: authHeaders }),
+        fetch(`${API_BASE_URL}/api/admin/settings`, { headers: authHeaders }),
         fetch(`${API_BASE_URL}/api/team`),
         fetch(`${API_BASE_URL}/api/portfolio`)
       ]);
@@ -116,17 +122,22 @@ const Admin = () => {
   };
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated() && isAdmin()) {
       fetchDashboardData();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isAdmin]);
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated() || !isAdmin()) {
     return (
       <div className="min-h-screen pt-20 bg-gray-50 flex items-center justify-center px-4">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Admin Login</CardTitle>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
+              <p className="text-sm text-blue-800 font-medium mb-2">Test Credentials:</p>
+              <p className="text-xs text-blue-700">Username: <span className="font-mono">admin</span></p>
+              <p className="text-xs text-blue-700">Password: <span className="font-mono">admin123</span></p>
+            </div>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
@@ -342,17 +353,21 @@ const Admin = () => {
   };
 
   return (
-    <div className="min-h-screen pt-20 bg-gray-50">
+    <div className="min-h-screen pt-24 bg-gray-50 relative z-40">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-8 pt-4 relative z-40">
           <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <Button variant="outline" onClick={handleLogout}>
+          <Button
+            variant="outline"
+            onClick={handleLogout}
+            className="relative z-40 border-2 border-gray-300 hover:border-gray-400 bg-white px-6 py-2 rounded-lg shadow-sm"
+          >
             Logout
           </Button>
         </div>
 
         {/* Improved Navigation Tabs with Categories */}
-        <div className="bg-white rounded-lg shadow-sm border mb-6">
+        <div className="bg-white rounded-lg shadow-sm border mb-6 relative z-40">
           <div className="px-6 py-4">
             <div className="flex flex-wrap gap-4">
               {Object.entries(tabCategories).map(([categoryKey, category]) => (
@@ -386,7 +401,7 @@ const Admin = () => {
         </div>
 
         {/* Active Component */}
-        <div className="bg-white rounded-lg shadow-sm border">
+        <div className="bg-white rounded-lg shadow-sm border relative z-40">
           {renderActiveComponent()}
         </div>
       </div>

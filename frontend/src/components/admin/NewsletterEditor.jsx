@@ -117,7 +117,7 @@ const NewsletterEditor = () => {
 
     setLoading(true)
     try {
-      const token = localStorage.getItem('admin_token')
+      const token = localStorage.getItem('auth_token')
       await apiRequest('/api/admin/newsletter/campaigns', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
@@ -149,7 +149,7 @@ const NewsletterEditor = () => {
 
     setLoading(true)
     try {
-      const token = localStorage.getItem('admin_token')
+      const token = localStorage.getItem('auth_token')
       await apiRequest('/api/newsletter/send', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
@@ -218,7 +218,7 @@ const NewsletterEditor = () => {
 
     setLoading(true)
     try {
-      const token = localStorage.getItem('admin_token')
+      const token = localStorage.getItem('auth_token')
       await apiRequest(`/api/admin/newsletter/subscribers/${selectedSubscriber.id}/email`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
@@ -243,7 +243,7 @@ const NewsletterEditor = () => {
 
     setLoading(true)
     try {
-      const token = localStorage.getItem('admin_token')
+      const token = localStorage.getItem('auth_token')
       await apiRequest(`/api/admin/newsletter/subscribers/${selectedSubscriber.id}`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}` },
@@ -262,7 +262,7 @@ const NewsletterEditor = () => {
 
   const exportSubscribers = async () => {
     try {
-      const token = localStorage.getItem('admin_token')
+      const token = localStorage.getItem('auth_token')
       const response = await fetch('/api/admin/newsletter/subscribers/export', {
         headers: { 'Authorization': `Bearer ${token}` }
       })
@@ -295,7 +295,7 @@ const NewsletterEditor = () => {
 
     setLoading(true)
     try {
-      const token = localStorage.getItem('admin_token')
+      const token = localStorage.getItem('auth_token')
       const response = await fetch('/api/admin/newsletter/subscribers/import', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },

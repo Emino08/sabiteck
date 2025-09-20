@@ -90,7 +90,7 @@ const PortfolioManagement = () => {
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('auth_token');
       const url = editingItem ? `/api/admin/portfolio/${editingItem.id}` : '/api/admin/portfolio';
       const method = editingItem ? 'PUT' : 'POST';
 
@@ -138,7 +138,7 @@ const PortfolioManagement = () => {
     if (!confirm('Are you sure you want to delete this portfolio item?')) return;
 
     try {
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('auth_token');
       const response = await apiRequest(`/api/admin/portfolio/${itemId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
@@ -199,7 +199,7 @@ const PortfolioManagement = () => {
 
   const toggleItemStatus = async (itemId, field, value) => {
     try {
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('auth_token');
       await apiRequest(`/api/admin/portfolio/${itemId}`, {
         method: 'PATCH',
         headers: { 'Authorization': `Bearer ${token}` },

@@ -95,7 +95,7 @@ const ContentEditor = () => {
 
     setLoading(true)
     try {
-      const token = localStorage.getItem('admin_token')
+      const token = localStorage.getItem('auth_token')
       const url = editingContent ? `/api/admin/content/${editingContent.id}` : '/api/admin/content'
       const method = editingContent ? 'PUT' : 'POST'
       
@@ -128,7 +128,7 @@ const ContentEditor = () => {
     if (!confirm('Are you sure you want to delete this content?')) return
     
     try {
-      const token = localStorage.getItem('admin_token')
+      const token = localStorage.getItem('auth_token')
       await apiRequest(`/api/admin/content/${contentId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { apiRequest } from '../utils/api';
 
 const AuthContext = createContext();
@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
         try {
             const storedToken = localStorage.getItem('auth_token');
             const storedUser = localStorage.getItem('user');
-            
+
             if (storedToken && storedUser) {
                 try {
                     const userData = JSON.parse(storedUser);
@@ -60,20 +60,20 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
     };
 
-    const isAuthenticated = () => {
+    const isAuthenticated = useCallback(() => {
         return !!(token && user);
-    };
+    }, [token, user]);
 
-    const hasPermission = (permission) => {
+    const hasPermission = useCallback((permission) => {
         if (!user) return false;
         if (user.role === 'super_admin') return true;
         return user.permissions?.includes(permission) || false;
-    };
+    }, [user]);
 
-    const isAdmin = () => {
+    const isAdmin = useCallback(() => {
         if (!user) return false;
         return ['super_admin', 'admin'].includes(user.role);
-    };
+    }, [user]);
 
     const value = {
         user,
