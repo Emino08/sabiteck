@@ -129,7 +129,7 @@ const Admin = () => {
 
   if (!isAuthenticated() || !isAdmin()) {
     return (
-      <div className="min-h-screen pt-20 bg-gray-50 flex items-center justify-center px-4">
+      <div className="min-h-screen pt-32 bg-gray-50 flex items-center justify-center px-4">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Admin Login</CardTitle>

@@ -133,7 +133,7 @@ const ScholarshipDetail = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-screen pt-32 flex items-center justify-center">
                 <LoadingSpinner size="lg" />
             </div>
         );
@@ -141,7 +141,7 @@ const ScholarshipDetail = () => {
 
     if (error) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-screen pt-32 flex items-center justify-center">
                 <ErrorMessage message={error} />
             </div>
         );
@@ -149,7 +149,7 @@ const ScholarshipDetail = () => {
 
     if (!scholarship) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-screen pt-32 flex items-center justify-center">
                 <div className="text-center">
                     <h2 className="text-2xl font-bold text-gray-900 mb-2">Scholarship Not Found</h2>
                     <p className="text-gray-600 mb-4">The scholarship you're looking for doesn't exist.</p>
@@ -165,7 +165,7 @@ const ScholarshipDetail = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50 pt-24">
             {/* Breadcrumb */}
             <div className="bg-white border-b">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">

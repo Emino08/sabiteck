@@ -274,7 +274,7 @@ const Services = () => {
   ]
 
   return (
-    <div className="min-h-screen pt-20">
+    <div className="min-h-screen pt-32">
       <SEOHead title="Our Services - Sabiteck" description="Explore our services powered by admin-managed content from the backend." />
       {/* Hero Section */}
       <AnimatedBackground variant="blobs" className="py-16 bg-gradient-to-br from-blue-50 to-indigo-100">

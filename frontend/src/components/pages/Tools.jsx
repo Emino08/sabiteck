@@ -36,7 +36,7 @@ const Tools = () => {
     const featuredTool = tools.find(tool => tool.id === activeTab);
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50 pt-24">
             {/* Hero Section */}
             <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white">
                 <div className="container mx-auto px-4 py-16">

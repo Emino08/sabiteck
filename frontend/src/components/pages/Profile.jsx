@@ -222,7 +222,7 @@ const Profile = () => {
 
     if (authLoading || (loading && activeTab === 'profile' && !profileData.username)) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 flex items-center justify-center">
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 pt-32 flex items-center justify-center">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent mx-auto"></div>
                     <p className="mt-2 text-slate-600">{authLoading ? 'Checking authentication...' : 'Loading profile...'}</p>
@@ -232,7 +232,7 @@ const Profile = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 py-8">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 pt-32 py-8">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
                 {/* Elite Header */}
                 <div className="mb-8">

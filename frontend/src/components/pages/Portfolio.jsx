@@ -236,7 +236,7 @@ const Portfolio = () => {
   ]
 
   return (
-    <div className="min-h-screen pt-20">
+    <div className="min-h-screen pt-32">
       {/* Hero Section */}
       <section className="py-16 bg-gradient-to-br from-blue-50 to-indigo-100 relative overflow-hidden">
         {/* Animated background elements */}

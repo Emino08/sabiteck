@@ -294,8 +294,8 @@ const JobDetail = () => {
     
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50">
-                <div className="flex items-center justify-center pt-20">
+            <div className="min-h-screen bg-gray-50 pt-32">
+                <div className="flex items-center justify-center">
                     <LoadingSpinner size="large" />
                 </div>
             </div>
@@ -304,7 +304,7 @@ const JobDetail = () => {
     
     if (error || !job) {
         return (
-            <div className="min-h-screen bg-gray-50">
+            <div className="min-h-screen bg-gray-50 pt-32">
                 <div className="container mx-auto px-4 py-16">
                     <div className="text-center">
                         <XCircle className="mx-auto h-12 w-12 text-red-400 mb-4" />
@@ -329,7 +329,7 @@ const JobDetail = () => {
     const canApply = !isDeadlinePassed && job.status === 'active';
     
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50 pt-24">
             {/* Header */}
             <div className="bg-white shadow-sm">
                 <div className="container mx-auto px-4 py-4">

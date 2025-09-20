@@ -117,8 +117,8 @@ const Dashboard = () => {
     // Show loading while auth is being checked or dashboard data is loading
     if (authLoading || loading) {
         return (
-            <div className="min-h-screen bg-gray-50">
-                <div className="flex items-center justify-center pt-20">
+            <div className="min-h-screen bg-gray-50 pt-32">
+                <div className="flex items-center justify-center">
                     <div className="text-center">
                         <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent mx-auto mb-2"></div>
                         <p className="text-gray-600">{authLoading ? 'Checking authentication...' : 'Loading dashboard...'}</p>
@@ -130,7 +130,7 @@ const Dashboard = () => {
     
     if (error) {
         return (
-            <div className="min-h-screen bg-gray-50">
+            <div className="min-h-screen bg-gray-50 pt-32">
                 <div className="container mx-auto px-4 py-20">
                     <ErrorMessage
                         message={error}
@@ -150,7 +150,7 @@ const Dashboard = () => {
     const currentUser = dashboardData?.user || user;
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50 pt-24">
             {/* Header */}
             <div className="bg-white shadow-sm">
                 <div className="container mx-auto px-4 py-6">
