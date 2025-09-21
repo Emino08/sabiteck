@@ -71,8 +71,12 @@ class ApiService {
 
   async getPortfolioCategories() {
     try {
-      const response = await this.request('/portfolio/categories', { suppress404: true });
-      return response.categories || response.data?.categories || response.data?.data || response.data || response || [];
+      // Add cache-busting timestamp to force fresh request
+      const timestamp = Date.now();
+      const response = await this.request(`/portfolio/categories?_t=${timestamp}`, {
+        suppress404: true
+      });
+      return response.data || response.categories || response || [];
     } catch (error) {
       return [];
     }
@@ -271,8 +275,8 @@ class ApiService {
 
   async getCompanyStats() {
     // This will fetch stats for public display on homepage
-    const response = await this.request('/admin/dashboard');
-    return response.data?.stats || response.stats || {};
+    const response = await this.request('/company/stats');
+    return response.stats || response.data?.stats || {};
   }
 
   async getSettings() {

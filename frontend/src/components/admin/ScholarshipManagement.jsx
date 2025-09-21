@@ -17,7 +17,23 @@ import {
     Download,
     Upload,
     Settings,
-    X
+    X,
+    Star,
+    Crown,
+    Sparkles,
+    TrendingUp,
+    Target,
+    Zap,
+    Shield,
+    Rocket,
+    Diamond,
+    Briefcase,
+    CheckCircle2,
+    Clock,
+    Layers,
+    GraduationCap,
+    Building,
+    Globe
 } from 'lucide-react';
 import { apiRequest } from '../../utils/api';
 import LoadingSpinner from '../ui/LoadingSpinner';
@@ -210,7 +226,7 @@ const ScholarshipManagement = () => {
         try {
             return categories.map((category) => (
                 <option key={category?.id || category?._id || Math.random()} value={category?.id || category?._id || ''}>
-                    {category?.name || 'Unnamed Category'}
+                    ⭐ {category?.name || 'Unnamed Category'}
                 </option>
             ));
         } catch (error) {
@@ -219,220 +235,360 @@ const ScholarshipManagement = () => {
         }
     };
 
-    // Show loading state
+    // Show elite loading state
     if (loading && scholarships.length === 0) {
         return (
-            <div className="flex items-center justify-center min-h-96">
-                <LoadingSpinner size="lg" />
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-12">
+                <div className="text-center">
+                    <div className="relative inline-block mb-6">
+                        <div className="absolute -inset-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full blur opacity-75 animate-pulse"></div>
+                        <div className="relative p-6 bg-black/50 backdrop-blur-lg rounded-full border border-white/20">
+                            <GraduationCap className="w-16 h-16 text-purple-400 animate-pulse" />
+                        </div>
+                    </div>
+                    <h2 className="text-2xl font-bold text-white mb-4">Loading Elite Scholarship Management...</h2>
+                    <LoadingSpinner size="lg" />
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Scholarship Management</h2>
-                    <p className="text-gray-600">Manage scholarship opportunities and applications</p>
-                </div>
-                <button
-                    onClick={() => setShowEditor(true)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
-                >
-                    <Plus className="w-4 h-4" />
-                    <span>Add Scholarship</span>
-                </button>
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white relative overflow-hidden">
+            {/* Elite Background Effects */}
+            <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
+                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse animation-delay-2000"></div>
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse animation-delay-4000"></div>
             </div>
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                <div className="bg-white overflow-hidden shadow rounded-lg">
-                    <div className="p-5">
-                        <div className="flex items-center">
-                            <div className="flex-shrink-0">
-                                <Award className="h-8 w-8 text-gray-400" />
+            <div className="container mx-auto px-6 py-8 relative z-10 space-y-8">
+                {/* Elite Header */}
+                <div className="text-center mb-12">
+                    <div className="flex justify-center mb-6">
+                        <div className="relative group">
+                            <div className="absolute -inset-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 animate-pulse"></div>
+                            <div className="relative p-4 bg-black/50 backdrop-blur-lg rounded-full border border-white/20">
+                                <GraduationCap className="w-12 h-12 text-purple-400" />
                             </div>
-                            <div className="ml-5 w-0 flex-1">
-                                <dl>
-                                    <dt className="text-sm font-medium text-gray-500 truncate">Total</dt>
-                                    <dd className="text-lg font-medium text-gray-900">{stats.total}</dd>
-                                </dl>
+                        </div>
+                    </div>
+                    <h1 className="text-4xl md:text-5xl font-black mb-4 bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent">
+                        Elite Scholarship Management Hub
+                    </h1>
+                    <div className="flex justify-center items-center gap-2 mb-6">
+                        <Star className="w-5 h-5 text-yellow-400 fill-current" />
+                        <span className="text-yellow-400 font-semibold">Professional Academic Opportunity Center</span>
+                        <Star className="w-5 h-5 text-yellow-400 fill-current" />
+                    </div>
+                    <p className="text-gray-300 max-w-2xl mx-auto mb-8">
+                        Orchestrate exceptional academic opportunities and manage elite scholarship programs with our premium management suite
+                    </p>
+
+                    {/* Elite Action Buttons */}
+                    <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+                        <button className="inline-flex items-center px-6 py-3 bg-black/30 backdrop-blur-lg border border-white/20 text-white hover:bg-white/10 font-semibold rounded-2xl transition-all duration-300 hover:scale-105">
+                            <Download className="w-5 h-5 mr-2" />
+                            Export Elite Data
+                        </button>
+
+                        <button
+                            onClick={() => setShowEditor(true)}
+                            className="inline-flex items-center px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105"
+                        >
+                            <Plus className="w-5 h-5 mr-2" />
+                            Create Elite Scholarship
+                        </button>
+                    </div>
+                </div>
+
+                {/* Elite Stats Dashboard */}
+                <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl mb-8">
+                    <div className="flex items-center mb-8">
+                        <div className="p-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl mr-4">
+                            <TrendingUp className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                            <h3 className="text-2xl font-black text-white mb-2">Elite Analytics Dashboard</h3>
+                            <p className="text-gray-300">Real-time insights into your premium scholarship ecosystem</p>
+                        </div>
+                        <div className="ml-auto">
+                            <span className="px-3 py-1 bg-gradient-to-r from-emerald-400 to-teal-400 text-black rounded-full text-xs font-black">
+                                LIVE DATA
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                        <div className="bg-black/40 backdrop-blur-lg overflow-hidden shadow-xl rounded-2xl cursor-pointer transition-all duration-300 hover:scale-105 border border-white/10 hover:border-white/20">
+                            <div className="p-6">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0">
+                                        <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl">
+                                            <GraduationCap className="h-6 w-6 text-white" />
+                                        </div>
+                                    </div>
+                                    <div className="ml-4 w-0 flex-1">
+                                        <dl>
+                                            <dt className="text-sm font-bold text-gray-300 truncate">
+                                                Total Elite Scholarships
+                                            </dt>
+                                            <dd className="text-2xl font-black text-white">
+                                                {stats.total}
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-black/40 backdrop-blur-lg overflow-hidden shadow-xl rounded-2xl cursor-pointer transition-all duration-300 hover:scale-105 border border-white/10 hover:border-white/20">
+                            <div className="p-6">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0">
+                                        <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl">
+                                            <Rocket className="h-6 w-6 text-white" />
+                                        </div>
+                                    </div>
+                                    <div className="ml-4 w-0 flex-1">
+                                        <dl>
+                                            <dt className="text-sm font-bold text-gray-300 truncate">
+                                                Active Elite
+                                            </dt>
+                                            <dd className="text-2xl font-black text-white">
+                                                {stats.active}
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-black/40 backdrop-blur-lg overflow-hidden shadow-xl rounded-2xl cursor-pointer transition-all duration-300 hover:scale-105 border border-white/10 hover:border-white/20">
+                            <div className="p-6">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0">
+                                        <div className="p-2 bg-gradient-to-r from-yellow-500 to-amber-500 rounded-xl">
+                                            <Edit className="h-6 w-6 text-white" />
+                                        </div>
+                                    </div>
+                                    <div className="ml-4 w-0 flex-1">
+                                        <dl>
+                                            <dt className="text-sm font-bold text-gray-300 truncate">
+                                                Elite Drafts
+                                            </dt>
+                                            <dd className="text-2xl font-black text-white">
+                                                {stats.draft}
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-black/40 backdrop-blur-lg overflow-hidden shadow-xl rounded-2xl cursor-pointer transition-all duration-300 hover:scale-105 border border-white/10 hover:border-white/20">
+                            <div className="p-6">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0">
+                                        <div className="p-2 bg-gradient-to-r from-red-500 to-pink-500 rounded-xl">
+                                            <Clock className="h-6 w-6 text-white" />
+                                        </div>
+                                    </div>
+                                    <div className="ml-4 w-0 flex-1">
+                                        <dl>
+                                            <dt className="text-sm font-bold text-gray-300 truncate">
+                                                Expired
+                                            </dt>
+                                            <dd className="text-2xl font-black text-white">
+                                                {stats.expired}
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-black/40 backdrop-blur-lg overflow-hidden shadow-xl rounded-2xl cursor-pointer transition-all duration-300 hover:scale-105 border border-white/10 hover:border-white/20">
+                            <div className="p-6">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0">
+                                        <div className="p-2 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-xl">
+                                            <Star className="h-6 w-6 text-white fill-current animate-pulse" />
+                                        </div>
+                                    </div>
+                                    <div className="ml-4 w-0 flex-1">
+                                        <dl>
+                                            <dt className="text-sm font-bold text-gray-300 truncate">
+                                                Featured Elite
+                                            </dt>
+                                            <dd className="text-2xl font-black text-white">
+                                                {stats.featured}
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white overflow-hidden shadow rounded-lg">
-                    <div className="p-5">
-                        <div className="flex items-center">
-                            <div className="flex-shrink-0">
-                                <Award className="h-8 w-8 text-green-400" />
-                            </div>
-                            <div className="ml-5 w-0 flex-1">
-                                <dl>
-                                    <dt className="text-sm font-medium text-gray-500 truncate">Active</dt>
-                                    <dd className="text-lg font-medium text-gray-900">{stats.active}</dd>
-                                </dl>
-                            </div>
+                {/* Elite Search & Filter Hub */}
+                <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl mb-8">
+                    <div className="flex items-center mb-8">
+                        <div className="p-3 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-2xl mr-4">
+                            <Search className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                            <h3 className="text-2xl font-black text-white mb-2">Elite Search & Filter Console</h3>
+                            <p className="text-gray-300">Advanced tools for precision scholarship discovery</p>
+                        </div>
+                        <div className="ml-auto">
+                            <span className="px-3 py-1 bg-gradient-to-r from-cyan-400 to-blue-400 text-black rounded-full text-xs font-black">
+                                SEARCH ENGINE
+                            </span>
                         </div>
                     </div>
-                </div>
 
-                <div className="bg-white overflow-hidden shadow rounded-lg">
-                    <div className="p-5">
-                        <div className="flex items-center">
-                            <div className="flex-shrink-0">
-                                <Award className="h-8 w-8 text-yellow-400" />
-                            </div>
-                            <div className="ml-5 w-0 flex-1">
-                                <dl>
-                                    <dt className="text-sm font-medium text-gray-500 truncate">Draft</dt>
-                                    <dd className="text-lg font-medium text-gray-900">{stats.draft}</dd>
-                                </dl>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white overflow-hidden shadow rounded-lg">
-                    <div className="p-5">
-                        <div className="flex items-center">
-                            <div className="flex-shrink-0">
-                                <Award className="h-8 w-8 text-red-400" />
-                            </div>
-                            <div className="ml-5 w-0 flex-1">
-                                <dl>
-                                    <dt className="text-sm font-medium text-gray-500 truncate">Expired</dt>
-                                    <dd className="text-lg font-medium text-gray-900">{stats.expired}</dd>
-                                </dl>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white overflow-hidden shadow rounded-lg">
-                    <div className="p-5">
-                        <div className="flex items-center">
-                            <div className="flex-shrink-0">
-                                <Award className="h-8 w-8 text-purple-400" />
-                            </div>
-                            <div className="ml-5 w-0 flex-1">
-                                <dl>
-                                    <dt className="text-sm font-medium text-gray-500 truncate">Featured</dt>
-                                    <dd className="text-lg font-medium text-gray-900">{stats.featured}</dd>
-                                </dl>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Filters */}
-            <div className="bg-white shadow rounded-lg">
-                <div className="px-6 py-4 border-b border-gray-200">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0 sm:space-x-4">
-                        {/* Search */}
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0 sm:space-x-6">
+                        {/* Elite Search */}
                         <div className="flex-1 max-w-lg">
                             <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <Search className="h-5 w-5 text-gray-400" />
+                                <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                                    <Search className="h-5 w-5 text-cyan-400" />
+                                    <Zap className="h-4 w-4 text-blue-400 animate-pulse" />
                                 </div>
                                 <input
                                     type="text"
-                                    placeholder="Search scholarships..."
+                                    placeholder="Search elite scholarships..."
                                     value={searchTerm}
                                     onChange={handleSearch}
-                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                    className="block w-full pl-16 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-400 text-white placeholder-gray-400 text-lg transition-all duration-300"
                                 />
                             </div>
                         </div>
 
-                        {/* Category Filter */}
-                        <div className="flex items-center space-x-3">
-                            <select
-                                value={selectedCategory}
-                                onChange={handleCategoryFilter}
-                                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                                disabled={categoriesLoading}
-                            >
-                                <option value="">{categoriesLoading ? 'Loading categories...' : 'All Categories'}</option>
-                                {renderCategoriesOptions()}
-                            </select>
+                        {/* Elite Filters */}
+                        <div className="flex items-center space-x-4">
+                            <div className="relative">
+                                <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
+                                    <Target className="w-4 h-4 text-cyan-400" />
+                                </div>
+                                <select
+                                    value={selectedCategory}
+                                    onChange={handleCategoryFilter}
+                                    disabled={categoriesLoading}
+                                    className="pl-12 pr-4 py-3 bg-black/50 border border-white/20 rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-400 transition-all duration-300"
+                                >
+                                    <option value="">{categoriesLoading ? 'Loading elite categories...' : 'All Elite Categories'}</option>
+                                    {renderCategoriesOptions()}
+                                </select>
+                            </div>
 
-                            <button className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 bg-white hover:bg-gray-50">
-                                <Filter className="w-4 h-4 mr-2" />
-                                More Filters
+                            <button className="inline-flex items-center px-6 py-3 bg-black/50 backdrop-blur-lg border border-white/20 text-white hover:bg-white/10 font-semibold rounded-2xl transition-all duration-300 hover:scale-105">
+                                <Filter className="w-5 h-5 mr-2" />
+                                Advanced Filters
                             </button>
                         </div>
                     </div>
                 </div>
 
-                {/* Table */}
-                <div className="overflow-hidden">
+                {/* Elite Scholarships Table */}
+                <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl overflow-hidden">
+                    <div className="p-6 border-b border-white/10">
+                        <div className="flex items-center">
+                            <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl mr-4">
+                                <Award className="w-6 h-6 text-white" />
+                            </div>
+                            <div>
+                                <h3 className="text-2xl font-black text-white mb-2">Elite Scholarship Portfolio</h3>
+                                <p className="text-gray-300">Premium academic opportunities management center</p>
+                            </div>
+                            <div className="ml-auto">
+                                <span className="px-3 py-1 bg-gradient-to-r from-purple-400 to-pink-400 text-black rounded-full text-xs font-black">
+                                    PORTFOLIO
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
+                        <table className="min-w-full divide-y divide-white/10">
+                            <thead className="bg-black/40 backdrop-blur-lg">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Title
+                                    <th className="px-6 py-4 text-left text-xs font-black text-purple-300 uppercase tracking-wider">
+                                        🎓 Elite Scholarship
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Amount
+                                    <th className="px-6 py-4 text-left text-xs font-black text-purple-300 uppercase tracking-wider">
+                                        💰 Funding Amount
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Deadline
+                                    <th className="px-6 py-4 text-left text-xs font-black text-purple-300 uppercase tracking-wider">
+                                        ⏰ Application Deadline
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Status
+                                    <th className="px-6 py-4 text-left text-xs font-black text-purple-300 uppercase tracking-wider">
+                                        🚀 Status
                                     </th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Actions
+                                    <th className="px-6 py-4 text-right text-xs font-black text-purple-300 uppercase tracking-wider">
+                                        ⚙️ Elite Actions
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="bg-black/20 backdrop-blur-lg divide-y divide-white/10">
                                 {Array.isArray(scholarships) && scholarships.length > 0 ? (
                                     scholarships.map((scholarship) => (
-                                        <tr key={scholarship.id} className="hover:bg-gray-50">
+                                        <tr key={scholarship.id} className="hover:bg-white/5 transition-all duration-300">
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm font-medium text-gray-900">{scholarship.title}</div>
+                                                <div className="text-lg font-bold text-white flex items-center">
+                                                    <GraduationCap className="w-5 h-5 mr-3 text-purple-400" />
+                                                    <Crown className="w-4 h-4 mr-2 text-yellow-400" />
+                                                    {scholarship.title}
+                                                </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900">${scholarship.amount}</div>
+                                                <div className="text-lg font-bold text-white flex items-center">
+                                                    <DollarSign className="w-5 h-5 mr-2 text-green-400" />
+                                                    {scholarship.amount}
+                                                </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900">{scholarship.deadline}</div>
+                                                <div className="text-sm font-semibold text-white flex items-center">
+                                                    <Calendar className="w-4 h-4 mr-2 text-cyan-400" />
+                                                    {scholarship.deadline}
+                                                </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                                    scholarship.status === 'active' ? 'bg-green-100 text-green-800' :
-                                                    scholarship.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
-                                                    'bg-red-100 text-red-800'
+                                                <span className={`inline-flex items-center px-3 py-2 text-xs font-bold rounded-xl border backdrop-blur-lg ${
+                                                    scholarship.status === 'active' ? 'bg-green-500/20 text-green-300 border-green-400/30' :
+                                                    scholarship.status === 'draft' ? 'bg-yellow-500/20 text-yellow-300 border-yellow-400/30' :
+                                                    'bg-red-500/20 text-red-300 border-red-400/30'
                                                 }`}>
-                                                    {scholarship.status}
+                                                    <div className={`w-2 h-2 rounded-full mr-2 ${
+                                                        scholarship.status === 'active' ? 'bg-green-400 animate-pulse' :
+                                                        scholarship.status === 'draft' ? 'bg-yellow-400' :
+                                                        'bg-red-400'
+                                                    }`}></div>
+                                                    {scholarship.status.toUpperCase()}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <div className="flex items-center justify-end space-x-2">
+                                                <div className="flex items-center justify-end space-x-3">
                                                     <button
                                                         onClick={() => handleViewScholarship(scholarship)}
-                                                        className="text-blue-600 hover:text-blue-900"
-                                                        title="View scholarship"
+                                                        className="p-2 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-400/30 rounded-xl text-blue-400 hover:text-blue-300 backdrop-blur-lg transition-all duration-300 hover:scale-110"
+                                                        title="View Elite Scholarship"
                                                     >
                                                         <Eye className="w-4 h-4" />
                                                     </button>
                                                     <button
                                                         onClick={() => handleEditScholarship(scholarship)}
-                                                        className="text-gray-600 hover:text-gray-900"
-                                                        title="Edit scholarship"
+                                                        className="p-2 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-400/30 rounded-xl text-purple-400 hover:text-purple-300 backdrop-blur-lg transition-all duration-300 hover:scale-110"
+                                                        title="Edit Elite Scholarship"
                                                     >
                                                         <Edit className="w-4 h-4" />
                                                     </button>
                                                     <button
                                                         onClick={() => handleDeleteScholarship(scholarship.id)}
-                                                        className="text-red-600 hover:text-red-900"
-                                                        title="Delete scholarship"
+                                                        className="p-2 bg-gradient-to-r from-red-500/20 to-pink-500/20 border border-red-400/30 rounded-xl text-red-400 hover:text-red-300 backdrop-blur-lg transition-all duration-300 hover:scale-110"
+                                                        title="Delete Elite Scholarship"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
                                                     </button>
@@ -442,8 +598,18 @@ const ScholarshipManagement = () => {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan="5" className="px-6 py-4 text-center text-gray-500">
-                                            {loading ? 'Loading scholarships...' : 'No scholarships found'}
+                                        <td colSpan="5" className="px-6 py-12 text-center">
+                                            <div className="flex flex-col items-center">
+                                                <div className="p-4 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full border border-purple-400/30 backdrop-blur-lg mb-4">
+                                                    <GraduationCap className="w-12 h-12 text-purple-400" />
+                                                </div>
+                                                <h3 className="text-lg font-bold text-white mb-2">
+                                                    {loading ? 'Loading Elite Scholarships...' : 'No Elite Scholarships Found'}
+                                                </h3>
+                                                <p className="text-gray-300">
+                                                    {loading ? 'Searching premium opportunities...' : 'No scholarships match your elite criteria'}
+                                                </p>
+                                            </div>
                                         </td>
                                     </tr>
                                 )}
@@ -501,21 +667,27 @@ const ScholarshipManagement = () => {
                 )}
             </div>
 
-            {/* Editor Modal */}
-            {showEditor && (
-                <ScholarshipEditor
-                    scholarship={editingScholarship}
-                    onCancel={() => {
-                        setShowEditor(false);
-                        setEditingScholarship(null);
-                    }}
-                    onSave={() => {
-                        loadScholarships();
-                        setShowEditor(false);
-                        setEditingScholarship(null);
-                    }}
-                />
-            )}
+                {/* Elite Editor Modal */}
+                {showEditor && (
+                    <div className="fixed inset-0 bg-black/80 backdrop-blur-lg overflow-y-auto h-full w-full z-50">
+                        <div className="relative min-h-screen flex items-center justify-center p-4">
+                            <div className="relative w-full max-w-7xl max-h-[95vh] overflow-y-auto">
+                                <ScholarshipEditor
+                                    scholarship={editingScholarship}
+                                    onCancel={() => {
+                                        setShowEditor(false);
+                                        setEditingScholarship(null);
+                                    }}
+                                    onSave={() => {
+                                        loadScholarships();
+                                        setShowEditor(false);
+                                        setEditingScholarship(null);
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                )}
         </div>
     );
 };

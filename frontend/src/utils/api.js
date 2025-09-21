@@ -41,25 +41,61 @@ export const apiRequest = async (endpoint, options = {}) => {
     });
 
     const response = await fetch(url, config);
-    
+
+    // Check if response is JSON by checking content-type header
+    const contentType = response.headers.get('content-type');
+    const isJsonResponse = contentType && contentType.includes('application/json');
+
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      let errorData = {};
+      let errorMessage = 'Unknown error';
+
+      if (isJsonResponse) {
+        errorData = await response.json().catch(() => ({}));
+        errorMessage = errorData.error || errorData.message || 'Unknown error';
+      } else {
+        // If it's not JSON, it's likely an HTML error page
+        const errorText = await response.text().catch(() => 'Unknown error');
+        errorMessage = `Server returned HTML error page (status ${response.status})`;
+        secureLog('error', 'Non-JSON error response', {
+          status: response.status,
+          contentType,
+          textPreview: errorText.substring(0, 200)
+        });
+      }
+
       secureLog('error', 'API request failed', {
         status: response.status,
-        error: errorData
+        error: errorMessage,
+        isJson: isJsonResponse
       });
 
       // For auth errors, throw to let components handle login
       if (response.status === 401) {
         secureLog('warn', 'Auth error on endpoint', { endpoint });
-        throw new Error(`Unauthorized: ${errorData.error || 'Authentication required'}`);
+        throw new Error(`Unauthorized: ${errorMessage}`);
       }
 
       // For other errors, throw to let components handle them
-      throw new Error(`API Error ${response.status}: ${errorData.error || 'Unknown error'}`);
+      throw new Error(`API Error ${response.status}: ${errorMessage}`);
     }
 
-    const data = await response.json();
+    // Only try to parse JSON if the response is actually JSON
+    if (!isJsonResponse) {
+      secureLog('warn', 'Expected JSON but got different content type', {
+        contentType,
+        endpoint
+      });
+      throw new Error(`Server returned non-JSON response: ${contentType || 'unknown content type'}`);
+    }
+
+    const data = await response.json().catch((parseError) => {
+      secureLog('error', 'Failed to parse JSON response', {
+        parseError: parseError.message,
+        endpoint
+      });
+      throw new Error(`Invalid JSON response: ${parseError.message}`);
+    });
     secureLog('info', 'API request successful', { hasData: !!data });
 
     // If the response already has success flag, return it as-is

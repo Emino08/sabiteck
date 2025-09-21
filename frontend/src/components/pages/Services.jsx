@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight, CheckCircle, Code, Smartphone, Cloud, Database, Globe, Zap, ShoppingCart, Users, BarChart, Shield } from 'lucide-react'
+import { ArrowRight, CheckCircle, Code, Smartphone, Cloud, Database, Globe, Zap, ShoppingCart, Users, BarChart, Shield, Star, Trophy, Target, Heart, Lightbulb, Play, Award, Clock, Mail, Phone } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollReveal } from '@/components/ui/scroll-reveal'
@@ -274,28 +274,125 @@ const Services = () => {
   ]
 
   return (
-    <div className="min-h-screen pt-32">
-      <SEOHead title="Our Services - Sabiteck" description="Explore our services powered by admin-managed content from the backend." />
-      {/* Hero Section */}
-      <AnimatedBackground variant="blobs" className="py-16 bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <ScrollReveal animation="fade-up">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 gradient-text">
-              Our Services
+    <div className="min-h-screen pt-20">
+      <SEOHead title="Our Services - Sabiteck" description="Explore our comprehensive technology services designed to transform your business." />
+
+      {/* Enhanced Hero Section */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+        <div className="absolute inset-0 opacity-20">
+          <div className="w-full h-full bg-repeat bg-[length:60px_60px]"
+               style={{
+                 backgroundImage: `radial-gradient(circle at 30px 30px, white 2px, transparent 2px)`
+               }}>
+          </div>
+        </div>
+
+        {/* Animated floating elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute top-3/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
+          <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl animate-pulse" style={{animationDelay: '4s'}}></div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 text-white">
+          <ScrollReveal>
+            <div className="inline-flex items-center px-6 py-3 bg-blue-600/20 backdrop-blur-sm rounded-full text-blue-200 text-sm font-medium mb-8 border border-blue-400/20">
+              <Star className="h-4 w-4 mr-2" />
+              Premium Technology Services
+            </div>
+          </ScrollReveal>
+
+          <ScrollReveal delay={200}>
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+              Transform Your Business with
+              <span className="block bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
+                Expert Solutions
+              </span>
             </h1>
           </ScrollReveal>
-          <ScrollReveal animation="fade-up" delay={200}>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Comprehensive software development services to help your business thrive 
+
+          <ScrollReveal delay={300}>
+            <p className="text-xl md:text-2xl text-blue-100 mb-12 leading-relaxed max-w-4xl mx-auto">
+              Comprehensive software development services to help your business thrive
               in the digital age. From web applications to mobile apps and cloud solutions.
             </p>
           </ScrollReveal>
-        </div>
-      </AnimatedBackground>
 
-      {/* Services Overview */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ScrollReveal delay={400}>
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
+              <button
+                className="bg-white text-blue-900 hover:bg-blue-50 px-10 py-5 rounded-2xl font-bold text-lg shadow-2xl hover:scale-105 transition-all duration-300 group flex items-center"
+                onClick={handleStartProject}
+              >
+                <Zap className="mr-3 h-6 w-6" />
+                Start Your Project
+                <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
+              </button>
+              <button
+                className="border-2 border-white/30 text-white hover:bg-white/10 px-10 py-5 rounded-2xl font-bold text-lg backdrop-blur-sm hover:scale-105 transition-all duration-300 flex items-center"
+                onClick={handleScheduleConsultation}
+              >
+                <Play className="mr-3 h-6 w-6" />
+                Free Consultation
+              </button>
+            </div>
+          </ScrollReveal>
+
+          {/* Service highlights */}
+          <ScrollReveal delay={500}>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
+              <div className="text-center bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                <Code className="h-8 w-8 mx-auto mb-3 text-blue-300" />
+                <p className="font-bold text-white mb-1">Web Development</p>
+                <p className="text-blue-200 text-sm">Modern & Responsive</p>
+              </div>
+              <div className="text-center bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                <Smartphone className="h-8 w-8 mx-auto mb-3 text-blue-300" />
+                <p className="font-bold text-white mb-1">Mobile Apps</p>
+                <p className="text-blue-200 text-sm">iOS & Android</p>
+              </div>
+              <div className="text-center bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                <Cloud className="h-8 w-8 mx-auto mb-3 text-blue-300" />
+                <p className="font-bold text-white mb-1">Cloud Solutions</p>
+                <p className="text-blue-200 text-sm">Scalable & Secure</p>
+              </div>
+              <div className="text-center bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                <Users className="h-8 w-8 mx-auto mb-3 text-blue-300" />
+                <p className="font-bold text-white mb-1">Consulting</p>
+                <p className="text-blue-200 text-sm">Expert Guidance</p>
+              </div>
+            </div>
+          </ScrollReveal>
+        </div>
+      </section>
+
+      {/* Enhanced Services Overview */}
+      <section className="py-20 bg-gradient-to-br from-gray-50 to-blue-50 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-5">
+          <div className="w-full h-full bg-repeat bg-[length:40px_40px]"
+               style={{
+                 backgroundImage: `radial-gradient(circle at 20px 20px, #3B82F6 1px, transparent 1px)`
+               }}>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <ScrollReveal>
+            <div className="text-center mb-20">
+              <div className="inline-flex items-center px-4 py-2 bg-blue-600/10 rounded-full text-blue-600 text-sm font-medium mb-6">
+                <Trophy className="h-4 w-4 mr-2" />
+                Our Services Portfolio
+              </div>
+              <h2 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+                Choose Your Perfect Solution
+              </h2>
+              <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
+                From concept to deployment, we provide end-to-end technology solutions
+                that drive growth and innovation for your business.
+              </p>
+            </div>
+          </ScrollReveal>
+
           <DataRenderer
             data={services}
             loading={servicesLoading}
@@ -306,81 +403,160 @@ const Services = () => {
           >
             {(srv) => (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {srv.map((service, index) => (
-                  <ScrollReveal key={service.id || index} animation="scale-in" delay={index * 150}>
-                    <Card
-                      variant="interactive"
-                      className={`group transition-all hover-lift hover-glow ${
-                        (currentService && currentService.id) === service.id ? 'ring-2 ring-primary shadow-lg scale-105' : ''
-                      }`}
-                      onClick={() => setSelectedService(service.id)}
-                    >
-                      <CardHeader className="text-center">
-                        {React.createElement(service.icon, { className: 'h-12 w-12 text-primary mx-auto mb-4 group-hover:scale-110 transition-transform group-hover:text-blue-600' })}
-                        <CardTitle className="text-xl group-hover:text-primary transition-colors">{service.title}</CardTitle>
-                      </CardHeader>
-                      <CardContent className="text-center">
-                        <p className="text-gray-600 mb-4 group-hover:text-gray-800 transition-colors">{service.shortDesc}</p>
-                        <div className="text-sm text-primary font-semibold group-hover:text-blue-600 transition-colors">
-                          {service.pricing}
+                {srv.map((service, index) => {
+                  const isSelected = (currentService && currentService.id) === service.id
+                  const gradients = [
+                    'from-blue-500 to-blue-600',
+                    'from-purple-500 to-purple-600',
+                    'from-green-500 to-green-600',
+                    'from-orange-500 to-orange-600',
+                    'from-red-500 to-red-600',
+                    'from-indigo-500 to-indigo-600'
+                  ]
+                  const gradient = gradients[index % gradients.length]
+
+                  return (
+                    <ScrollReveal key={service.id || index} delay={index * 100}>
+                      <div
+                        className={`group cursor-pointer transition-all duration-300 ${
+                          isSelected ? 'scale-105' : 'hover:scale-105'
+                        }`}
+                        onClick={() => setSelectedService(service.id)}
+                      >
+                        <div className={`bg-white/80 backdrop-blur-sm rounded-3xl p-8 border-2 ${
+                          isSelected ? 'border-blue-500 shadow-2xl' : 'border-white/50 hover:shadow-2xl'
+                        } hover:-translate-y-2 transition-all duration-300 h-full`}>
+
+                          <div className="text-center mb-6">
+                            <div className={`w-20 h-20 mx-auto mb-6 rounded-3xl bg-gradient-to-br ${gradient} flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                              {React.createElement(service.icon, { className: 'h-10 w-10 text-white' })}
+                            </div>
+
+                            <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
+                              {service.title}
+                            </h3>
+
+                            <p className="text-gray-600 mb-6 leading-relaxed">
+                              {service.shortDesc}
+                            </p>
+                          </div>
+
+                          <div className="space-y-4 mb-6">
+                            <div className="flex items-center justify-between bg-gray-50 rounded-xl p-3">
+                              <span className="text-gray-600 font-medium">Starting at</span>
+                              <span className="text-blue-600 font-bold text-lg">{service.pricing}</span>
+                            </div>
+                            <div className="flex items-center justify-between bg-gray-50 rounded-xl p-3">
+                              <span className="text-gray-600 font-medium">Timeline</span>
+                              <span className="text-gray-800 font-medium">{service.timeline}</span>
+                            </div>
+                          </div>
+
+                          <div className="flex justify-center">
+                            <button className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
+                              isSelected
+                                ? 'bg-blue-600 text-white shadow-lg'
+                                : 'bg-gray-100 text-gray-700 hover:bg-blue-600 hover:text-white group-hover:shadow-lg'
+                            }`}>
+                              {isSelected ? 'Selected' : 'View Details'}
+                              <ArrowRight className="ml-2 h-4 w-4 inline group-hover:translate-x-1 transition-transform" />
+                            </button>
+                          </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  </ScrollReveal>
-                ))}
+                      </div>
+                    </ScrollReveal>
+                  )
+                })}
               </div>
             )}
           </DataRenderer>
         </div>
       </section>
 
-      {/* Service Detail */}
+      {/* Enhanced Service Detail */}
       {currentService && (
-        <section className="py-16 bg-gray-50">
+        <section className="py-20 bg-white relative">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            {/* Service Header */}
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center px-4 py-2 bg-green-600/10 rounded-full text-green-600 text-sm font-medium mb-6">
+                <Target className="h-4 w-4 mr-2" />
+                Service Details
+              </div>
+              <div className="flex items-center justify-center mb-6">
+                <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl flex items-center justify-center mr-6 shadow-xl">
+                  {React.createElement(currentService.icon, { className: 'h-12 w-12 text-white' })}
+                </div>
+                <div className="text-left">
+                  <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2">{currentService.title}</h2>
+                  <p className="text-xl text-gray-600">{currentService.shortDesc}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
               {/* Service Info */}
               <div>
-                <div className="flex items-center mb-6">
-                  {React.createElement(currentService.icon, { className: 'h-16 w-16 text-primary mr-4' })}
-                  <div>
-                    <h2 className="text-3xl font-bold text-gray-900">{currentService.title}</h2>
-                    <p className="text-lg text-gray-600">{currentService.shortDesc}</p>
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-3xl p-10 mb-8 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-40 h-40 bg-blue-200/30 rounded-full blur-3xl"></div>
+                  <div className="relative z-10">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-6">Service Overview</h3>
+                    <p className="text-gray-700 text-lg mb-8 leading-relaxed">
+                      {currentService.fullDesc}
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-6 mb-8">
+                      <div className="bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                        <h4 className="font-bold text-gray-900 mb-2 flex items-center">
+                          <Clock className="h-5 w-5 mr-2 text-blue-600" />
+                          Timeline
+                        </h4>
+                        <p className="text-gray-600 font-medium">{currentService.timeline}</p>
+                      </div>
+                      <div className="bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                        <h4 className="font-bold text-gray-900 mb-2 flex items-center">
+                          <Award className="h-5 w-5 mr-2 text-green-600" />
+                          Investment
+                        </h4>
+                        <p className="text-green-600 font-bold text-lg">{currentService.pricing}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      <button
+                        className="flex-1 bg-blue-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-blue-700 hover:scale-105 transition-all duration-300 shadow-lg flex items-center justify-center"
+                        onClick={handleStartProject}
+                      >
+                        <Zap className="mr-2 h-5 w-5" />
+                        Start Project
+                        <ArrowRight className="ml-2 h-5 w-5" />
+                      </button>
+                      <button
+                        className="flex-1 border-2 border-blue-600 text-blue-600 px-8 py-4 rounded-xl font-bold text-lg hover:bg-blue-600 hover:text-white hover:scale-105 transition-all duration-300 flex items-center justify-center"
+                        onClick={handleScheduleConsultation}
+                      >
+                        <Phone className="mr-2 h-5 w-5" />
+                        Free Consultation
+                      </button>
+                    </div>
                   </div>
                 </div>
-                
-                <p className="text-gray-700 text-lg mb-8 leading-relaxed">
-                  {currentService.fullDesc}
-                </p>
-
-                <div className="grid grid-cols-2 gap-6 mb-8">
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Pricing</h4>
-                    <p className="text-primary font-bold text-lg">{currentService.pricing}</p>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Timeline</h4>
-                    <p className="text-gray-600">{currentService.timeline}</p>
-                  </div>
-                </div>
-
-                <Button size="lg" className="w-full sm:w-auto" onClick={handleStartProject}>
-                  Get Started with {currentService.title}
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
               </div>
 
-              {/* Features and Process */}
+              {/* Features, Technologies, and Process */}
               <div className="space-y-8">
                 {/* Features */}
                 {currentService.features?.length > 0 && (
-                  <div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-6">Key Features</h3>
-                    <div className="grid grid-cols-1 gap-3">
-                      {currentService.features.slice(0, 12).map((feature, index) => (
-                        <div key={index} className="flex items-center">
-                          <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
-                          <span className="text-gray-700">{feature}</span>
+                  <div className="bg-gradient-to-br from-white to-gray-50 rounded-3xl p-8 border border-gray-100 shadow-lg">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                      <CheckCircle className="h-6 w-6 mr-3 text-green-500" />
+                      Key Features
+                    </h3>
+                    <div className="grid grid-cols-1 gap-4">
+                      {currentService.features.slice(0, 8).map((feature, index) => (
+                        <div key={index} className="flex items-center bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                          <div className="w-3 h-3 bg-green-500 rounded-full mr-4 flex-shrink-0"></div>
+                          <span className="text-gray-700 font-medium">{feature}</span>
                         </div>
                       ))}
                     </div>
@@ -389,11 +565,14 @@ const Services = () => {
 
                 {/* Technologies */}
                 {currentService.technologies?.length > 0 && (
-                  <div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-6">Technologies</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {currentService.technologies.slice(0, 16).map((tech, index) => (
-                        <span key={index} className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+                  <div className="bg-gradient-to-br from-white to-gray-50 rounded-3xl p-8 border border-gray-100 shadow-lg">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                      <Code className="h-6 w-6 mr-3 text-blue-500" />
+                      Technologies We Use
+                    </h3>
+                    <div className="flex flex-wrap gap-3">
+                      {currentService.technologies.slice(0, 12).map((tech, index) => (
+                        <span key={index} className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg hover:scale-105 transition-transform">
                           {tech}
                         </span>
                       ))}
@@ -403,15 +582,18 @@ const Services = () => {
 
                 {/* Process */}
                 {currentService.process?.length > 0 && (
-                  <div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-6">Our Process</h3>
+                  <div className="bg-gradient-to-br from-white to-gray-50 rounded-3xl p-8 border border-gray-100 shadow-lg">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                      <Target className="h-6 w-6 mr-3 text-purple-500" />
+                      Our Process
+                    </h3>
                     <div className="space-y-4">
-                      {currentService.process.slice(0, 10).map((step, index) => (
-                        <div key={index} className="flex items-center">
-                          <div className="bg-primary text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-4">
+                      {currentService.process.slice(0, 6).map((step, index) => (
+                        <div key={index} className="flex items-center bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                          <div className="bg-gradient-to-r from-purple-500 to-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center text-sm font-bold mr-4 flex-shrink-0 shadow-lg">
                             {index + 1}
                           </div>
-                          <span className="text-gray-700">{step}</span>
+                          <span className="text-gray-700 font-medium">{step}</span>
                         </div>
                       ))}
                     </div>
@@ -423,53 +605,149 @@ const Services = () => {
         </section>
       )}
 
-      {/* Testimonials */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Client Success Stories
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              See what our clients say about our services and results.
-            </p>
+      {/* Enhanced Testimonials */}
+      <section className="py-20 bg-gradient-to-br from-gray-50 to-blue-50 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-5">
+          <div className="w-full h-full bg-repeat bg-[length:50px_50px]"
+               style={{
+                 backgroundImage: `radial-gradient(circle at 25px 25px, #6B46C1 1px, transparent 1px)`
+               }}>
           </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <ScrollReveal>
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center px-4 py-2 bg-purple-600/10 rounded-full text-purple-600 text-sm font-medium mb-6">
+                <Heart className="h-4 w-4 mr-2" />
+                Client Success Stories
+              </div>
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+                What Our Clients Say
+              </h2>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                Real results from real businesses. See how our services have transformed
+                companies across Sierra Leone and beyond.
+              </p>
+            </div>
+          </ScrollReveal>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <Card key={index}>
-                <CardContent className="p-6">
-                  <p className="text-gray-600 mb-4 italic">"{testimonial.text}"</p>
-                  <div>
-                    <div className="font-semibold text-gray-900">{testimonial.name}</div>
-                    <div className="text-sm text-gray-600">{testimonial.company}</div>
-                    <div className="text-xs text-primary mt-1">{testimonial.service}</div>
+              <ScrollReveal key={index} delay={index * 100}>
+                <div className="group">
+                  <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-white/50 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 h-full relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-blue-200/20 rounded-full blur-2xl"></div>
+                    <div className="relative z-10">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+                        <Star className="h-6 w-6 text-white" />
+                      </div>
+
+                      <p className="text-gray-700 mb-6 italic text-lg leading-relaxed">
+                        "{testimonial.text}"
+                      </p>
+
+                      <div className="border-t border-gray-200 pt-6">
+                        <div className="font-bold text-gray-900 text-lg">{testimonial.name}</div>
+                        <div className="text-gray-600 font-medium">{testimonial.company}</div>
+                        <div className="inline-flex items-center mt-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                          <Award className="h-3 w-3 mr-1" />
+                          {testimonial.service}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </ScrollReveal>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-16 bg-primary text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            Ready to Get Started?
-          </h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto">
-            Let's discuss your project requirements and create a custom solution 
-            that fits your business needs and budget.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary" className="text-lg px-8 py-3" onClick={handleStartProject}>
-              Start Your Project
-            </Button>
-            <Button size="lg" variant="outline" className="text-lg px-8 py-3 text-blue-900 border-white hover:bg-blue-900 hover:text-primary" onClick={handleScheduleConsultation}>
-              Schedule Consultation
-            </Button>
+      {/* Enhanced CTA Section */}
+      <section className="py-20 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="w-full h-full bg-repeat bg-[length:80px_80px]"
+               style={{
+                 backgroundImage: `radial-gradient(circle at 40px 40px, white 2px, transparent 2px)`
+               }}>
           </div>
+        </div>
+
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '3s'}}></div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+          <ScrollReveal>
+            <div className="inline-flex items-center px-6 py-3 bg-green-600/20 rounded-full text-green-200 text-sm font-medium mb-8">
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Ready to Transform Your Business?
+            </div>
+            <h2 className="text-5xl md:text-6xl font-bold mb-8 leading-tight">
+              Let's Build Something
+              <span className="block bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                Amazing Together
+              </span>
+            </h2>
+            <p className="text-xl md:text-2xl text-blue-100 mb-12 leading-relaxed max-w-4xl mx-auto">
+              Let's discuss your project requirements and create a custom solution
+              that fits your business needs and budget. Get started today!
+            </p>
+            <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
+              <button
+                className="bg-white text-blue-900 hover:bg-blue-50 px-10 py-5 rounded-2xl font-bold text-lg shadow-2xl hover:scale-105 transition-all duration-300 group flex items-center justify-center"
+                onClick={handleStartProject}
+              >
+                <Lightbulb className="mr-3 h-6 w-6" />
+                Start Your Project
+                <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
+              </button>
+              <button
+                className="border-2 border-white/30 text-white hover:bg-white/10 px-10 py-5 rounded-2xl font-bold text-lg backdrop-blur-sm hover:scale-105 transition-all duration-300 flex items-center justify-center"
+                onClick={handleScheduleConsultation}
+              >
+                <Phone className="mr-3 h-6 w-6" />
+                Free Consultation
+              </button>
+            </div>
+
+            {/* Contact options */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300">
+                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Phone className="h-6 w-6 text-blue-300" />
+                </div>
+                <h3 className="font-bold text-white mb-2">Quick Call</h3>
+                <p className="text-blue-200 mb-4">Discuss your project in 15 minutes</p>
+                <button className="text-blue-300 hover:text-white font-medium hover:bg-white/10 px-4 py-2 rounded-lg transition-all">
+                  Schedule Call
+                </button>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300">
+                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Mail className="h-6 w-6 text-blue-300" />
+                </div>
+                <h3 className="font-bold text-white mb-2">Send Details</h3>
+                <p className="text-blue-200 mb-4">Email us your project requirements</p>
+                <button className="text-blue-300 hover:text-white font-medium hover:bg-white/10 px-4 py-2 rounded-lg transition-all">
+                  Send Email
+                </button>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300">
+                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Award className="h-6 w-6 text-blue-300" />
+                </div>
+                <h3 className="font-bold text-white mb-2">Get Quote</h3>
+                <p className="text-blue-200 mb-4">Receive a detailed project proposal</p>
+                <button className="text-blue-300 hover:text-white font-medium hover:bg-white/10 px-4 py-2 rounded-lg transition-all">
+                  Request Quote
+                </button>
+              </div>
+            </div>
+          </ScrollReveal>
         </div>
       </section>
     </div>

@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from 'react'
-import { MessageCircle, Heart, Send, User, Reply } from 'lucide-react'
+import { MessageCircle, Heart, Send, User, Reply, LogIn, AlertCircle } from 'lucide-react'
 import { Button } from './button'
 import { Input } from './input'
 import { Card, CardContent } from './card'
 import { apiRequest } from '../../utils/api'
 import { toast } from 'sonner'
+import { useAuth } from '../../contexts/AuthContext'
+import { useNavigate } from 'react-router-dom'
 
 const CommentSection = ({ contentId, initialCommentCount = 0, initialLikeCount = 0 }) => {
+  const { user, isAuthenticated } = useAuth()
+  const navigate = useNavigate()
+
   const [comments, setComments] = useState([])
   const [commentCount, setCommentCount] = useState(initialCommentCount)
   const [likeCount, setLikeCount] = useState(initialLikeCount)
@@ -25,6 +30,12 @@ const CommentSection = ({ contentId, initialCommentCount = 0, initialLikeCount =
     author_email: '',
     comment: ''
   })
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+  const [pendingLike, setPendingLike] = useState(() => {
+    // Check if there's a pending like for this content
+    const pending = localStorage.getItem(`pendingLike_${contentId}`)
+    return pending === 'true'
+  })
 
   const userIdentifier = localStorage.getItem('user_email') || 
                         localStorage.getItem('temp_user_id') || 
@@ -37,45 +48,142 @@ const CommentSection = ({ contentId, initialCommentCount = 0, initialLikeCount =
   }
 
   useEffect(() => {
-    // Check if user has already liked this content
-    const likedPosts = JSON.parse(localStorage.getItem('liked_posts') || '[]')
-    const contentIdStr = String(contentId)
-    setIsLiked(likedPosts.includes(contentIdStr))
-  }, [contentId])
+    // Check if user has already liked this content (only for authenticated users)
+    if (isAuthenticated()) {
+      const likedPosts = JSON.parse(localStorage.getItem('liked_posts') || '[]')
+      const contentIdStr = String(contentId)
+      setIsLiked(likedPosts.includes(contentIdStr))
+    } else {
+      setIsLiked(false) // Reset like status for non-authenticated users
+    }
+  }, [contentId, isAuthenticated])
 
   useEffect(() => {
-    // Load initial like status from server when component mounts
+    // Load initial like status from server when component mounts (only for authenticated users)
     const checkLikeStatus = async () => {
       try {
-        const response = await apiRequest(`/api/content/${contentId}/like-status?userIdentifier=${encodeURIComponent(userIdentifier)}`, {
+        const identifier = isAuthenticated() ?
+          user?.email || user?.username || userIdentifier :
+          userIdentifier
+
+        const response = await apiRequest(`/api/content/${contentId}/like-status?userIdentifier=${encodeURIComponent(identifier)}`, {
           method: 'GET'
         })
 
         // Update state based on server response
-        setIsLiked(response.liked)
+        setIsLiked(response.liked && isAuthenticated()) // Only set liked if user is authenticated
         setLikeCount(response.like_count)
 
-        // Update localStorage to match server state
-        const likedPosts = JSON.parse(localStorage.getItem('liked_posts') || '[]')
-        const contentIdStr = String(contentId)
+        // Update localStorage to match server state (only for authenticated users)
+        if (isAuthenticated()) {
+          const likedPosts = JSON.parse(localStorage.getItem('liked_posts') || '[]')
+          const contentIdStr = String(contentId)
 
-        if (response.liked && !likedPosts.includes(contentIdStr)) {
-          likedPosts.push(contentIdStr)
-          localStorage.setItem('liked_posts', JSON.stringify(likedPosts))
-        } else if (!response.liked && likedPosts.includes(contentIdStr)) {
-          const index = likedPosts.indexOf(contentIdStr)
-          likedPosts.splice(index, 1)
-          localStorage.setItem('liked_posts', JSON.stringify(likedPosts))
+          if (response.liked && !likedPosts.includes(contentIdStr)) {
+            likedPosts.push(contentIdStr)
+            localStorage.setItem('liked_posts', JSON.stringify(likedPosts))
+          } else if (!response.liked && likedPosts.includes(contentIdStr)) {
+            const index = likedPosts.indexOf(contentIdStr)
+            likedPosts.splice(index, 1)
+            localStorage.setItem('liked_posts', JSON.stringify(likedPosts))
+          }
         }
       } catch (error) {
         console.log('Could not check initial like status')
       }
     }
 
-    if (contentId && userIdentifier) {
+    if (contentId) {
       checkLikeStatus()
     }
-  }, [contentId, userIdentifier])
+  }, [contentId, user, isAuthenticated])
+
+  // Handle pending like after authentication
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const shouldLike = urlParams.get('autoLike')
+    const targetContentId = urlParams.get('contentId')
+
+    if (shouldLike === 'true' &&
+        targetContentId === String(contentId) &&
+        isAuthenticated() &&
+        !isLiked) {
+
+      // Auto-like the content after successful login/registration
+      const performAutoLike = async () => {
+        try {
+          // Clear pending state first
+          setPendingLike(false)
+          localStorage.removeItem(`pendingLike_${contentId}`)
+
+          // Perform the like action
+          await handleLike()
+
+          // Clean up URL parameters
+          const newUrl = window.location.pathname
+          window.history.replaceState({}, document.title, newUrl)
+
+          toast.success('Welcome back! Your like has been activated.')
+        } catch (error) {
+          console.error('Auto-like failed:', error)
+          toast.error('Failed to activate like. Please try again.')
+        }
+      }
+
+      performAutoLike()
+    }
+  }, [isAuthenticated, contentId, isLiked])
+
+  // Clear pending like when user authenticates (fallback)
+  useEffect(() => {
+    if (isAuthenticated() && pendingLike) {
+      // Check if this was a pending like that should be cleared
+      const hasPendingLike = localStorage.getItem(`pendingLike_${contentId}`)
+      if (hasPendingLike && !window.location.search.includes('autoLike=true')) {
+        // User logged in but not via our flow, clear pending state
+        setPendingLike(false)
+        localStorage.removeItem(`pendingLike_${contentId}`)
+      }
+    }
+  }, [isAuthenticated, pendingLike, contentId])
+
+  // Show reminder for pending likes
+  useEffect(() => {
+    if (pendingLike && !isAuthenticated()) {
+      const timer = setTimeout(() => {
+        toast.info('You have a pending like! Sign in to activate it.', {
+          action: {
+            label: 'Sign In',
+            onClick: () => setShowLoginPrompt(true)
+          }
+        })
+      }, 3000) // Show after 3 seconds
+
+      return () => clearTimeout(timer)
+    }
+  }, [pendingLike, isAuthenticated])
+
+  // Handle keyboard events for modal
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (showLoginPrompt && event.key === 'Escape') {
+        setShowLoginPrompt(false)
+        setPendingLike(false)
+        localStorage.removeItem(`pendingLike_${contentId}`)
+      }
+    }
+
+    if (showLoginPrompt) {
+      document.addEventListener('keydown', handleKeyDown)
+      // Focus the modal when it opens
+      document.body.style.overflow = 'hidden'
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      document.body.style.overflow = 'unset'
+    }
+  }, [showLoginPrompt, contentId])
 
   const countAllComments = (commentArray) => {
     let count = 0
@@ -105,6 +213,15 @@ const CommentSection = ({ contentId, initialCommentCount = 0, initialLikeCount =
   }
 
   const handleLike = async () => {
+    // Check if user is authenticated
+    if (!isAuthenticated()) {
+      setPendingLike(true)
+      localStorage.setItem(`pendingLike_${contentId}`, 'true')
+      setShowLoginPrompt(true)
+      toast.error('Please log in to like posts')
+      return
+    }
+
     // Optimistic update
     const newLikedState = !isLiked
     const newLikeCount = newLikedState ? likeCount + 1 : likeCount - 1
@@ -115,7 +232,10 @@ const CommentSection = ({ contentId, initialCommentCount = 0, initialLikeCount =
     try {
       const response = await apiRequest(`/api/content/${contentId}/like`, {
         method: 'POST',
-        body: JSON.stringify({ user_identifier: userIdentifier })
+        body: JSON.stringify({
+          user_identifier: user?.email || user?.username || userIdentifier,
+          user_id: user?.id
+        })
       })
 
       // Update with actual server response
@@ -135,6 +255,12 @@ const CommentSection = ({ contentId, initialCommentCount = 0, initialLikeCount =
         if (index > -1) likedPosts.splice(index, 1)
       }
       localStorage.setItem('liked_posts', JSON.stringify(likedPosts))
+
+      // Clear any pending like state on success
+      if (pendingLike) {
+        setPendingLike(false)
+        localStorage.removeItem(`pendingLike_${contentId}`)
+      }
 
       toast.success(response.liked ? 'Post liked!' : 'Like removed')
     } catch (error) {
@@ -414,10 +540,25 @@ const CommentSection = ({ contentId, initialCommentCount = 0, initialLikeCount =
           variant="ghost"
           size="sm"
           onClick={handleLike}
-          className={`flex items-center space-x-2 ${isLiked ? 'text-red-600 hover:text-red-700' : 'text-gray-600 hover:text-gray-700'}`}
+          className={`flex items-center space-x-2 transition-all duration-300 ${
+            isLiked ? 'text-red-600 hover:text-red-700' :
+            pendingLike ? 'text-blue-600 hover:text-blue-700 animate-pulse' :
+            isAuthenticated() ? 'text-gray-600 hover:text-gray-700' :
+            'text-gray-400 hover:text-gray-600'
+          }`}
+          title={
+            pendingLike ? 'Login to activate your like' :
+            !isAuthenticated() ? 'Login required to like posts' :
+            isLiked ? 'Unlike this post' : 'Like this post'
+          }
         >
-          <Heart className={`h-5 w-5 ${isLiked ? 'fill-current' : ''}`} />
+          <Heart className={`h-5 w-5 transition-all duration-300 ${
+            isLiked ? 'fill-current' :
+            pendingLike ? 'fill-current text-blue-600 animate-pulse' : ''
+          }`} />
           <span>{likeCount} {likeCount === 1 ? 'Like' : 'Likes'}</span>
+          {pendingLike && <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent ml-1" />}
+          {!isAuthenticated() && !pendingLike && <LogIn className="h-4 w-4 ml-1 opacity-60" />}
         </Button>
         
         <Button
@@ -437,7 +578,13 @@ const CommentSection = ({ contentId, initialCommentCount = 0, initialLikeCount =
           {/* Add Comment Form */}
           <Card>
             <CardContent className="p-4">
-              <h4 className="font-medium mb-4">Leave a Comment</h4>
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="font-medium">Leave a Comment</h4>
+                <div className="flex items-center text-sm text-green-600 bg-green-50 px-3 py-1 rounded-full">
+                  <MessageCircle className="h-4 w-4 mr-1" />
+                  <span>No login required</span>
+                </div>
+              </div>
               <form onSubmit={handleCommentSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
@@ -485,6 +632,148 @@ const CommentSection = ({ contentId, initialCommentCount = 0, initialLikeCount =
             ) : (
               comments.map((comment) => renderComment(comment))
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Enhanced Login Prompt Modal */}
+      {showLoginPrompt && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="login-modal-title"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowLoginPrompt(false)
+              setPendingLike(false)
+              localStorage.removeItem(`pendingLike_${contentId}`)
+            }
+          }}
+        >
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+            {/* Header with gradient background */}
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
+              <div className="flex items-center justify-center mb-3">
+                <div className="bg-white/20 rounded-full p-3">
+                  <Heart className="h-8 w-8 text-white" />
+                </div>
+              </div>
+              <h3 id="login-modal-title" className="text-xl font-bold text-center mb-2">Join the Conversation!</h3>
+              <p className="text-blue-100 text-center text-sm">
+                Sign in to show your appreciation and track your favorite content
+              </p>
+            </div>
+
+            {/* Content */}
+            <div className="p-6">
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 mb-6">
+                <div className="flex items-start space-x-3">
+                  <div className="bg-blue-100 rounded-full p-2 flex-shrink-0">
+                    <AlertCircle className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-1">Why sign in?</h4>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li className="flex items-center">
+                        <Heart className="h-3 w-3 text-red-500 mr-2 flex-shrink-0" />
+                        Like and save your favorite posts
+                      </li>
+                      <li className="flex items-center">
+                        <MessageCircle className="h-3 w-3 text-green-500 mr-2 flex-shrink-0" />
+                        Get notified of replies to your comments
+                      </li>
+                      <li className="flex items-center">
+                        <User className="h-3 w-3 text-blue-500 mr-2 flex-shrink-0" />
+                        Build your profile and reputation
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button
+                  onClick={() => {
+                    setShowLoginPrompt(false)
+                    const currentUrl = window.location.pathname + window.location.search
+                    const returnUrl = `${currentUrl}${currentUrl.includes('?') ? '&' : '?'}autoLike=true&contentId=${contentId}`
+
+                    // Track analytics for like-motivated login
+                    if (typeof gtag !== 'undefined') {
+                      gtag('event', 'login_prompt_click', {
+                        'event_category': 'engagement',
+                        'event_label': 'like_action',
+                        'content_id': contentId
+                      })
+                    }
+
+                    navigate('/login', {
+                      state: {
+                        returnTo: returnUrl,
+                        message: 'Sign in to like this post'
+                      }
+                    })
+                  }}
+                  className="flex items-center justify-center flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5"
+                >
+                  <LogIn className="h-4 w-4 mr-2" />
+                  Sign In Now
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowLoginPrompt(false)
+                    setPendingLike(false)
+                    localStorage.removeItem(`pendingLike_${contentId}`)
+                  }}
+                  className="flex-1 border-gray-300 hover:bg-gray-50 transition-colors"
+                >
+                  Maybe Later
+                </Button>
+              </div>
+
+              {/* Alternative option */}
+              <div className="mt-4 text-center">
+                <span className="text-sm text-gray-500">Don't have an account? </span>
+                <Button
+                  variant="link"
+                  onClick={() => {
+                    setShowLoginPrompt(false)
+                    const currentUrl = window.location.pathname + window.location.search
+                    const returnUrl = `${currentUrl}${currentUrl.includes('?') ? '&' : '?'}autoLike=true&contentId=${contentId}`
+
+                    // Track analytics for like-motivated registration
+                    if (typeof gtag !== 'undefined') {
+                      gtag('event', 'register_prompt_click', {
+                        'event_category': 'engagement',
+                        'event_label': 'like_action',
+                        'content_id': contentId
+                      })
+                    }
+
+                    navigate('/register', {
+                      state: {
+                        returnTo: returnUrl,
+                        message: 'Create an account to like this post'
+                      }
+                    })
+                  }}
+                  className="text-sm text-blue-600 hover:text-blue-700 p-0 h-auto font-semibold"
+                >
+                  Create Account
+                </Button>
+              </div>
+
+              {/* Footer message */}
+              <div className="mt-6 p-4 bg-green-50 rounded-xl border border-green-200">
+                <p className="text-sm text-green-700 text-center font-medium flex items-center justify-center">
+                  <MessageCircle className="h-4 w-4 mr-2 text-green-600" />
+                  Good news! You can still comment and participate without signing in
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       )}

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
-import { 
-    Search, 
-    Filter, 
-    MapPin, 
-    Building2, 
-    Clock, 
-    DollarSign, 
+import {
+    Search,
+    Filter,
+    MapPin,
+    Building2,
+    Clock,
+    DollarSign,
     Briefcase,
     Heart,
     ChevronDown,
@@ -14,9 +14,22 @@ import {
     Star,
     Calendar,
     Users,
-    TrendingUp
+    TrendingUp,
+    Crown,
+    Sparkles,
+    Zap,
+    Target,
+    Globe,
+    Award,
+    Shield,
+    Rocket,
+    Diamond,
+    Eye,
+    BookOpen,
+    Layers
 } from 'lucide-react';
 import { apiRequest } from '../../utils/api';
+import ApiService from '../../services/api';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import ErrorMessage from '../ui/ErrorMessage';
 
@@ -83,24 +96,39 @@ const Jobs = () => {
     const loadJobs = async () => {
         try {
             setLoading(true);
+            setError(null);
             const queryParams = new URLSearchParams();
-            
+
             Object.entries(filters).forEach(([key, value]) => {
                 if (value && value !== '' && !(key === 'remote' && value === false)) {
                     queryParams.append(key, value);
                 }
             });
-            
+
+            // Try the API endpoint first
             const response = await apiRequest(`/api/jobs?${queryParams.toString()}`);
-            
+
             if (response.success) {
                 setJobs(response.data || []);
                 setPagination(response.pagination || { total: response.total || 0, pages: 1, page: 1 });
+                return;
             } else {
-                setError(response.message || 'Failed to load jobs');
+                throw new Error(response.message || 'Failed to load jobs');
             }
         } catch (err) {
-            setError('Failed to load jobs');
+            console.warn('Primary jobs endpoint failed, trying fallback:', err.message);
+
+            try {
+                // Fallback to ApiService
+                const fallbackJobs = await ApiService.getJobs(filters);
+                const jobsArray = Array.isArray(fallbackJobs) ? fallbackJobs : [];
+                setJobs(jobsArray);
+                setPagination({ total: jobsArray.length, pages: 1, page: 1 });
+            } catch (fallbackErr) {
+                console.error('Both job endpoints failed:', fallbackErr);
+                setError('Unable to load job listings. Please try again later.');
+                setJobs([]);
+            }
         } finally {
             setLoading(false);
         }
@@ -108,14 +136,23 @@ const Jobs = () => {
     
     const loadFeaturedJobs = async () => {
         try {
+            // Try the direct API endpoint first
             const response = await apiRequest('/api/jobs/featured');
             if (response.success && Array.isArray(response.data)) {
                 setFeaturedJobs(response.data);
-            } else {
-                setFeaturedJobs([]);
+                return;
             }
         } catch (err) {
-            console.error('Failed to load featured jobs:', err);
+            console.warn('Featured jobs endpoint not available, trying fallback:', err.message);
+        }
+
+        try {
+            // Fallback to getting all jobs and filtering for featured ones
+            const allJobs = await ApiService.getJobs({ featured: true, limit: 6 });
+            const featuredJobs = Array.isArray(allJobs) ? allJobs.filter(job => job.featured) : [];
+            setFeaturedJobs(featuredJobs.slice(0, 6)); // Limit to 6 featured jobs
+        } catch (fallbackErr) {
+            console.error('Failed to load featured jobs with fallback:', fallbackErr);
             setFeaturedJobs([]);
         }
     };
@@ -125,13 +162,20 @@ const Jobs = () => {
             const response = await apiRequest('/api/jobs/categories');
             if (response.success && Array.isArray(response.data)) {
                 setCategories(response.data);
-            } else {
-                setCategories([]);
+                return;
             }
         } catch (err) {
-            console.error('Failed to load categories:', err);
-            setCategories([]);
+            console.warn('Job categories endpoint not available:', err.message);
         }
+
+        // Fallback to empty array or default categories
+        setCategories([
+            { name: 'Technology', count: 0 },
+            { name: 'Engineering', count: 0 },
+            { name: 'Design', count: 0 },
+            { name: 'Marketing', count: 0 },
+            { name: 'Sales', count: 0 }
+        ]);
     };
     
     const loadLocations = async () => {
@@ -139,13 +183,19 @@ const Jobs = () => {
             const response = await apiRequest('/api/jobs/locations');
             if (response.success && Array.isArray(response.data)) {
                 setLocations(response.data);
-            } else {
-                setLocations([]);
+                return;
             }
         } catch (err) {
-            console.error('Failed to load locations:', err);
-            setLocations([]);
+            console.warn('Job locations endpoint not available:', err.message);
         }
+
+        // Fallback to default locations
+        setLocations([
+            { name: 'Freetown, Sierra Leone', count: 0 },
+            { name: 'Bo, Sierra Leone', count: 0 },
+            { name: 'Kenema, Sierra Leone', count: 0 },
+            { name: 'Remote', count: 0 }
+        ]);
     };
     
     const updateURL = () => {
@@ -247,157 +297,200 @@ const Jobs = () => {
 
     if (loading && jobs.length === 0) {
         return (
-            <div className="min-h-screen bg-gray-50 pt-32">
-                <div className="flex items-center justify-center">
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 pt-32 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="relative inline-block mb-6">
+                        <div className="absolute -inset-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full blur opacity-75 animate-pulse"></div>
+                        <div className="relative p-6 bg-black/50 backdrop-blur-lg rounded-full border border-white/20">
+                            <Crown className="w-16 h-16 text-yellow-400 animate-pulse" />
+                        </div>
+                    </div>
+                    <h2 className="text-2xl font-bold text-white mb-4">Loading Elite Opportunities...</h2>
                     <LoadingSpinner size="large" />
                 </div>
             </div>
         );
     }
-    
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
-            {/* Enhanced Hero Section */}
-            <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 text-white pt-24">
-                {/* Background Pattern */}
-                <div className="absolute inset-0 opacity-40" style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-                }}></div>
 
-                <div className="relative container mx-auto px-4 py-20 lg:py-32">
-                    <div className="max-w-4xl mx-auto text-center">
-                        <div className="mb-8 animate-fade-in">
-                            <span className="inline-flex items-center px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-blue-200 text-sm font-medium mb-6">
-                                <Briefcase className="w-4 h-4 mr-2" />
-                                {jobs.length} Premium Opportunities Available
-                            </span>
-                            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-blue-100 to-blue-200 bg-clip-text text-transparent leading-tight">
-                                Elite Career Opportunities
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white relative overflow-hidden">
+            {/* Elite Background Effects */}
+            <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
+                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse animation-delay-2000"></div>
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse animation-delay-4000"></div>
+            </div>
+            {/* Elite Hero Section */}
+            <section className="relative z-10 pt-32 pb-20">
+                <div className="container mx-auto px-6">
+                    <div className="max-w-6xl mx-auto text-center">
+                        <div className="mb-12">
+                            {/* Elite Crown Icon */}
+                            <div className="flex justify-center mb-8">
+                                <div className="relative group">
+                                    <div className="absolute -inset-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 animate-pulse"></div>
+                                    <div className="relative p-6 bg-black/50 backdrop-blur-lg rounded-full border border-white/20 shadow-2xl">
+                                        <Crown className="w-16 h-16 text-yellow-400" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Elite Badge */}
+                            <div className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-lg border border-purple-400/30 text-purple-200 text-sm font-bold mb-8">
+                                <Diamond className="w-4 h-4 mr-2 animate-pulse" />
+                                {jobs.length}+ ELITE OPPORTUNITIES AVAILABLE
+                            </div>
+
+                            <h1 className="text-6xl md:text-8xl font-black mb-8 bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent leading-tight tracking-tight">
+                                Elite Career Nexus
                             </h1>
-                            <p className="text-xl md:text-2xl mb-8 text-slate-300 max-w-3xl mx-auto leading-relaxed">
-                                Join industry leaders and innovative companies shaping the future of technology
+
+                            <div className="flex justify-center items-center gap-3 mb-8">
+                                <Star className="w-6 h-6 text-yellow-400 fill-current animate-pulse" />
+                                <span className="text-yellow-400 font-bold text-lg">Premium Professional Network</span>
+                                <Star className="w-6 h-6 text-yellow-400 fill-current animate-pulse" />
+                            </div>
+
+                            <p className="text-xl md:text-2xl mb-12 text-gray-300 max-w-4xl mx-auto leading-relaxed">
+                                Connect with industry titans, revolutionary startups, and game-changing organizations
+                                defining the future of innovation and technology excellence.
                             </p>
                         </div>
 
-                        {/* Premium Search Interface */}
-                        <div className="bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20 p-6 md:p-8">
-                            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                        {/* Elite Search Interface */}
+                        <div className="bg-black/30 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/10 p-8">
+                            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                                 <div className="lg:col-span-2 relative group">
-                                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
+                                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                                        <Search className="w-5 h-5 text-purple-400 group-focus-within:text-purple-300 transition-colors" />
+                                        <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
+                                    </div>
                                     <input
                                         type="text"
-                                        placeholder="Search roles, companies, or skills..."
+                                        placeholder="Search elite roles, prestigious companies, premium skills..."
                                         value={filters.search}
                                         onChange={(e) => handleFilterChange('search', e.target.value)}
-                                        className="w-full pl-12 pr-4 py-4 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-900 placeholder-slate-400 text-lg transition-all duration-200"
+                                        className="w-full pl-16 pr-4 py-5 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-400 text-white placeholder-gray-400 text-lg transition-all duration-300"
                                     />
                                 </div>
 
                                 <div className="relative group">
-                                    <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
+                                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                                        <MapPin className="w-5 h-5 text-purple-400 group-focus-within:text-purple-300 transition-colors" />
+                                        <Globe className="w-4 h-4 text-purple-400 animate-pulse" />
+                                    </div>
                                     <select
                                         value={filters.location}
                                         onChange={(e) => handleFilterChange('location', e.target.value)}
-                                        className="w-full pl-12 pr-10 py-4 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-900 text-lg appearance-none transition-all duration-200 cursor-pointer"
+                                        className="w-full pl-16 pr-12 py-5 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-400 text-white text-lg appearance-none transition-all duration-300 cursor-pointer"
                                     >
-                                        <option value="">All Locations</option>
+                                        <option value="">Elite Global Locations</option>
                                         {locations.map((location, index) => (
                                             <option key={location.name || index} value={location.name}>
                                                 {location.name}
                                             </option>
                                         ))}
                                     </select>
-                                    <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+                                    <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-purple-400 pointer-events-none" />
                                 </div>
 
                                 <button
                                     onClick={() => handleFilterChange('page', 1)}
-                                    className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                                    className="bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 hover:from-purple-700 hover:via-purple-600 hover:to-pink-600 text-white px-8 py-5 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-2xl hover:shadow-purple-500/25 transform hover:-translate-y-1 hover:scale-105"
                                 >
-                                    <Search className="w-5 h-5 mr-2" />
-                                    Discover Roles
+                                    <Rocket className="w-5 h-5 mr-2" />
+                                    Discover Elite Roles
                                 </button>
                             </div>
                         </div>
 
-                        {/* Stats Row */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12">
-                            <div className="text-center">
-                                <div className="text-3xl font-bold text-white">{jobs.length}+</div>
-                                <div className="text-slate-300 text-sm">Active Positions</div>
-                            </div>
-                            <div className="text-center">
-                                <div className="text-3xl font-bold text-white">50+</div>
-                                <div className="text-slate-300 text-sm">Partner Companies</div>
-                            </div>
-                            <div className="text-center">
-                                <div className="text-3xl font-bold text-white">95%</div>
-                                <div className="text-slate-300 text-sm">Success Rate</div>
-                            </div>
-                            <div className="text-center">
-                                <div className="text-3xl font-bold text-white">24h</div>
-                                <div className="text-slate-300 text-sm">Response Time</div>
-                            </div>
+                        {/* Elite Stats Row */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16">
+                            {[
+                                { label: 'Elite Positions', value: `${jobs.length}+`, icon: Target, color: 'purple' },
+                                { label: 'Premium Partners', value: '50+', icon: Shield, color: 'blue' },
+                                { label: 'Success Rate', value: '95%', icon: Award, color: 'green' },
+                                { label: 'Response Time', value: '24h', icon: Zap, color: 'yellow' }
+                            ].map((stat, index) => (
+                                <div key={index} className="text-center group">
+                                    <div className="bg-black/30 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:border-white/20 transition-all duration-300 hover:scale-105">
+                                        <div className="flex justify-center mb-4">
+                                            <div className={`p-3 bg-gradient-to-r from-${stat.color}-500 to-${stat.color}-600 rounded-xl`}>
+                                                <stat.icon className="w-6 h-6 text-white" />
+                                            </div>
+                                        </div>
+                                        <div className="text-3xl font-black text-white mb-2">{stat.value}</div>
+                                        <div className="text-gray-300 font-semibold text-sm">{stat.label}</div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
             </section>
             
-            {/* Premium Featured Jobs Section */}
+            {/* Elite Featured Jobs Section */}
             {featuredJobs.length > 0 && (
-                <section className="py-20 bg-gradient-to-br from-white via-blue-50/30 to-slate-50">
-                    <div className="container mx-auto px-4">
+                <section className="relative py-20 bg-gradient-to-b from-slate-900 to-black">
+                    {/* Background Effects */}
+                    <div className="absolute inset-0 overflow-hidden">
+                        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
+                        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl"></div>
+                    </div>
+
+                    <div className="container mx-auto px-6 relative z-10">
                         <div className="text-center mb-16">
-                            <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-amber-100 to-yellow-100 border border-amber-200 text-amber-800 text-sm font-medium mb-6">
-                                <Star className="w-4 h-4 mr-2 text-amber-600" />
-                                Premium Selections
+                            <div className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-yellow-400/20 to-orange-400/20 backdrop-blur-lg border border-yellow-400/30 text-yellow-200 text-sm font-bold mb-8">
+                                <Crown className="w-4 h-4 mr-2 text-yellow-400 animate-pulse" />
+                                ELITE PREMIER SELECTIONS
                             </div>
-                            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6">
-                                Featured Opportunities
+                            <h2 className="text-5xl md:text-6xl font-black text-white mb-8 bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent">
+                                Featured Elite Opportunities
                             </h2>
-                            <p className="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
-                                Exceptional roles from industry-leading companies, carefully curated for top talent
+                            <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+                                Exclusive positions from industry titans and innovative leaders,
+                                handpicked for exceptional professionals who define excellence.
                             </p>
                         </div>
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
                             {featuredJobs.map(job => (
-                                <div key={job.id} className="group relative bg-white rounded-2xl shadow-lg border border-slate-200/50 hover:shadow-2xl hover:border-blue-200/50 transition-all duration-300 transform hover:-translate-y-2 overflow-hidden">
-                                    {/* Premium Badge */}
-                                    <div className="absolute top-4 right-4 z-10">
-                                        <div className="bg-gradient-to-r from-amber-400 to-yellow-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-                                            <Star className="w-3 h-3 inline mr-1" />
-                                            FEATURED
+                                <div key={job.id} className="group relative bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 hover:border-purple-400/50 transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 overflow-hidden shadow-2xl">
+                                    {/* Elite Premium Badge */}
+                                    <div className="absolute top-6 right-6 z-10">
+                                        <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-4 py-2 rounded-full text-xs font-black shadow-2xl animate-pulse">
+                                            <Crown className="w-3 h-3 inline mr-1" />
+                                            ELITE FEATURED
                                         </div>
                                     </div>
 
-                                    {/* Card Content */}
+                                    {/* Elite Card Content */}
                                     <div className="p-8">
                                         <div className="mb-6">
-                                            <div className="flex items-center mb-3">
-                                                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-lg mr-4">
+                                            <div className="flex items-center mb-4">
+                                                <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center text-white font-black text-lg mr-4 shadow-xl">
                                                     {job.company_name?.charAt(0) || 'S'}
                                                 </div>
                                                 <div>
-                                                    <h4 className="font-semibold text-slate-700 text-sm">{job.company_name}</h4>
-                                                    <div className="flex items-center text-slate-500 text-sm">
+                                                    <h4 className="font-bold text-white text-sm">{job.company_name}</h4>
+                                                    <div className="flex items-center text-gray-300 text-sm">
                                                         <MapPin className="w-3 h-3 mr-1" />
                                                         {job.location}
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <h3 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-blue-600 transition-colors duration-200">
+                                            <h3 className="text-2xl font-black text-white mb-4 group-hover:text-purple-300 transition-colors duration-300">
                                                 <Link
                                                     to={`/jobs/${job.slug}`}
-                                                    className="block hover:text-blue-600"
+                                                    className="block hover:text-purple-300"
                                                 >
                                                     {job.title}
                                                 </Link>
                                             </h3>
 
-                                            <p className="text-slate-600 text-sm leading-relaxed mb-4 line-clamp-2">
-                                                {job.description?.slice(0, 120)}...
+                                            <p className="text-gray-300 text-sm leading-relaxed mb-6 line-clamp-3">
+                                                {job.description?.slice(0, 150)}...
                                             </p>
                                         </div>
 

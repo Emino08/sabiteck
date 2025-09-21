@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, Save, Eye, EyeOff, Shield, Calendar, Check, X, AlertCircle, Settings, Camera, Edit3 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -31,28 +31,8 @@ const Profile = () => {
         confirm: false
     });
 
-    const loadProfile = useCallback(async () => {
-        try {
-            setLoading(true);
 
-            // Load profile data from auth context first
-            if (user) {
-                setProfileData({
-                    username: user.username || '',
-                    email: user.email || '',
-                    first_name: user.first_name || '',
-                    last_name: user.last_name || ''
-                });
-            }
-        } catch (error) {
-            console.error('Profile load error:', error);
-            toast.error('Failed to load profile data');
-        } finally {
-            setLoading(false);
-        }
-    }, [user]);
-
-    // Redirect if not authenticated
+    // Redirect if not authenticated and load profile data
     useEffect(() => {
         if (authLoading) {
             return; // Wait for auth to load
@@ -63,8 +43,27 @@ const Profile = () => {
             return;
         }
 
-        loadProfile();
-    }, [authLoading, isAuthenticated, navigate, loadProfile]);
+        // Load profile data directly instead of calling loadProfile
+        if (user) {
+            setProfileData(prev => {
+                const newData = {
+                    username: user.username || '',
+                    email: user.email || '',
+                    first_name: user.first_name || '',
+                    last_name: user.last_name || ''
+                };
+
+                // Only update if data has actually changed
+                if (prev.username !== newData.username ||
+                    prev.email !== newData.email ||
+                    prev.first_name !== newData.first_name ||
+                    prev.last_name !== newData.last_name) {
+                    return newData;
+                }
+                return prev;
+            });
+        }
+    }, [authLoading, isAuthenticated, navigate, user]);
 
     // Password validation state
     const [passwordRequirements, setPasswordRequirements] = useState({
@@ -86,6 +85,16 @@ const Profile = () => {
         setPasswordRequirements(requirements);
         return Object.values(requirements).every(req => req);
     }, []);
+
+    // Memoized password validation to prevent unnecessary re-renders
+    const isPasswordValid = useMemo(() => {
+        if (!passwordData.new_password) return false;
+        return passwordData.new_password.length >= 8 &&
+               /[A-Z]/.test(passwordData.new_password) &&
+               /[a-z]/.test(passwordData.new_password) &&
+               /\d/.test(passwordData.new_password) &&
+               /[!@#$%^&*(),.?":{}|<>]/.test(passwordData.new_password);
+    }, [passwordData.new_password]);
 
     const handleProfileUpdate = useCallback(async (e) => {
         e.preventDefault();
@@ -139,7 +148,7 @@ const Profile = () => {
             return;
         }
 
-        if (!validatePassword(passwordData.new_password)) {
+        if (!isPasswordValid) {
             toast.error('Password does not meet requirements');
             return;
         }
@@ -183,7 +192,7 @@ const Profile = () => {
         } finally {
             setLoading(false);
         }
-    }, [passwordData, validatePassword]);
+    }, [passwordData, isPasswordValid]);
 
     const handleProfileInputChange = useCallback((e) => {
         const { name, value } = e.target;
@@ -220,12 +229,12 @@ const Profile = () => {
         </div>
     ));
 
-    if (authLoading || (loading && activeTab === 'profile' && !profileData.username)) {
+    if (authLoading) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 pt-32 flex items-center justify-center">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent mx-auto"></div>
-                    <p className="mt-2 text-slate-600">{authLoading ? 'Checking authentication...' : 'Loading profile...'}</p>
+                    <p className="mt-2 text-slate-600">Checking authentication...</p>
                 </div>
             </div>
         );
@@ -521,7 +530,7 @@ const Profile = () => {
                             <div className="pt-4">
                                 <button
                                     type="submit"
-                                    disabled={loading || !validatePassword(passwordData.new_password) || passwordData.new_password !== passwordData.confirm_password}
+                                    disabled={loading || !isPasswordValid || passwordData.new_password !== passwordData.confirm_password}
                                     className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-8 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-[1.02] shadow-lg flex items-center justify-center space-x-2"
                                 >
                                     {loading ? (

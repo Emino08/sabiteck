@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { MapPin, Phone, Mail, Clock, MessageSquare, Send, Globe, Calendar, Users, Building2, Navigation } from 'lucide-react'
+import { MapPin, Phone, Mail, Clock, MessageSquare, Send, Globe, Calendar, Users, Building2, Navigation, Star, Trophy, Target, Heart, Lightbulb, Play, Award, CheckCircle, ArrowRight, Zap, Shield, HeadphonesIcon, Video, Coffee } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -163,231 +163,543 @@ const Contact = () => {
         url="/contact"
         schema={contactSchema}
       />
-      <div className="min-h-screen pt-32">
-      {/* Hero Section */}
-      <section className="py-16 bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            Get In Touch
+      <div className="min-h-screen pt-20">
+      {/* Enhanced Hero Section */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+        <div className="absolute inset-0 opacity-20">
+          <div className="w-full h-full bg-repeat bg-[length:60px_60px]"
+               style={{
+                 backgroundImage: `radial-gradient(circle at 30px 30px, white 2px, transparent 2px)`
+               }}>
+          </div>
+        </div>
+
+        {/* Animated floating elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute top-3/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
+          <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl animate-pulse" style={{animationDelay: '4s'}}></div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 text-white">
+          <div className="inline-flex items-center px-6 py-3 bg-blue-600/20 backdrop-blur-sm rounded-full text-blue-200 text-sm font-medium mb-8 border border-blue-400/20">
+            <Heart className="h-4 w-4 mr-2" />
+            Let's Connect
+          </div>
+
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+            Ready to Transform
+            <span className="block bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
+              Your Vision?
+            </span>
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Ready to start your next project? We'd love to hear from you. 
-            Reach out to discuss your ideas and get a free consultation.
+
+          <p className="text-xl md:text-2xl text-blue-100 mb-12 leading-relaxed max-w-4xl mx-auto">
+            We'd love to hear from you! Whether you have a project in mind, need expert advice,
+            or just want to say hello – we're here and ready to help.
           </p>
+
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
+            <button
+              className="bg-white text-blue-900 hover:bg-blue-50 px-10 py-5 rounded-2xl font-bold text-lg shadow-2xl hover:scale-105 transition-all duration-300 group flex items-center"
+              onClick={handleSendMessage}
+            >
+              <MessageSquare className="mr-3 h-6 w-6" />
+              Send Message
+              <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
+            </button>
+            <button
+              className="border-2 border-white/30 text-white hover:bg-white/10 px-10 py-5 rounded-2xl font-bold text-lg backdrop-blur-sm hover:scale-105 transition-all duration-300 flex items-center"
+              onClick={handleScheduleCall}
+            >
+              <Calendar className="mr-3 h-6 w-6" />
+              Schedule Call
+            </button>
+          </div>
+
+          {/* Quick contact highlights */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            <div className="text-center bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+              <Phone className="h-8 w-8 mx-auto mb-3 text-blue-300" />
+              <p className="font-bold text-white mb-2">Call Us</p>
+              <p className="text-blue-200">+232 78 618 435</p>
+            </div>
+            <div className="text-center bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+              <Mail className="h-8 w-8 mx-auto mb-3 text-blue-300" />
+              <p className="font-bold text-white mb-2">Email Us</p>
+              <p className="text-blue-200">info@sabiteck.com</p>
+            </div>
+            <div className="text-center bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+              <MapPin className="h-8 w-8 mx-auto mb-3 text-blue-300" />
+              <p className="font-bold text-white mb-2">Visit Us</p>
+              <p className="text-blue-200">Bo, Sierra Leone</p>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Contact Methods */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+      {/* Enhanced Contact Methods */}
+      <section className="py-20 bg-gradient-to-br from-gray-50 to-blue-50 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-5">
+          <div className="w-full h-full bg-repeat bg-[length:40px_40px]"
+               style={{
+                 backgroundImage: `radial-gradient(circle at 20px 20px, #3B82F6 1px, transparent 1px)`
+               }}>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center mb-20">
+            <div className="inline-flex items-center px-4 py-2 bg-green-600/10 rounded-full text-green-600 text-sm font-medium mb-6">
+              <Coffee className="h-4 w-4 mr-2" />
+              Multiple Ways to Connect
+            </div>
+            <h2 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
               How to Reach Us
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Choose the method that works best for you. We're here to help and respond quickly.
+            <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
+              Choose the method that works best for you. We're here to help and respond quickly
+              with expert solutions tailored to your needs.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {contactMethods.map((method, index) => (
-              <Card key={index} className="text-center hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className={`w-16 h-16 mx-auto mb-4 bg-${method.color}-100 rounded-full flex items-center justify-center`}>
-                    <method.icon className={`h-8 w-8 text-${method.color}-600`} />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {contactMethods.map((method, index) => {
+              const gradients = {
+                green: 'from-green-500 to-emerald-600',
+                blue: 'from-blue-500 to-indigo-600',
+                purple: 'from-purple-500 to-violet-600',
+                orange: 'from-orange-500 to-red-600'
+              }
+              const gradient = gradients[method.color] || 'from-blue-500 to-blue-600'
+
+              return (
+                <div key={index} className="group cursor-pointer">
+                  <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-white/50 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 text-center h-full">
+                    <div className={`w-20 h-20 mx-auto mb-6 rounded-3xl bg-gradient-to-br ${gradient} flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                      <method.icon className="h-10 w-10 text-white" />
+                    </div>
+
+                    <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-blue-600 transition-colors">
+                      {method.title}
+                    </h3>
+
+                    <p className="text-gray-600 mb-6 leading-relaxed">
+                      {method.description}
+                    </p>
+
+                    <div className="bg-gray-50 rounded-xl p-4 mb-4">
+                      <p className="font-bold text-gray-900 text-lg mb-2">{method.contact}</p>
+                      <p className="text-sm text-gray-500">{method.availability}</p>
+                    </div>
+
+                    <button className={`w-full px-6 py-3 bg-gradient-to-r ${gradient} text-white rounded-xl font-semibold hover:scale-105 transition-all duration-300 shadow-lg`}>
+                      {method.title === 'Phone Support' && 'Call Now'}
+                      {method.title === 'Email Support' && 'Send Email'}
+                      {method.title === 'Live Chat' && 'Start Chat'}
+                      {method.title === 'Schedule Meeting' && 'Book Now'}
+                    </button>
                   </div>
-                  <CardTitle className="text-xl">{method.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 mb-3">{method.description}</p>
-                  <p className="font-semibold text-gray-900 mb-2">{method.contact}</p>
-                  <p className="text-sm text-gray-500">{method.availability}</p>
-                </CardContent>
-              </Card>
-            ))}
+                </div>
+              )
+            })}
           </div>
         </div>
       </section>
 
-      {/* Main Contact Section */}
-      <section className="py-16 bg-gray-50">
+      {/* Enhanced Main Contact Section */}
+      <section className="py-20 bg-white relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Contact Form */}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center px-4 py-2 bg-purple-600/10 rounded-full text-purple-600 text-sm font-medium mb-6">
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Get In Touch
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              Send Us a Message
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              Ready to discuss your project? Fill out the form below and we'll get back to you within 24 hours.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            {/* Enhanced Contact Form */}
             <div className="lg:col-span-2">
-              <ContactForm />
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-3xl p-8 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-40 h-40 bg-blue-200/30 rounded-full blur-3xl"></div>
+                <div className="relative z-10">
+                  <div className="flex items-center mb-8">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mr-4">
+                      <Send className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-gray-900">Contact Form</h3>
+                      <p className="text-gray-600">Tell us about your project</p>
+                    </div>
+                  </div>
+                  <ContactForm />
+                </div>
+              </div>
             </div>
 
-            {/* Office Info & Newsletter */}
-            <div className="space-y-6">
+            {/* Enhanced Office Info & Newsletter */}
+            <div className="space-y-8">
               {/* Office Selector */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Our Offices</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {offices.map((office) => (
+              <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-lg">
+                <div className="flex items-center mb-6">
+                  <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mr-3">
+                    <Building2 className="h-5 w-5 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900">Our Offices</h3>
+                </div>
+                <div className="space-y-3">
+                  {offices.map((office) => {
+                    const isSelected = selectedOffice === office.id
+                    return (
                       <button
                         key={office.id}
                         onClick={() => setSelectedOffice(office.id)}
-                        className={`w-full text-left p-3 rounded-lg transition-colors ${
-                          selectedOffice === office.id
-                            ? 'bg-primary text-white'
-                            : 'bg-gray-100 hover:bg-gray-200'
+                        className={`w-full text-left p-4 rounded-2xl transition-all duration-300 ${
+                          isSelected
+                            ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg scale-105'
+                            : 'bg-gray-50 hover:bg-gray-100 hover:scale-105'
                         }`}
                       >
-                        <div className="font-medium">{office.name}</div>
-                        <div className={`text-sm ${selectedOffice === office.id ? 'text-blue-100' : 'text-gray-600'}`}>
+                        <div className="font-bold text-lg">{office.name}</div>
+                        <div className={`text-sm ${isSelected ? 'text-blue-100' : 'text-gray-600'}`}>
                           {office.teamSize} team members
                         </div>
                       </button>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                    )
+                  })}
+                </div>
+              </div>
 
-              {/* Selected Office Details */}
+              {/* Enhanced Selected Office Details */}
               {currentOffice && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Building2 className="h-5 w-5 mr-2" />
-                      {currentOffice.name}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="aspect-video bg-gray-200 rounded-lg relative">
-                      <div className="absolute inset-0 bg-gradient-to-br from-primary/60 to-blue-600/60 rounded-lg flex items-center justify-center">
-                        <span className="text-white font-medium">{currentOffice.name}</span>
-                      </div>
+                <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-lg">
+                  <div className="flex items-center mb-6">
+                    <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mr-3">
+                      <MapPin className="h-5 w-5 text-white" />
                     </div>
-                    
-                    <p className="text-gray-600 text-sm">{currentOffice.description}</p>
-                    
-                    <div className="space-y-3 text-sm">
-                      <div className="flex items-start">
-                        <MapPin className="h-4 w-4 mr-2 mt-0.5 text-gray-400" />
-                        <span>{currentOffice.address}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <Phone className="h-4 w-4 mr-2 text-gray-400" />
-                        <span>{currentOffice.phone}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <Mail className="h-4 w-4 mr-2 text-gray-400" />
-                        <span>{currentOffice.email}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <Clock className="h-4 w-4 mr-2 text-gray-400" />
-                        <span>{currentOffice.hours}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <Users className="h-4 w-4 mr-2 text-gray-400" />
-                        <span>{currentOffice.teamSize} team members</span>
-                      </div>
-                    </div>
+                    <h3 className="text-xl font-bold text-gray-900">{currentOffice.name}</h3>
+                  </div>
 
-                    <div>
-                      <h4 className="font-medium text-gray-900 mb-2">Services Offered:</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {currentOffice.services.map((service, index) => (
-                          <span key={index} className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
-                            {service}
-                          </span>
-                        ))}
+                  <div className="aspect-video bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl relative overflow-hidden mb-6 shadow-lg">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-center text-white">
+                        <Building2 className="h-12 w-12 mx-auto mb-3" />
+                        <span className="font-bold text-lg">{currentOffice.name}</span>
                       </div>
                     </div>
+                  </div>
 
-                    <Button className="w-full" size="sm" onClick={() => handleGetDirections(currentOffice)}>
-                      <Navigation className="h-4 w-4 mr-2" />
-                      Get Directions
-                    </Button>
-                  </CardContent>
-                </Card>
+                  <p className="text-gray-600 mb-6 leading-relaxed">{currentOffice.description}</p>
+
+                  <div className="space-y-4 mb-6">
+                    <div className="flex items-start bg-gray-50 rounded-xl p-3">
+                      <MapPin className="h-5 w-5 mr-3 mt-0.5 text-blue-600" />
+                      <span className="text-gray-700">{currentOffice.address}</span>
+                    </div>
+                    <div className="flex items-center bg-gray-50 rounded-xl p-3">
+                      <Phone className="h-5 w-5 mr-3 text-green-600" />
+                      <span className="text-gray-700">{currentOffice.phone}</span>
+                    </div>
+                    <div className="flex items-center bg-gray-50 rounded-xl p-3">
+                      <Mail className="h-5 w-5 mr-3 text-purple-600" />
+                      <span className="text-gray-700">{currentOffice.email}</span>
+                    </div>
+                    <div className="flex items-center bg-gray-50 rounded-xl p-3">
+                      <Clock className="h-5 w-5 mr-3 text-orange-600" />
+                      <span className="text-gray-700">{currentOffice.hours}</span>
+                    </div>
+                    <div className="flex items-center bg-gray-50 rounded-xl p-3">
+                      <Users className="h-5 w-5 mr-3 text-indigo-600" />
+                      <span className="text-gray-700">{currentOffice.teamSize} team members</span>
+                    </div>
+                  </div>
+
+                  <div className="mb-6">
+                    <h4 className="font-bold text-gray-900 mb-3 flex items-center">
+                      <Star className="h-4 w-4 mr-2 text-yellow-500" />
+                      Services Offered:
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {currentOffice.services.map((service, index) => (
+                        <span key={index} className="text-sm bg-gradient-to-r from-blue-500 to-purple-600 text-white px-3 py-1 rounded-full font-medium">
+                          {service}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-4 rounded-2xl font-bold hover:scale-105 transition-all duration-300 shadow-lg flex items-center justify-center"
+                    onClick={() => handleGetDirections(currentOffice)}
+                  >
+                    <Navigation className="h-5 w-5 mr-2" />
+                    Get Directions
+                  </button>
+                </div>
               )}
 
-              {/* Newsletter Signup */}
-              <NewsletterForm />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Map Section */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Find Us on the Map
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              We have offices around the world to serve you better. Select an office above to see its location.
-            </p>
-          </div>
-
-          {/* Interactive Map Placeholder */}
-          <div className="bg-gray-200 h-96 rounded-lg relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-blue-600/20 flex items-center justify-center">
-              <div className="text-center">
-                <MapPin className="h-16 w-16 text-primary mx-auto mb-4" />
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">{currentOffice?.name}</h3>
-                <p className="text-gray-600">{currentOffice?.address}</p>
-                <Button className="mt-4" onClick={() => handleViewInMap(currentOffice)}>
-                  View in Google Maps
-                </Button>
+              {/* Enhanced Newsletter Signup */}
+              <div className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-3xl p-6 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-green-200/30 rounded-full blur-2xl"></div>
+                <div className="relative z-10">
+                  <div className="flex items-center mb-4">
+                    <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mr-3">
+                      <Mail className="h-5 w-5 text-white" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900">Stay Updated</h3>
+                  </div>
+                  <NewsletterForm />
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* FAQ Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Frequently Asked Questions
+      {/* Enhanced Map Section */}
+      <section className="py-20 bg-gradient-to-br from-gray-50 to-blue-50 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-5">
+          <div className="w-full h-full bg-repeat bg-[length:50px_50px]"
+               style={{
+                 backgroundImage: `radial-gradient(circle at 25px 25px, #6B46C1 1px, transparent 1px)`
+               }}>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center px-4 py-2 bg-indigo-600/10 rounded-full text-indigo-600 text-sm font-medium mb-6">
+              <MapPin className="h-4 w-4 mr-2" />
+              Our Location
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              Find Us on the Map
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Find quick answers to common questions about our services and process.
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              Visit our offices in Sierra Leone or connect with us remotely.
+              We're here to serve you wherever you are.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {faqs.map((faq, index) => (
-              <Card key={index}>
-                <CardHeader>
-                  <CardTitle className="text-lg">{faq.question}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600">{faq.answer}</p>
-                </CardContent>
-              </Card>
-            ))}
+          {/* Enhanced Interactive Map */}
+          <div className="bg-white rounded-3xl overflow-hidden shadow-2xl border border-gray-100">
+            <div className="bg-gradient-to-br from-blue-500 via-purple-600 to-indigo-700 h-96 relative overflow-hidden">
+              <div className="absolute inset-0 opacity-20">
+                <div className="w-full h-full bg-repeat bg-[length:30px_30px]"
+                     style={{
+                       backgroundImage: `radial-gradient(circle at 15px 15px, white 1px, transparent 1px)`
+                     }}>
+                </div>
+              </div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center text-white">
+                  <div className="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-3xl flex items-center justify-center mx-auto mb-6 border border-white/30">
+                    <MapPin className="h-12 w-12 text-white" />
+                  </div>
+                  <h3 className="text-3xl font-bold mb-4">{currentOffice?.name}</h3>
+                  <p className="text-xl text-blue-100 mb-8 max-w-md mx-auto">{currentOffice?.address}</p>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button
+                      className="bg-white text-blue-600 px-8 py-4 rounded-2xl font-bold hover:scale-105 transition-all duration-300 shadow-lg flex items-center justify-center"
+                      onClick={() => handleViewInMap(currentOffice)}
+                    >
+                      <Globe className="h-5 w-5 mr-2" />
+                      View in Google Maps
+                    </button>
+                    <button
+                      className="border-2 border-white/30 text-white hover:bg-white/10 px-8 py-4 rounded-2xl font-bold backdrop-blur-sm hover:scale-105 transition-all duration-300 flex items-center justify-center"
+                      onClick={() => handleGetDirections(currentOffice)}
+                    >
+                      <Navigation className="h-5 w-5 mr-2" />
+                      Get Directions
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Office quick info */}
+            <div className="p-8 bg-gradient-to-r from-blue-50 to-indigo-50">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center">
+                  <Phone className="h-8 w-8 text-blue-600 mx-auto mb-3" />
+                  <h4 className="font-bold text-gray-900 mb-2">Call Us</h4>
+                  <p className="text-gray-600">{currentOffice?.phone}</p>
+                </div>
+                <div className="text-center">
+                  <Clock className="h-8 w-8 text-green-600 mx-auto mb-3" />
+                  <h4 className="font-bold text-gray-900 mb-2">Business Hours</h4>
+                  <p className="text-gray-600">{currentOffice?.hours}</p>
+                </div>
+                <div className="text-center">
+                  <Mail className="h-8 w-8 text-purple-600 mx-auto mb-3" />
+                  <h4 className="font-bold text-gray-900 mb-2">Email Us</h4>
+                  <p className="text-gray-600">{currentOffice?.email}</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-16 bg-primary text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            Ready to Start Your Project?
+      {/* Enhanced FAQ Section */}
+      <section className="py-20 bg-white relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center px-4 py-2 bg-yellow-600/10 rounded-full text-yellow-600 text-sm font-medium mb-6">
+              <Lightbulb className="h-4 w-4 mr-2" />
+              Quick Answers
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              Find quick answers to common questions about our services, process,
+              and how we can help transform your business.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {faqs.map((faq, index) => {
+              const gradients = [
+                'from-blue-500 to-indigo-600',
+                'from-purple-500 to-pink-600',
+                'from-green-500 to-emerald-600',
+                'from-orange-500 to-red-600',
+                'from-teal-500 to-blue-600',
+                'from-indigo-500 to-purple-600'
+              ]
+              const gradient = gradients[index % gradients.length]
+
+              return (
+                <div key={index} className="group">
+                  <div className="bg-gradient-to-br from-white to-gray-50 rounded-3xl p-8 border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full">
+                    <div className="flex items-start space-x-4 mb-4">
+                      <div className={`w-10 h-10 bg-gradient-to-br ${gradient} rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300`}>
+                        <span className="text-white font-bold">{index + 1}</span>
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors leading-tight">
+                        {faq.question}
+                      </h3>
+                    </div>
+                    <p className="text-gray-600 leading-relaxed ml-14">
+                      {faq.answer}
+                    </p>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* FAQ CTA */}
+          <div className="mt-16 text-center">
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-10 text-white relative overflow-hidden">
+              <div className="absolute inset-0 bg-black/10" />
+              <div className="relative z-10">
+                <h3 className="text-3xl font-bold mb-4">Still Have Questions?</h3>
+                <p className="text-xl mb-8 opacity-90 max-w-2xl mx-auto">
+                  Our team is here to help! Get in touch and we'll answer any questions you have about our services.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <button
+                    className="bg-white text-blue-600 px-8 py-4 rounded-xl font-bold hover:scale-105 transition-all duration-300 shadow-lg flex items-center justify-center"
+                    onClick={handleSendMessage}
+                  >
+                    <MessageSquare className="mr-2 h-5 w-5" />
+                    Ask a Question
+                  </button>
+                  <button
+                    className="border-2 border-white/30 text-white hover:bg-white/10 px-8 py-4 rounded-xl font-bold backdrop-blur-sm hover:scale-105 transition-all duration-300 flex items-center justify-center"
+                    onClick={handleScheduleCall}
+                  >
+                    <Video className="mr-2 h-5 w-5" />
+                    Schedule Call
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Enhanced CTA Section */}
+      <section className="py-20 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="w-full h-full bg-repeat bg-[length:80px_80px]"
+               style={{
+                 backgroundImage: `radial-gradient(circle at 40px 40px, white 2px, transparent 2px)`
+               }}>
+          </div>
+        </div>
+
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '3s'}}></div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+          <div className="inline-flex items-center px-6 py-3 bg-green-600/20 rounded-full text-green-200 text-sm font-medium mb-8">
+            <CheckCircle className="h-4 w-4 mr-2" />
+            Ready to Get Started?
+          </div>
+          <h2 className="text-5xl md:text-6xl font-bold mb-8 leading-tight">
+            Let's Bring Your
+            <span className="block bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              Ideas to Life
+            </span>
           </h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto">
-            Don't wait! Get in touch today and let's discuss how we can help 
-            bring your software ideas to life.
+          <p className="text-xl md:text-2xl text-blue-100 mb-12 leading-relaxed max-w-4xl mx-auto">
+            Don't wait! Get in touch today and let's discuss how we can help
+            transform your vision into a powerful digital reality.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary" className="text-lg px-8 py-3" onClick={handleSendMessage}>
-              <Send className="h-5 w-5 mr-2" />
+          <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
+            <button
+              className="bg-white text-blue-900 hover:bg-blue-50 px-10 py-5 rounded-2xl font-bold text-lg shadow-2xl hover:scale-105 transition-all duration-300 group flex items-center justify-center"
+              onClick={handleSendMessage}
+            >
+              <Send className="mr-3 h-6 w-6" />
               Send Message
-            </Button>
-            <Button size="lg" variant="outline" className="text-lg px-8 py-3 text-blue-700 border-white hover:bg-white hover:text-primary" onClick={handleScheduleCall}>
-              <Calendar className="h-5 w-5 mr-2" />
+              <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
+            </button>
+            <button
+              className="border-2 border-white/30 text-white hover:bg-white/10 px-10 py-5 rounded-2xl font-bold text-lg backdrop-blur-sm hover:scale-105 transition-all duration-300 flex items-center justify-center"
+              onClick={handleScheduleCall}
+            >
+              <Calendar className="mr-3 h-6 w-6" />
               Schedule Call
-            </Button>
+            </button>
+          </div>
+
+          {/* Response time promise */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300">
+              <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Clock className="h-6 w-6 text-blue-300" />
+              </div>
+              <h3 className="font-bold text-white mb-2">Quick Response</h3>
+              <p className="text-blue-200">We respond within 24 hours</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300">
+              <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Shield className="h-6 w-6 text-blue-300" />
+              </div>
+              <h3 className="font-bold text-white mb-2">Confidential</h3>
+              <p className="text-blue-200">Your ideas are safe with us</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300">
+              <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Coffee className="h-6 w-6 text-blue-300" />
+              </div>
+              <h3 className="font-bold text-white mb-2">Free Consultation</h3>
+              <p className="text-blue-200">No commitment required</p>
+            </div>
           </div>
         </div>
       </section>

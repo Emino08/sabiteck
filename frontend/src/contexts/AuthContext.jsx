@@ -28,20 +28,23 @@ export const AuthProvider = ({ children }) => {
             if (storedToken && storedUser) {
                 try {
                     const userData = JSON.parse(storedUser);
+                    // Set state synchronously to prevent flash
                     setToken(storedToken);
                     setUser(userData);
+                    setLoading(false);
                 } catch (parseError) {
                     console.error('Error parsing stored user data:', parseError);
                     logout();
+                    setLoading(false);
                 }
             } else {
                 setUser(null);
                 setToken(null);
+                setLoading(false);
             }
         } catch (error) {
             console.error('Auth check error:', error);
             logout();
-        } finally {
             setLoading(false);
         }
     };

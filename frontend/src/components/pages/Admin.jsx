@@ -38,7 +38,7 @@ import AnnouncementManagement from '../admin/AnnouncementManagement';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8002';
 
 const Admin = () => {
-  const { user, token, isAuthenticated, isAdmin, logout, login } = useAuth();
+  const { user, token, loading: authLoading, isAuthenticated, isAdmin, logout, login } = useAuth();
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -127,40 +127,170 @@ const Admin = () => {
     }
   }, [isAuthenticated, isAdmin]);
 
+  // Show loading screen while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900 flex flex-col justify-center items-center pt-32 py-12 relative overflow-hidden">
+        {/* Elite Background Effects */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse animation-delay-2000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse animation-delay-4000"></div>
+        </div>
+
+        <div className="relative z-10 text-center">
+          <div className="flex justify-center mb-6">
+            <div className="relative group">
+              <div className="absolute -inset-3 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 animate-pulse"></div>
+              <div className="relative p-4 bg-black/50 backdrop-blur-lg rounded-full border border-white/20">
+                <Settings className="w-12 h-12 text-indigo-400 animate-spin" />
+              </div>
+            </div>
+          </div>
+          <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-white via-indigo-200 to-purple-200 bg-clip-text text-transparent">
+            Initializing Elite Portal...
+          </h2>
+          <div className="flex justify-center items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-indigo-400 animate-bounce" />
+            <span className="text-gray-300">Authenticating access credentials</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!isAuthenticated() || !isAdmin()) {
     return (
-      <div className="min-h-screen pt-32 bg-gray-50 flex items-center justify-center px-4">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Admin Login</CardTitle>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
-              <p className="text-sm text-blue-800 font-medium mb-2">Test Credentials:</p>
-              <p className="text-xs text-blue-700">Username: <span className="font-mono">admin</span></p>
-              <p className="text-xs text-blue-700">Password: <span className="font-mono">admin123</span></p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900 flex flex-col justify-center pt-32 py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+        {/* Elite Background Effects */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse animation-delay-2000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse animation-delay-4000"></div>
+        </div>
+
+        <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
+          {/* Elite Header */}
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-6">
+              <div className="relative group">
+                <div className="absolute -inset-3 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 animate-pulse"></div>
+                <div className="relative p-4 bg-black/50 backdrop-blur-lg rounded-full border border-white/20">
+                  <Settings className="w-12 h-12 text-indigo-400" />
+                </div>
+              </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
-              <Input
-                placeholder="Username"
-                value={loginForm.username}
-                onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
-                required
-              />
-              <Input
-                type="password"
-                placeholder="Password"
-                value={loginForm.password}
-                onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                required
-              />
-              {error && <div className="text-sm text-red-600">{error}</div>}
-              <Button type="submit" disabled={loading} className="w-full">
-                {loading ? 'Signing in...' : 'Sign In'}
-              </Button>
+            <h2 className="text-4xl font-black mb-4 bg-gradient-to-r from-white via-indigo-200 to-purple-200 bg-clip-text text-transparent">
+              Elite Admin Portal
+            </h2>
+            <div className="flex justify-center items-center gap-2 mb-4">
+              <User className="w-5 h-5 text-yellow-400 fill-current" />
+              <span className="text-yellow-400 font-semibold">Administrative Control Center</span>
+              <User className="w-5 h-5 text-yellow-400 fill-current" />
+            </div>
+            <p className="text-gray-300 mb-6">
+              Access your elite administrative dashboard with enterprise security
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
+          <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl transform transition-all duration-500 hover:scale-[1.02] hover:shadow-3xl hover:border-white/20">
+            <form className="space-y-8" onSubmit={handleLogin}>
+              <div>
+                <label htmlFor="username" className="block text-sm font-bold text-white mb-3">
+                  Elite Administrator
+                </label>
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                    <User className="h-5 w-5 text-indigo-400 group-focus-within:text-indigo-300 transition-colors duration-300" />
+                    <Settings className="h-4 w-4 text-yellow-400 animate-pulse group-focus-within:animate-spin" />
+                  </div>
+                  <input
+                    id="username"
+                    name="username"
+                    type="text"
+                    autoComplete="username"
+                    required
+                    value={loginForm.username}
+                    onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
+                    className="w-full pl-16 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400 text-white placeholder-gray-400 text-lg transition-all duration-500 hover:border-white/30 hover:bg-black/60 focus:scale-[1.02] focus:shadow-lg"
+                    placeholder="Enter admin username"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="password" className="block text-sm font-bold text-white mb-3">
+                  Elite Security Key
+                </label>
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                    <Database className="h-5 w-5 text-indigo-400 group-focus-within:text-indigo-300 transition-colors duration-300" />
+                    <BarChart3 className="h-4 w-4 text-purple-400 animate-pulse group-focus-within:animate-bounce" />
+                  </div>
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                    value={loginForm.password}
+                    onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                    className="w-full pl-16 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400 text-white placeholder-gray-400 text-lg transition-all duration-500 hover:border-white/30 hover:bg-black/60 focus:scale-[1.02] focus:shadow-lg"
+                    placeholder="Enter secure password"
+                  />
+                </div>
+              </div>
+
+              {error && (
+                <div className="bg-red-500/20 border border-red-500/30 rounded-2xl p-4 text-red-300 text-sm backdrop-blur-lg animate-shake transform transition-all duration-300">
+                  {error}
+                </div>
+              )}
+
+              <div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full flex justify-center items-center py-4 px-6 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-bold rounded-2xl shadow-2xl transition-all duration-500 hover:scale-105 hover:shadow-3xl active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 group relative overflow-hidden"
+                >
+                  {loading ? (
+                    <>
+                      <TrendingUp className="w-5 h-5 mr-2 animate-spin" />
+                      Authenticating Access...
+                    </>
+                  ) : (
+                    <>
+                      <Settings className="w-5 h-5 mr-2" />
+                      Access Elite Dashboard
+                    </>
+                  )}
+                </button>
+              </div>
             </form>
-          </CardContent>
-        </Card>
+
+            <div className="mt-8">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-white/20" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-4 bg-black/30 backdrop-blur-lg text-gray-300 rounded-lg">
+                    🛡️ Administrative Access Only
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-6 text-center">
+                <p className="text-xs text-gray-400 flex items-center justify-center">
+                  <Database className="w-3 h-3 mr-1" />
+                  Protected by enterprise-grade security protocols
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

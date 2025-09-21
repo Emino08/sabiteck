@@ -1,18 +1,34 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-    Save, 
-    Eye, 
-    ArrowLeft, 
-    Calendar, 
-    DollarSign, 
-    Globe, 
+import {
+    Save,
+    Eye,
+    ArrowLeft,
+    Calendar,
+    DollarSign,
+    Globe,
     GraduationCap,
     Award,
     Upload,
     X,
     Plus,
     Minus,
-    AlertCircle
+    AlertCircle,
+    Crown,
+    Sparkles,
+    Zap,
+    Target,
+    Shield,
+    Rocket,
+    Diamond,
+    Briefcase,
+    TrendingUp,
+    CheckCircle2,
+    Clock,
+    Settings,
+    Layers,
+    UserCheck,
+    Star,
+    Building
 } from 'lucide-react';
 import { apiRequest } from '../../utils/api';
 import LoadingSpinner from '../ui/LoadingSpinner';
@@ -346,269 +362,411 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <LoadingSpinner size="lg" />
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-12">
+                <div className="text-center">
+                    <div className="relative inline-block mb-6">
+                        <div className="absolute -inset-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full blur opacity-75 animate-pulse"></div>
+                        <div className="relative p-6 bg-black/50 backdrop-blur-lg rounded-full border border-white/20">
+                            <GraduationCap className="w-16 h-16 text-purple-400 animate-pulse" />
+                        </div>
+                    </div>
+                    <h2 className="text-2xl font-bold text-white mb-4">Loading Elite Scholarship Editor...</h2>
+                    <LoadingSpinner size="lg" />
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <div className="bg-white border-b border-gray-200 px-6 py-4">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                        <button
-                            onClick={() => onCancel && onCancel()}
-                            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
-                        >
-                            <ArrowLeft className="w-5 h-5" />
-                        </button>
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-900">
-                                {isEditing ? 'Edit Scholarship' : 'Create New Scholarship'}
-                            </h1>
-                            <p className="text-sm text-gray-600">
-                                {isEditing ? 'Update scholarship details and content' : 'Add a new scholarship opportunity'}
-                            </p>
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white relative overflow-hidden">
+            {/* Elite Background Effects */}
+            <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
+                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse animation-delay-2000"></div>
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse animation-delay-4000"></div>
+            </div>
+
+            {/* Elite Header */}
+            <div className="relative z-10">
+                <div className="text-center py-8">
+                    <div className="flex justify-center mb-6">
+                        <div className="relative group">
+                            <div className="absolute -inset-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 animate-pulse"></div>
+                            <div className="relative p-4 bg-black/50 backdrop-blur-lg rounded-full border border-white/20">
+                                <GraduationCap className="w-12 h-12 text-purple-400" />
+                            </div>
                         </div>
                     </div>
+                    <h1 className="text-4xl md:text-5xl font-black mb-4 bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent">
+                        {isEditing ? 'Elite Scholarship Editor' : 'Elite Scholarship Creator'}
+                    </h1>
+                    <div className="flex justify-center items-center gap-2 mb-6">
+                        <Star className="w-5 h-5 text-yellow-400 fill-current" />
+                        <span className="text-yellow-400 font-semibold">Professional Academic Opportunity Studio</span>
+                        <Star className="w-5 h-5 text-yellow-400 fill-current" />
+                    </div>
+                    <p className="text-gray-300 max-w-2xl mx-auto mb-8">
+                        {isEditing ? 'Transform scholarship opportunities with our premium editing suite' : 'Create exceptional scholarship opportunities that inspire academic excellence'}
+                    </p>
 
-                    <div className="flex items-center space-x-3">
+                    {/* Elite Action Bar */}
+                    <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-8">
+                        <button
+                            onClick={() => onCancel && onCancel()}
+                            className="inline-flex items-center px-6 py-3 bg-black/30 backdrop-blur-lg border border-white/20 text-white hover:bg-white/10 font-semibold rounded-2xl transition-all duration-300 hover:scale-105"
+                        >
+                            <ArrowLeft className="w-5 h-5 mr-2" />
+                            Back to Management
+                        </button>
+
                         <button
                             onClick={() => setPreviewMode(!previewMode)}
-                            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center space-x-2"
+                            className="inline-flex items-center px-6 py-3 bg-black/30 backdrop-blur-lg border border-white/20 text-white hover:bg-white/10 font-semibold rounded-2xl transition-all duration-300 hover:scale-105"
                         >
-                            <Eye className="w-4 h-4" />
-                            <span>Preview</span>
+                            <Eye className="w-5 h-5 mr-2" />
+                            Elite Preview
                         </button>
-                        
+
                         <button
                             onClick={() => handleSave(false)}
                             disabled={isSaving}
-                            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center space-x-2"
+                            className="inline-flex items-center px-6 py-3 bg-black/30 backdrop-blur-lg border border-white/20 text-white hover:bg-white/10 font-semibold rounded-2xl transition-all duration-300 hover:scale-105"
                         >
-                            <Save className="w-4 h-4" />
-                            <span>{isSaving ? 'Saving...' : 'Save Draft'}</span>
+                            <Save className="w-5 h-5 mr-2" />
+                            {isSaving ? 'Saving Elite Draft...' : 'Save Elite Draft'}
                         </button>
-                        
+
                         <button
                             onClick={() => handleSave(true)}
                             disabled={isSaving}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2"
+                            className="inline-flex items-center px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105"
                         >
-                            <Award className="w-4 h-4" />
-                            <span>{isSaving ? 'Publishing...' : 'Publish'}</span>
+                            <Rocket className="w-5 h-5 mr-2" />
+                            {isSaving ? 'Publishing Elite...' : 'Publish Elite Scholarship'}
                         </button>
                     </div>
-                </div>
 
-                {error && (
-                    <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start space-x-2">
-                        <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
-                        <div className="text-sm text-red-700">{error}</div>
-                    </div>
-                )}
+                    {/* Elite Error Display */}
+                    {error && (
+                        <div className="max-w-4xl mx-auto mb-8">
+                            <div className="bg-red-500/20 backdrop-blur-xl border border-red-400/30 rounded-2xl p-6">
+                                <div className="flex items-center">
+                                    <div className="p-2 bg-red-500 rounded-lg mr-3">
+                                        <AlertCircle className="w-5 h-5 text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-bold text-red-300 mb-1">
+                                            Elite System Alert
+                                        </h3>
+                                        <div className="text-red-200">
+                                            {error}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
 
-            {/* Form */}
-            <div className="max-w-6xl mx-auto px-6 py-8">
+            {/* Elite Form */}
+            <div className="max-w-7xl mx-auto px-6 py-8 relative z-10">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Main Content */}
-                    <div className="lg:col-span-2 space-y-6">
-                        {/* Basic Information */}
-                        <div className="bg-white rounded-lg shadow-sm border p-6">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h2>
-                            
-                            <div className="space-y-4">
+                    {/* Elite Main Content */}
+                    <div className="lg:col-span-2 space-y-8">
+                        {/* Elite Basic Information */}
+                        <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl">
+                            <div className="flex items-center mb-8">
+                                <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl mr-4">
+                                    <Target className="w-6 h-6 text-white" />
+                                </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Title *
+                                    <h2 className="text-2xl font-black text-white mb-2">Elite Scholarship Foundation</h2>
+                                    <p className="text-gray-300">Essential details that define your premium academic opportunity</p>
+                                </div>
+                                <div className="ml-auto">
+                                    <span className="px-3 py-1 bg-gradient-to-r from-purple-400 to-pink-400 text-black rounded-full text-xs font-black">
+                                        ACADEMIC
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div className="space-y-6">
+                                <div>
+                                    <label className="block text-sm font-bold text-white mb-3">
+                                        Elite Scholarship Title *
                                     </label>
-                                    <input
-                                        type="text"
-                                        name="title"
-                                        value={formData.title}
-                                        onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        placeholder="Enter scholarship title"
-                                    />
+                                    <div className="relative">
+                                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                                            <GraduationCap className="w-5 h-5 text-purple-400" />
+                                            <Crown className="w-4 h-4 text-yellow-400 animate-pulse" />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            name="title"
+                                            value={formData.title}
+                                            onChange={handleInputChange}
+                                            className="w-full pl-16 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-400 text-white placeholder-gray-400 text-lg transition-all duration-300"
+                                            placeholder="e.g., Elite Rhodes Scholarship for Academic Excellence"
+                                        />
+                                    </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        URL Slug *
+                                    <label className="block text-sm font-bold text-white mb-3">
+                                        Elite URL Slug *
                                     </label>
-                                    <input
-                                        type="text"
-                                        name="slug"
-                                        value={formData.slug}
-                                        onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        placeholder="url-friendly-slug"
-                                    />
-                                    <p className="text-xs text-gray-500 mt-1">
-                                        This will be used in the URL: /scholarships/{formData.slug}
+                                    <div className="relative">
+                                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                                            <Zap className="w-5 h-5 text-purple-400" />
+                                            <Sparkles className="w-4 h-4 text-pink-400 animate-pulse" />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            name="slug"
+                                            value={formData.slug}
+                                            onChange={handleInputChange}
+                                            className="w-full pl-16 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-400 text-white placeholder-gray-400 transition-all duration-300"
+                                            placeholder="elite-academic-opportunity"
+                                        />
+                                    </div>
+                                    <p className="text-xs text-purple-300 mt-2 flex items-center">
+                                        💎 <span className="ml-2">Elite URL: /scholarships/{formData.slug}</span>
                                     </p>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Short Description *
+                                    <label className="block text-sm font-bold text-white mb-3">
+                                        Elite Summary *
                                     </label>
                                     <textarea
                                         name="short_description"
                                         value={formData.short_description}
                                         onChange={handleInputChange}
                                         rows={3}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        placeholder="Brief description for listings and previews"
+                                        className="w-full px-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-400 text-white placeholder-gray-400 resize-none transition-all duration-300"
+                                        placeholder="Compelling elite overview that captures the essence of this premium academic opportunity..."
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Full Description
+                                    <label className="block text-sm font-bold text-white mb-3">
+                                        Elite Full Description
                                     </label>
                                     <textarea
                                         name="full_description"
                                         value={formData.full_description}
                                         onChange={handleInputChange}
                                         rows={4}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        placeholder="Detailed description (plain text)"
+                                        className="w-full px-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-400 text-white placeholder-gray-400 resize-none transition-all duration-300"
+                                        placeholder="Detailed elite description showcasing the exceptional nature of this academic opportunity..."
                                     />
+                                    <div className="flex justify-between items-center mt-3">
+                                        <p className="text-xs text-gray-400">💡 Pro Tip: Use compelling language that attracts top-tier students</p>
+                                        <div className="text-xs text-gray-400">
+                                            {formData.full_description?.length || 0} characters
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Rich Content Editor */}
-                        <div className="bg-white rounded-lg shadow-sm border p-6">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4">Rich Content</h2>
-                            <p className="text-sm text-gray-600 mb-4">
-                                Use this editor to create detailed scholarship content with formatting, lists, and links.
-                            </p>
+                        {/* Elite Rich Content Editor */}
+                        <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl">
+                            <div className="flex items-center mb-8">
+                                <div className="p-3 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-2xl mr-4">
+                                    <Settings className="w-6 h-6 text-white" />
+                                </div>
+                                <div>
+                                    <h2 className="text-2xl font-black text-white mb-2">Elite Content Studio</h2>
+                                    <p className="text-gray-300">Professional rich text editor for premium scholarship content</p>
+                                </div>
+                                <div className="ml-auto">
+                                    <span className="px-3 py-1 bg-gradient-to-r from-indigo-400 to-blue-400 text-black rounded-full text-xs font-black">
+                                        EDITOR
+                                    </span>
+                                </div>
+                            </div>
                             
-                            {/* Rich Text Toolbar */}
-                            <div className="border border-gray-300 rounded-t-lg bg-gray-50 px-4 py-2 flex flex-wrap gap-2">
+                            {/* Elite Rich Text Toolbar */}
+                            <div className="bg-black/40 backdrop-blur-lg border border-white/20 rounded-t-2xl px-6 py-4 flex flex-wrap gap-3">
                                 <button
                                     type="button"
                                     onClick={() => document.execCommand('bold')}
-                                    className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100"
-                                    title="Bold"
+                                    className="px-4 py-2 text-sm bg-black/50 border border-white/20 rounded-xl text-white hover:bg-white/10 font-bold transition-all duration-300 hover:scale-105"
+                                    title="Elite Bold"
                                 >
-                                    <strong>B</strong>
+                                    <strong className="flex items-center">
+                                        <Diamond className="w-3 h-3 mr-1 text-indigo-400" />
+                                        B
+                                    </strong>
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => document.execCommand('italic')}
-                                    className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100"
-                                    title="Italic"
+                                    className="px-4 py-2 text-sm bg-black/50 border border-white/20 rounded-xl text-white hover:bg-white/10 italic transition-all duration-300 hover:scale-105"
+                                    title="Elite Italic"
                                 >
-                                    <em>I</em>
+                                    <em className="flex items-center">
+                                        <Sparkles className="w-3 h-3 mr-1 text-purple-400" />
+                                        I
+                                    </em>
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => document.execCommand('insertUnorderedList')}
-                                    className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100"
-                                    title="Bullet List"
+                                    className="px-4 py-2 text-sm bg-black/50 border border-white/20 rounded-xl text-white hover:bg-white/10 transition-all duration-300 hover:scale-105"
+                                    title="Elite Bullet List"
                                 >
-                                    • List
+                                    <span className="flex items-center">
+                                        <Target className="w-3 h-3 mr-1 text-cyan-400" />
+                                        • List
+                                    </span>
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => document.execCommand('insertOrderedList')}
-                                    className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100"
-                                    title="Numbered List"
+                                    className="px-4 py-2 text-sm bg-black/50 border border-white/20 rounded-xl text-white hover:bg-white/10 transition-all duration-300 hover:scale-105"
+                                    title="Elite Numbered List"
                                 >
-                                    1. List
+                                    <span className="flex items-center">
+                                        <Layers className="w-3 h-3 mr-1 text-emerald-400" />
+                                        1. List
+                                    </span>
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        const url = prompt('Enter URL:');
+                                        const url = prompt('Enter Elite URL:');
                                         if (url) document.execCommand('createLink', false, url);
                                     }}
-                                    className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100"
-                                    title="Insert Link"
+                                    className="px-4 py-2 text-sm bg-black/50 border border-white/20 rounded-xl text-white hover:bg-white/10 transition-all duration-300 hover:scale-105"
+                                    title="Elite Link"
                                 >
-                                    Link
+                                    <span className="flex items-center">
+                                        <Globe className="w-3 h-3 mr-1 text-blue-400" />
+                                        Link
+                                    </span>
                                 </button>
                             </div>
 
                             <div
                                 ref={editorRef}
                                 contentEditable
-                                className="w-full min-h-64 px-4 py-3 border border-gray-300 border-t-0 rounded-b-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none overflow-auto"
-                                style={{ minHeight: '16rem' }}
+                                className="w-full min-h-64 px-6 py-4 bg-black/50 border border-white/20 border-t-0 rounded-b-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400 resize-none overflow-auto text-white transition-all duration-300"
+                                style={{ minHeight: '20rem', color: 'white' }}
                                 onInput={(e) => handleContentChange(e.target.innerHTML)}
                                 dangerouslySetInnerHTML={{ __html: sanitizeHTML(formData.content) }}
+                                placeholder="Start writing your elite scholarship content here..."
                             />
                             
-                            <p className="text-xs text-gray-500 mt-2">
-                                You can use basic HTML formatting. Content will be sanitized for security.
-                            </p>
+                            <div className="flex justify-between items-center mt-4">
+                                <p className="text-xs text-indigo-300 flex items-center">
+                                    <Shield className="w-3 h-3 mr-1" />
+                                    💎 Elite HTML formatting supported. Content automatically secured.
+                                </p>
+                                <div className="text-xs text-gray-400">
+                                    Elite Content Studio v2.0
+                                </div>
+                            </div>
                         </div>
 
-                        {/* Provider Information */}
-                        <div className="bg-white rounded-lg shadow-sm border p-6">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4">Provider Information</h2>
+                        {/* Elite Provider Information */}
+                        <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl">
+                            <div className="flex items-center mb-8">
+                                <div className="p-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl mr-4">
+                                    <Building className="w-6 h-6 text-white" />
+                                </div>
+                                <div>
+                                    <h2 className="text-2xl font-black text-white mb-2">Elite Provider Hub</h2>
+                                    <p className="text-gray-300">Professional organization and contact details</p>
+                                </div>
+                                <div className="ml-auto">
+                                    <span className="px-3 py-1 bg-gradient-to-r from-emerald-400 to-teal-400 text-black rounded-full text-xs font-black">
+                                        ORGANIZATION
+                                    </span>
+                                </div>
+                            </div>
                             
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Provider Name *
+                                    <label className="block text-sm font-bold text-white mb-3">
+                                        Elite Provider Name *
                                     </label>
-                                    <input
-                                        type="text"
-                                        name="provider"
-                                        value={formData.provider}
-                                        onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        placeholder="e.g., Gates Foundation, University of Oxford"
-                                    />
+                                    <div className="relative">
+                                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                                            <Building className="w-5 h-5 text-emerald-400" />
+                                            <Award className="w-4 h-4 text-yellow-400 animate-pulse" />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            name="provider"
+                                            value={formData.provider}
+                                            onChange={handleInputChange}
+                                            className="w-full pl-16 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-400 text-white placeholder-gray-400 transition-all duration-300"
+                                            placeholder="e.g., Elite Gates Foundation, Oxford University"
+                                        />
+                                    </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Provider Logo URL
+                                    <label className="block text-sm font-bold text-white mb-3">
+                                        Elite Provider Logo URL
                                     </label>
-                                    <input
-                                        type="url"
-                                        name="provider_logo"
-                                        value={formData.provider_logo}
-                                        onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        placeholder="https://example.com/logo.png"
-                                    />
+                                    <div className="relative">
+                                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                                            <Upload className="w-5 h-5 text-emerald-400" />
+                                            <Sparkles className="w-4 h-4 text-teal-400 animate-pulse" />
+                                        </div>
+                                        <input
+                                            type="url"
+                                            name="provider_logo"
+                                            value={formData.provider_logo}
+                                            onChange={handleInputChange}
+                                            className="w-full pl-16 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-400 text-white placeholder-gray-400 transition-all duration-300"
+                                            placeholder="https://elite-provider.com/premium-logo.png"
+                                        />
+                                    </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Website URL
+                                    <label className="block text-sm font-bold text-white mb-3">
+                                        Elite Website URL
                                     </label>
-                                    <input
-                                        type="url"
-                                        name="website_url"
-                                        value={formData.website_url}
-                                        onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        placeholder="https://provider-website.com"
-                                    />
+                                    <div className="relative">
+                                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                                            <Globe className="w-5 h-5 text-emerald-400" />
+                                            <Crown className="w-4 h-4 text-yellow-400 animate-pulse" />
+                                        </div>
+                                        <input
+                                            type="url"
+                                            name="website_url"
+                                            value={formData.website_url}
+                                            onChange={handleInputChange}
+                                            className="w-full pl-16 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-400 text-white placeholder-gray-400 transition-all duration-300"
+                                            placeholder="https://elite-provider-website.com"
+                                        />
+                                    </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Application URL *
+                                    <label className="block text-sm font-bold text-white mb-3">
+                                        Elite Application Portal *
                                     </label>
-                                    <input
-                                        type="url"
-                                        name="application_url"
-                                        value={formData.application_url}
-                                        onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        placeholder="https://application-link.com"
-                                    />
+                                    <div className="relative">
+                                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                                            <Rocket className="w-5 h-5 text-emerald-400" />
+                                            <Target className="w-4 h-4 text-teal-400 animate-pulse" />
+                                        </div>
+                                        <input
+                                            type="url"
+                                            name="application_url"
+                                            value={formData.application_url}
+                                            onChange={handleInputChange}
+                                            className="w-full pl-16 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-400 text-white placeholder-gray-400 transition-all duration-300"
+                                            placeholder="https://elite-application-portal.com"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -866,101 +1024,146 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                         </div>
                     </div>
 
-                    {/* Sidebar */}
-                    <div className="space-y-6">
-                        {/* Publication Status */}
-                        <div className="bg-white rounded-lg shadow-sm border p-6">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Publication</h3>
-                            
-                            <div className="space-y-4">
+                    {/* Elite Sidebar */}
+                    <div className="space-y-8">
+                        {/* Elite Publication Status */}
+                        <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl">
+                            <div className="flex items-center mb-6">
+                                <div className="p-3 bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl mr-4">
+                                    <Rocket className="w-6 h-6 text-white" />
+                                </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Status
+                                    <h3 className="text-xl font-black text-white mb-2">Elite Publication</h3>
+                                    <p className="text-gray-300 text-sm">Control your scholarship's visibility</p>
+                                </div>
+                            </div>
+                            
+                            <div className="space-y-6">
+                                <div>
+                                    <label className="block text-sm font-bold text-white mb-3">
+                                        Elite Status
                                     </label>
-                                    <select
-                                        name="status"
-                                        value={formData.status}
-                                        onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    >
-                                        <option value="draft">Draft</option>
-                                        <option value="active">Active</option>
-                                        <option value="archived">Archived</option>
-                                        <option value="expired">Expired</option>
-                                    </select>
+                                    <div className="relative">
+                                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
+                                            <CheckCircle2 className="w-5 h-5 text-orange-400" />
+                                        </div>
+                                        <select
+                                            name="status"
+                                            value={formData.status}
+                                            onChange={handleInputChange}
+                                            className="w-full pl-12 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-400 text-white transition-all duration-300"
+                                        >
+                                            <option value="draft">🚧 Elite Draft</option>
+                                            <option value="active">🚀 Active & Live</option>
+                                            <option value="archived">🗄️ Archived</option>
+                                            <option value="expired">⏰ Expired</option>
+                                        </select>
+                                    </div>
                                 </div>
 
-                                <div className="flex items-center space-x-3">
-                                    <input
-                                        type="checkbox"
-                                        id="featured"
-                                        name="featured"
-                                        checked={formData.featured}
-                                        onChange={handleInputChange}
-                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                    />
-                                    <label htmlFor="featured" className="text-sm font-medium text-gray-700">
-                                        Featured Scholarship
-                                    </label>
-                                </div>
+                                <div className="space-y-4">
+                                    <div className="bg-black/30 backdrop-blur-lg rounded-2xl border border-white/10 p-4">
+                                        <div className="flex items-center space-x-4">
+                                            <input
+                                                type="checkbox"
+                                                id="featured"
+                                                name="featured"
+                                                checked={formData.featured}
+                                                onChange={handleInputChange}
+                                                className="h-5 w-5 text-yellow-500 focus:ring-yellow-500 border-gray-400 rounded bg-black/50"
+                                            />
+                                            <label htmlFor="featured" className="text-white font-semibold flex items-center">
+                                                <Star className="w-5 h-5 mr-2 text-yellow-400 fill-current" />
+                                                Featured Elite Scholarship
+                                                <span className="ml-2 px-2 py-1 bg-yellow-500/20 text-yellow-300 rounded-lg text-xs font-bold animate-pulse">
+                                                    PREMIUM SPOTLIGHT
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </div>
 
-                                <div className="flex items-center space-x-3">
-                                    <input
-                                        type="checkbox"
-                                        id="verified"
-                                        name="verified"
-                                        checked={formData.verified}
-                                        onChange={handleInputChange}
-                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                    />
-                                    <label htmlFor="verified" className="text-sm font-medium text-gray-700">
-                                        Verified Scholarship
-                                    </label>
+                                    <div className="bg-black/30 backdrop-blur-lg rounded-2xl border border-white/10 p-4">
+                                        <div className="flex items-center space-x-4">
+                                            <input
+                                                type="checkbox"
+                                                id="verified"
+                                                name="verified"
+                                                checked={formData.verified}
+                                                onChange={handleInputChange}
+                                                className="h-5 w-5 text-green-500 focus:ring-green-500 border-gray-400 rounded bg-black/50"
+                                            />
+                                            <label htmlFor="verified" className="text-white font-semibold flex items-center">
+                                                <Shield className="w-5 h-5 mr-2 text-green-400" />
+                                                Verified Elite Scholarship
+                                                <span className="ml-2 px-2 py-1 bg-green-500/20 text-green-300 rounded-lg text-xs font-bold">
+                                                    CERTIFIED
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Category & Classification */}
-                        <div className="bg-white rounded-lg shadow-sm border p-6">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Classification</h3>
-                            
-                            <div className="space-y-4">
+                        {/* Elite Category & Classification */}
+                        <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl">
+                            <div className="flex items-center mb-6">
+                                <div className="p-3 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl mr-4">
+                                    <Layers className="w-6 h-6 text-white" />
+                                </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Category *
+                                    <h3 className="text-xl font-black text-white mb-2">Elite Classification</h3>
+                                    <p className="text-gray-300 text-sm">Academic categorization and levels</p>
+                                </div>
+                            </div>
+                            
+                            <div className="space-y-6">
+                                <div>
+                                    <label className="block text-sm font-bold text-white mb-3">
+                                        Elite Category *
                                     </label>
-                                    <select
-                                        name="category_id"
-                                        value={formData.category_id}
-                                        onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    >
-                                        <option value="">Select Category</option>
-                                        {Array.isArray(categories) && categories.map((category, index) => (
-                                            <option key={category.id || category.name || `category-${index}`} value={category.id || category.name}>
-                                                {category.name || category}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <div className="relative">
+                                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
+                                            <Target className="w-5 h-5 text-blue-400" />
+                                        </div>
+                                        <select
+                                            name="category_id"
+                                            value={formData.category_id}
+                                            onChange={handleInputChange}
+                                            className="w-full pl-12 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-400 text-white transition-all duration-300"
+                                        >
+                                            <option value="">Select Elite Category</option>
+                                            {Array.isArray(categories) && categories.map((category, index) => (
+                                                <option key={category.id || category.name || `category-${index}`} value={category.id || category.name}>
+                                                    ⭐ {category.name || category}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Education Level *
+                                    <label className="block text-sm font-bold text-white mb-3">
+                                        Elite Education Level *
                                     </label>
-                                    <select
-                                        name="education_level_id"
-                                        value={formData.education_level_id}
-                                        onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    >
-                                        <option value="">Select Level</option>
-                                        {educationLevels.map((level, index) => (
-                                            <option key={level.id || level.name || `level-${index}`} value={level.id || level.name}>
-                                                {level.name}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <div className="relative">
+                                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
+                                            <GraduationCap className="w-5 h-5 text-blue-400" />
+                                        </div>
+                                        <select
+                                            name="education_level_id"
+                                            value={formData.education_level_id}
+                                            onChange={handleInputChange}
+                                            className="w-full pl-12 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-400 text-white transition-all duration-300"
+                                        >
+                                            <option value="">Select Elite Level</option>
+                                            {educationLevels.map((level, index) => (
+                                                <option key={level.id || level.name || `level-${index}`} value={level.id || level.name}>
+                                                    🎓 {level.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                         </div>

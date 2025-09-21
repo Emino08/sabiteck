@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { User, Mail, Lock, Eye, EyeOff, Building2 } from 'lucide-react';
 import { apiRequest } from '../../utils/api';
 import { toast } from 'sonner';
 
 const Register = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [formData, setFormData] = useState({
         first_name: '',
         last_name: '',
@@ -59,7 +60,16 @@ const Register = () => {
 
             if (response.success) {
                 toast.success('Account created successfully! Please log in.');
-                navigate('/login');
+                // Pass along the return URL and message for login redirect
+                const returnTo = location.state?.returnTo;
+                const message = location.state?.message;
+                navigate('/login', {
+                    state: {
+                        returnTo,
+                        message: message || 'Welcome! Please sign in to complete your action.',
+                        fromRegistration: true
+                    }
+                });
             } else {
                 toast.error(response.message || 'Registration failed');
             }
@@ -92,7 +102,14 @@ const Register = () => {
                 </h2>
                 <p className="mt-2 text-center text-sm text-gray-600">
                     Already have an account?{' '}
-                    <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">
+                    <Link
+                        to="/login"
+                        state={{
+                            returnTo: location.state?.returnTo,
+                            message: location.state?.message
+                        }}
+                        className="font-medium text-blue-600 hover:text-blue-500"
+                    >
                         Sign in
                     </Link>
                 </p>

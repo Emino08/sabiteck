@@ -58,9 +58,8 @@ const RouteSettingsManager = () => {
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/admin/route-settings`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/routes/all`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
@@ -169,7 +168,7 @@ const RouteSettingsManager = () => {
       display_name: route.display_name,
       description: route.description,
       is_visible: route.is_visible,
-      display_order: route.display_order
+      display_order: route.display_order || 0
     });
     setEditingRoute(route.route_name);
     setShowEditModal(true);
@@ -280,7 +279,7 @@ const RouteSettingsManager = () => {
       display_name: '',
       description: '',
       is_visible: true,
-      display_order: routes.length + 1
+      display_order: (routes.length + 1) || 1
     });
     setEditingRoute(null);
     setShowEditModal(false);
@@ -531,7 +530,7 @@ const RouteSettingsManager = () => {
               <Input
                 type="number"
                 value={formData.display_order}
-                onChange={(e) => setFormData(prev => ({ ...prev, display_order: parseInt(e.target.value) }))}
+                onChange={(e) => setFormData(prev => ({ ...prev, display_order: parseInt(e.target.value) || 0 }))}
                 min="1"
               />
             </div>
@@ -614,7 +613,7 @@ const RouteSettingsManager = () => {
               <Input
                 type="number"
                 value={formData.display_order}
-                onChange={(e) => setFormData(prev => ({ ...prev, display_order: parseInt(e.target.value) }))}
+                onChange={(e) => setFormData(prev => ({ ...prev, display_order: parseInt(e.target.value) || 0 }))}
                 min="1"
               />
             </div>

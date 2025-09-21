@@ -1,20 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { 
-    Calendar, 
-    DollarSign, 
-    MapPin, 
-    Award, 
-    Users, 
-    Clock, 
-    BookOpen, 
+import {
+    Calendar,
+    DollarSign,
+    MapPin,
+    Award,
+    Users,
+    Clock,
+    BookOpen,
     ExternalLink,
     Share2,
     Heart,
     Download,
     ChevronRight,
     GraduationCap,
-    Globe
+    Globe,
+    Star,
+    Crown,
+    Shield,
+    Sparkles,
+    Trophy,
+    Diamond,
+    Zap,
+    CheckCircle
 } from 'lucide-react';
 import { apiRequest } from '../../utils/api';
 import LoadingSpinner from '../ui/LoadingSpinner';
@@ -165,29 +173,39 @@ const ScholarshipDetail = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 pt-24">
-            {/* Breadcrumb */}
-            <div className="bg-white border-b">
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900 pt-24 relative overflow-hidden">
+            {/* Elite Background Effects */}
+            <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute -top-40 -right-40 w-80 h-80 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
+                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse animation-delay-2000"></div>
+                <div className="absolute top-1/3 left-1/3 w-60 h-60 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse animation-delay-4000"></div>
+                <div className="absolute bottom-1/4 right-1/4 w-40 h-40 bg-yellow-500 rounded-full mix-blend-multiply filter blur-xl opacity-15 animate-pulse animation-delay-6000"></div>
+            </div>
+            {/* Elite Breadcrumb */}
+            <div className="bg-black/20 backdrop-blur-xl border-b border-white/10 relative z-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <nav className="flex" aria-label="Breadcrumb">
                         <ol className="inline-flex items-center space-x-1 md:space-x-3">
                             <li className="inline-flex items-center">
-                                <Link to="/" className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
+                                <Link to="/" className="inline-flex items-center text-sm font-medium text-gray-300 hover:text-indigo-400 transition-colors">
+                                    <Crown className="w-4 h-4 mr-1" />
                                     Home
                                 </Link>
                             </li>
                             <li>
                                 <div className="flex items-center">
-                                    <ChevronRight className="w-4 h-4 text-gray-400" />
-                                    <Link to="/scholarships" className="ml-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ml-2">
-                                        Scholarships
+                                    <ChevronRight className="w-4 h-4 text-gray-500" />
+                                    <Link to="/scholarships" className="ml-1 text-sm font-medium text-gray-300 hover:text-indigo-400 md:ml-2 transition-colors">
+                                        <Diamond className="w-4 h-4 mr-1" />
+                                        Elite Scholarships
                                     </Link>
                                 </div>
                             </li>
                             <li aria-current="page">
                                 <div className="flex items-center">
-                                    <ChevronRight className="w-4 h-4 text-gray-400" />
-                                    <span className="ml-1 text-sm font-medium text-gray-500 md:ml-2 truncate max-w-xs">
+                                    <ChevronRight className="w-4 h-4 text-gray-500" />
+                                    <span className="ml-1 text-sm font-medium text-yellow-400 md:ml-2 truncate max-w-xs flex items-center">
+                                        <Star className="w-4 h-4 mr-1 fill-current" />
                                         {scholarship.title}
                                     </span>
                                 </div>
@@ -197,43 +215,45 @@ const ScholarshipDetail = () => {
                 </div>
             </div>
 
-            {/* Header */}
-            <div className="bg-white">
+            {/* Elite Header */}
+            <div className="bg-black/30 backdrop-blur-xl border-b border-white/10 relative z-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                         <div className="flex-1">
                             <div className="flex items-center gap-3 mb-4">
-                                {scholarship.provider_logo ? (
-                                    <img 
-                                        src={scholarship.provider_logo} 
-                                        alt={scholarship.provider}
-                                        className="w-16 h-16 rounded-lg object-cover border"
-                                    />
-                                ) : (
-                                    <div className="w-16 h-16 rounded-lg bg-blue-100 flex items-center justify-center">
-                                        <Award className="w-8 h-8 text-blue-600" />
-                                    </div>
-                                )}
+                                <div className="relative group">
+                                    <div className="absolute -inset-2 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl blur opacity-75 group-hover:opacity-100 transition duration-500 animate-pulse"></div>
+                                    {scholarship.provider_logo ? (
+                                        <img
+                                            src={scholarship.provider_logo}
+                                            alt={scholarship.provider}
+                                            className="relative w-16 h-16 rounded-lg object-cover border border-white/20 backdrop-blur-lg"
+                                        />
+                                    ) : (
+                                        <div className="relative w-16 h-16 rounded-lg bg-black/50 backdrop-blur-lg border border-white/20 flex items-center justify-center">
+                                            <Trophy className="w-8 h-8 text-yellow-400" />
+                                        </div>
+                                    )}
+                                </div>
                                 <div>
-                                    <p className="text-sm text-gray-600">{scholarship.provider}</p>
+                                    <p className="text-sm text-gray-300 flex items-center">
+                                        <Shield className="w-4 h-4 mr-1 text-indigo-400" />
+                                        {scholarship.provider}
+                                    </p>
                                     <div className="flex items-center gap-2">
-                                        <span 
-                                            className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
-                                            style={{ 
-                                                backgroundColor: `${scholarship.category_color}20`,
-                                                color: scholarship.category_color 
-                                            }}
-                                        >
+                                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-indigo-500/20 to-purple-500/20 text-indigo-300 border border-indigo-500/30 backdrop-blur-lg">
+                                            <Sparkles className="w-3 h-3 mr-1" />
                                             {scholarship.category_name}
                                         </span>
                                         {scholarship.featured && (
-                                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                                <Award className="w-3 h-3 mr-1" />
-                                                Featured
+                                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-yellow-500/20 to-orange-500/20 text-yellow-300 border border-yellow-500/30 backdrop-blur-lg animate-pulse">
+                                                <Crown className="w-3 h-3 mr-1 fill-current" />
+                                                Elite Featured
                                             </span>
                                         )}
                                         {scholarship.verified && (
-                                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-300 border border-green-500/30 backdrop-blur-lg">
+                                                <CheckCircle className="w-3 h-3 mr-1 fill-current" />
                                                 Verified
                                             </span>
                                         )}
@@ -241,86 +261,96 @@ const ScholarshipDetail = () => {
                                 </div>
                             </div>
                             
-                            <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+                            <h1 className="text-3xl lg:text-4xl font-black mb-4 bg-gradient-to-r from-white via-indigo-200 to-purple-200 bg-clip-text text-transparent">
                                 {scholarship.title}
                             </h1>
                             
-                            <p className="text-lg text-gray-700 mb-6">
+                            <p className="text-lg text-gray-300 mb-6 leading-relaxed">
                                 {scholarship.description || scholarship.short_description || 'No description available'}
                             </p>
 
-                            {/* Key Details */}
+                            {/* Elite Key Details */}
                             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                                <div className="flex items-center gap-2">
-                                    <DollarSign className="w-5 h-5 text-green-600" />
+                                <div className="flex items-center gap-3 p-4 bg-black/40 backdrop-blur-lg rounded-2xl border border-white/20 hover:border-green-500/30 transition-all duration-300 group">
+                                    <div className="p-2 bg-green-500/20 rounded-xl group-hover:bg-green-500/30 transition-colors">
+                                        <DollarSign className="w-5 h-5 text-green-400" />
+                                    </div>
                                     <div>
-                                        <p className="text-xs text-gray-500">Funding</p>
-                                        <p className="font-semibold text-gray-900">
-                                            ${scholarship.amount || 'Amount not specified'}
+                                        <p className="text-xs text-gray-400 font-semibold">Elite Funding</p>
+                                        <p className="font-bold text-green-400">
+                                            ${scholarship.amount || 'Premium Package'}
                                         </p>
                                     </div>
                                 </div>
                                 
-                                <div className="flex items-center gap-2">
-                                    <Calendar className="w-5 h-5 text-red-600" />
+                                <div className="flex items-center gap-3 p-4 bg-black/40 backdrop-blur-lg rounded-2xl border border-white/20 hover:border-red-500/30 transition-all duration-300 group">
+                                    <div className="p-2 bg-red-500/20 rounded-xl group-hover:bg-red-500/30 transition-colors">
+                                        <Calendar className="w-5 h-5 text-red-400" />
+                                    </div>
                                     <div>
-                                        <p className="text-xs text-gray-500">Deadline</p>
-                                        <p className={`font-semibold ${getDeadlineStatus(scholarship.deadline)}`}>
+                                        <p className="text-xs text-gray-400 font-semibold">Elite Deadline</p>
+                                        <p className={`font-bold ${getDeadlineStatus(scholarship.deadline).replace('text-', 'text-').replace('600', '400')}`}>
                                             {formatDeadline(scholarship.deadline)}
                                         </p>
                                     </div>
                                 </div>
                                 
-                                <div className="flex items-center gap-2">
-                                    <GraduationCap className="w-5 h-5 text-blue-600" />
+                                <div className="flex items-center gap-3 p-4 bg-black/40 backdrop-blur-lg rounded-2xl border border-white/20 hover:border-blue-500/30 transition-all duration-300 group">
+                                    <div className="p-2 bg-blue-500/20 rounded-xl group-hover:bg-blue-500/30 transition-colors">
+                                        <GraduationCap className="w-5 h-5 text-blue-400" />
+                                    </div>
                                     <div>
-                                        <p className="text-xs text-gray-500">Level</p>
-                                        <p className="font-semibold text-gray-900">
-                                            {scholarship.education_level || 'All levels'}
+                                        <p className="text-xs text-gray-400 font-semibold">Elite Level</p>
+                                        <p className="font-bold text-blue-400">
+                                            {scholarship.education_level || 'All Elite Levels'}
                                         </p>
                                     </div>
                                 </div>
                                 
-                                <div className="flex items-center gap-2">
-                                    <Globe className="w-5 h-5 text-purple-600" />
+                                <div className="flex items-center gap-3 p-4 bg-black/40 backdrop-blur-lg rounded-2xl border border-white/20 hover:border-purple-500/30 transition-all duration-300 group">
+                                    <div className="p-2 bg-purple-500/20 rounded-xl group-hover:bg-purple-500/30 transition-colors">
+                                        <Globe className="w-5 h-5 text-purple-400" />
+                                    </div>
                                     <div>
-                                        <p className="text-xs text-gray-500">Region</p>
-                                        <p className="font-semibold text-gray-900">
-                                            {scholarship.region || 'Global'}
+                                        <p className="text-xs text-gray-400 font-semibold">Elite Region</p>
+                                        <p className="font-bold text-purple-400">
+                                            {scholarship.region || 'Global Elite'}
                                         </p>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Action Buttons */}
-                        <div className="flex flex-col gap-3 lg:w-64">
+                        {/* Elite Action Center */}
+                        <div className="flex flex-col gap-4 lg:w-64">
                             <a
                                 href={scholarship.application_url || '#'}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                                className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white px-6 py-4 rounded-2xl font-bold shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl active:scale-95 flex items-center justify-center gap-2 group relative overflow-hidden"
                             >
-                                Apply Now
+                                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                                <Zap className="w-5 h-5 mr-2 group-hover:animate-spin" />
+                                Apply to Elite Program
                                 <ExternalLink className="w-4 h-4" />
                             </a>
                             
-                            <div className="flex gap-2">
+                            <div className="flex gap-3">
                                 <button
                                     onClick={handleSaveScholarship}
-                                    className={`flex-1 px-4 py-2 rounded-lg border font-medium transition-colors flex items-center justify-center gap-2 ${
-                                        isSaved 
-                                            ? 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100' 
-                                            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                                    className={`flex-1 px-4 py-3 rounded-2xl border font-bold transition-all duration-300 flex items-center justify-center gap-2 backdrop-blur-lg ${
+                                        isSaved
+                                            ? 'bg-red-500/20 border-red-500/30 text-red-300 hover:bg-red-500/30 hover:scale-105'
+                                            : 'bg-black/40 border-white/20 text-gray-300 hover:bg-white/10 hover:scale-105'
                                     }`}
                                 >
-                                    <Heart className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
-                                    {isSaved ? 'Saved' : 'Save'}
+                                    <Heart className={`w-4 h-4 ${isSaved ? 'fill-current animate-pulse' : ''}`} />
+                                    {isSaved ? 'Elite Saved' : 'Save Elite'}
                                 </button>
-                                
+
                                 <button
                                     onClick={handleShare}
-                                    className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center"
+                                    className="px-4 py-3 rounded-2xl border border-white/20 text-gray-300 hover:bg-white/10 transition-all duration-300 flex items-center justify-center backdrop-blur-lg hover:scale-105"
                                 >
                                     <Share2 className="w-4 h-4" />
                                 </button>
@@ -331,9 +361,10 @@ const ScholarshipDetail = () => {
                                     href={scholarship.website_url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-center text-blue-600 hover:text-blue-800 font-medium flex items-center justify-center gap-2"
+                                    className="text-center text-indigo-400 hover:text-indigo-300 font-bold flex items-center justify-center gap-2 transition-colors"
                                 >
-                                    Visit Website
+                                    <Globe className="w-4 h-4" />
+                                    Visit Elite Portal
                                     <ExternalLink className="w-4 h-4" />
                                 </a>
                             )}
@@ -342,117 +373,141 @@ const ScholarshipDetail = () => {
                 </div>
             </div>
 
-            {/* Main Content */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            {/* Elite Main Content */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Content */}
                     <div className="lg:col-span-2">
-                        {/* Description */}
-                        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-4">About This Scholarship</h2>
+                        {/* Elite Description */}
+                        <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 mb-8 shadow-2xl hover:border-white/20 transition-all duration-500">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-3 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-2xl border border-indigo-500/30">
+                                    <BookOpen className="w-6 h-6 text-indigo-400" />
+                                </div>
+                                <h2 className="text-2xl font-black bg-gradient-to-r from-white via-indigo-200 to-purple-200 bg-clip-text text-transparent">About This Elite Opportunity</h2>
+                            </div>
                             {scholarship.content ? (
-                                <div 
-                                    className="prose prose-lg max-w-none"
+                                <div
+                                    className="prose prose-lg max-w-none prose-invert prose-indigo"
                                     dangerouslySetInnerHTML={{ __html: sanitizeHTML(scholarship.content) }}
                                 />
                             ) : (
-                                <p className="text-gray-700 text-lg leading-relaxed">
+                                <p className="text-gray-300 text-lg leading-relaxed">
                                     {scholarship.full_description}
                                 </p>
                             )}
                         </div>
 
-                        {/* Coverage Details */}
-                        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-                            <h3 className="text-xl font-bold text-gray-900 mb-4">What's Covered</h3>
+                        {/* Elite Coverage Details */}
+                        <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 mb-8 shadow-2xl hover:border-white/20 transition-all duration-500">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-3 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-2xl border border-green-500/30">
+                                    <Shield className="w-6 h-6 text-green-400" />
+                                </div>
+                                <h3 className="text-xl font-black bg-gradient-to-r from-white via-green-200 to-emerald-200 bg-clip-text text-transparent">Elite Coverage Package</h3>
+                            </div>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                <div className={`flex items-center gap-3 p-3 rounded-lg ${
-                                    scholarship.covers_tuition ? 'bg-green-50 border border-green-200' : 'bg-gray-50 border border-gray-200'
+                                <div className={`flex items-center gap-4 p-4 rounded-2xl backdrop-blur-lg border transition-all duration-300 hover:scale-105 ${
+                                    scholarship.covers_tuition ? 'bg-green-500/20 border-green-500/30' : 'bg-gray-500/20 border-gray-500/30'
                                 }`}>
-                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                                        scholarship.covers_tuition ? 'bg-green-100' : 'bg-gray-200'
+                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${
+                                        scholarship.covers_tuition ? 'bg-green-500/30 border-green-500/50' : 'bg-gray-500/30 border-gray-500/50'
                                     }`}>
-                                        <BookOpen className={`w-4 h-4 ${
-                                            scholarship.covers_tuition ? 'text-green-600' : 'text-gray-500'
+                                        <BookOpen className={`w-5 h-5 ${
+                                            scholarship.covers_tuition ? 'text-green-400' : 'text-gray-400'
                                         }`} />
                                     </div>
                                     <div>
-                                        <p className="font-medium text-gray-900">Tuition</p>
-                                        <p className={`text-sm ${
-                                            scholarship.covers_tuition ? 'text-green-600' : 'text-gray-500'
+                                        <p className="font-bold text-white">Elite Tuition</p>
+                                        <p className={`text-sm font-semibold ${
+                                            scholarship.covers_tuition ? 'text-green-400' : 'text-gray-400'
                                         }`}>
-                                            {scholarship.covers_tuition ? 'Covered' : 'Not covered'}
+                                            {scholarship.covers_tuition ? '✓ Fully Covered' : '✗ Not Covered'}
                                         </p>
                                     </div>
                                 </div>
 
-                                <div className={`flex items-center gap-3 p-3 rounded-lg ${
-                                    scholarship.covers_living ? 'bg-green-50 border border-green-200' : 'bg-gray-50 border border-gray-200'
+                                <div className={`flex items-center gap-4 p-4 rounded-2xl backdrop-blur-lg border transition-all duration-300 hover:scale-105 ${
+                                    scholarship.covers_living ? 'bg-green-500/20 border-green-500/30' : 'bg-gray-500/20 border-gray-500/30'
                                 }`}>
-                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                                        scholarship.covers_living ? 'bg-green-100' : 'bg-gray-200'
+                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${
+                                        scholarship.covers_living ? 'bg-green-500/30 border-green-500/50' : 'bg-gray-500/30 border-gray-500/50'
                                     }`}>
-                                        <Users className={`w-4 h-4 ${
-                                            scholarship.covers_living ? 'text-green-600' : 'text-gray-500'
+                                        <Users className={`w-5 h-5 ${
+                                            scholarship.covers_living ? 'text-green-400' : 'text-gray-400'
                                         }`} />
                                     </div>
                                     <div>
-                                        <p className="font-medium text-gray-900">Living</p>
-                                        <p className={`text-sm ${
-                                            scholarship.covers_living ? 'text-green-600' : 'text-gray-500'
+                                        <p className="font-bold text-white">Elite Living</p>
+                                        <p className={`text-sm font-semibold ${
+                                            scholarship.covers_living ? 'text-green-400' : 'text-gray-400'
                                         }`}>
-                                            {scholarship.covers_living ? 'Covered' : 'Not covered'}
+                                            {scholarship.covers_living ? '✓ Fully Covered' : '✗ Not Covered'}
                                         </p>
                                     </div>
                                 </div>
 
-                                <div className={`flex items-center gap-3 p-3 rounded-lg ${
-                                    scholarship.covers_travel ? 'bg-green-50 border border-green-200' : 'bg-gray-50 border border-gray-200'
+                                <div className={`flex items-center gap-4 p-4 rounded-2xl backdrop-blur-lg border transition-all duration-300 hover:scale-105 ${
+                                    scholarship.covers_travel ? 'bg-green-500/20 border-green-500/30' : 'bg-gray-500/20 border-gray-500/30'
                                 }`}>
-                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                                        scholarship.covers_travel ? 'bg-green-100' : 'bg-gray-200'
+                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${
+                                        scholarship.covers_travel ? 'bg-green-500/30 border-green-500/50' : 'bg-gray-500/30 border-gray-500/50'
                                     }`}>
-                                        <MapPin className={`w-4 h-4 ${
-                                            scholarship.covers_travel ? 'text-green-600' : 'text-gray-500'
+                                        <MapPin className={`w-5 h-5 ${
+                                            scholarship.covers_travel ? 'text-green-400' : 'text-gray-400'
                                         }`} />
                                     </div>
                                     <div>
-                                        <p className="font-medium text-gray-900">Travel</p>
-                                        <p className={`text-sm ${
-                                            scholarship.covers_travel ? 'text-green-600' : 'text-gray-500'
+                                        <p className="font-bold text-white">Elite Travel</p>
+                                        <p className={`text-sm font-semibold ${
+                                            scholarship.covers_travel ? 'text-green-400' : 'text-gray-400'
                                         }`}>
-                                            {scholarship.covers_travel ? 'Covered' : 'Not covered'}
+                                            {scholarship.covers_travel ? '✓ Fully Covered' : '✗ Not Covered'}
                                         </p>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Requirements */}
+                        {/* Elite Requirements */}
                         {(scholarship.language_requirements || scholarship.other_requirements || scholarship.gpa_requirement) && (
-                            <div className="bg-white rounded-lg shadow-sm border p-6">
-                                <h3 className="text-xl font-bold text-gray-900 mb-4">Requirements</h3>
-                                <div className="space-y-4">
+                            <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl hover:border-white/20 transition-all duration-500">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <div className="p-3 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-2xl border border-yellow-500/30">
+                                        <Award className="w-6 h-6 text-yellow-400" />
+                                    </div>
+                                    <h3 className="text-xl font-black bg-gradient-to-r from-white via-yellow-200 to-orange-200 bg-clip-text text-transparent">Elite Requirements</h3>
+                                </div>
+                                <div className="space-y-6">
                                     {scholarship.gpa_requirement && (
-                                        <div>
-                                            <h4 className="font-semibold text-gray-900 mb-2">Academic Requirements</h4>
-                                            <p className="text-gray-700">
-                                                Minimum GPA: {scholarship.gpa_requirement}
+                                        <div className="p-4 bg-black/40 rounded-2xl border border-yellow-500/30">
+                                            <h4 className="font-bold text-yellow-400 mb-2 flex items-center">
+                                                <Trophy className="w-5 h-5 mr-2" />
+                                                Elite Academic Standards
+                                            </h4>
+                                            <p className="text-gray-300">
+                                                Minimum GPA: <span className="font-bold text-yellow-400">{scholarship.gpa_requirement}</span>
                                             </p>
                                         </div>
                                     )}
                                     
                                     {scholarship.language_requirements && (
-                                        <div>
-                                            <h4 className="font-semibold text-gray-900 mb-2">Language Requirements</h4>
-                                            <p className="text-gray-700">{scholarship.language_requirements}</p>
+                                        <div className="p-4 bg-black/40 rounded-2xl border border-blue-500/30">
+                                            <h4 className="font-bold text-blue-400 mb-2 flex items-center">
+                                                <Globe className="w-5 h-5 mr-2" />
+                                                Elite Language Proficiency
+                                            </h4>
+                                            <p className="text-gray-300">{scholarship.language_requirements}</p>
                                         </div>
                                     )}
                                     
                                     {scholarship.other_requirements && (
-                                        <div>
-                                            <h4 className="font-semibold text-gray-900 mb-2">Other Requirements</h4>
-                                            <p className="text-gray-700">{scholarship.other_requirements}</p>
+                                        <div className="p-4 bg-black/40 rounded-2xl border border-purple-500/30">
+                                            <h4 className="font-bold text-purple-400 mb-2 flex items-center">
+                                                <Star className="w-5 h-5 mr-2 fill-current" />
+                                                Elite Additional Criteria
+                                            </h4>
+                                            <p className="text-gray-300">{scholarship.other_requirements}</p>
                                         </div>
                                     )}
                                 </div>
@@ -460,18 +515,25 @@ const ScholarshipDetail = () => {
                         )}
                     </div>
 
-                    {/* Sidebar */}
-                    <div className="space-y-6">
-                        {/* Key Dates */}
-                        <div className="bg-white rounded-lg shadow-sm border p-6">
-                            <h3 className="text-lg font-bold text-gray-900 mb-4">Important Dates</h3>
+                    {/* Elite Sidebar */}
+                    <div className="space-y-8">
+                        {/* Elite Key Dates */}
+                        <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-6 shadow-2xl hover:border-white/20 transition-all duration-500">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-2 bg-gradient-to-r from-red-500/20 to-pink-500/20 rounded-xl border border-red-500/30">
+                                    <Calendar className="w-5 h-5 text-red-400" />
+                                </div>
+                                <h3 className="text-lg font-black bg-gradient-to-r from-white via-red-200 to-pink-200 bg-clip-text text-transparent">Elite Timeline</h3>
+                            </div>
                             <div className="space-y-3">
                                 {scholarship.deadline && (
-                                    <div className="flex items-center gap-3">
-                                        <Calendar className="w-5 h-5 text-red-600" />
+                                    <div className="flex items-center gap-4 p-3 bg-black/40 rounded-2xl border border-red-500/30 hover:border-red-500/50 transition-colors">
+                                        <div className="p-2 bg-red-500/20 rounded-xl">
+                                            <Calendar className="w-5 h-5 text-red-400" />
+                                        </div>
                                         <div>
-                                            <p className="font-medium text-gray-900">Application Deadline</p>
-                                            <p className="text-sm text-gray-600">
+                                            <p className="font-bold text-white">Elite Application Deadline</p>
+                                            <p className="text-sm text-red-400 font-semibold">
                                                 {new Date(scholarship.deadline).toLocaleDateString('en-US', {
                                                     year: 'numeric',
                                                     month: 'long',
@@ -483,11 +545,13 @@ const ScholarshipDetail = () => {
                                 )}
                                 
                                 {scholarship.program_start_date && (
-                                    <div className="flex items-center gap-3">
-                                        <Clock className="w-5 h-5 text-green-600" />
+                                    <div className="flex items-center gap-4 p-3 bg-black/40 rounded-2xl border border-green-500/30 hover:border-green-500/50 transition-colors">
+                                        <div className="p-2 bg-green-500/20 rounded-xl">
+                                            <Clock className="w-5 h-5 text-green-400" />
+                                        </div>
                                         <div>
-                                            <p className="font-medium text-gray-900">Program Start</p>
-                                            <p className="text-sm text-gray-600">
+                                            <p className="font-bold text-white">Elite Program Launch</p>
+                                            <p className="text-sm text-green-400 font-semibold">
                                                 {new Date(scholarship.program_start_date).toLocaleDateString('en-US', {
                                                     year: 'numeric',
                                                     month: 'long',
@@ -499,11 +563,13 @@ const ScholarshipDetail = () => {
                                 )}
                                 
                                 {scholarship.program_end_date && (
-                                    <div className="flex items-center gap-3">
-                                        <Clock className="w-5 h-5 text-blue-600" />
+                                    <div className="flex items-center gap-4 p-3 bg-black/40 rounded-2xl border border-blue-500/30 hover:border-blue-500/50 transition-colors">
+                                        <div className="p-2 bg-blue-500/20 rounded-xl">
+                                            <Clock className="w-5 h-5 text-blue-400" />
+                                        </div>
                                         <div>
-                                            <p className="font-medium text-gray-900">Program End</p>
-                                            <p className="text-sm text-gray-600">
+                                            <p className="font-bold text-white">Elite Program Completion</p>
+                                            <p className="text-sm text-blue-400 font-semibold">
                                                 {new Date(scholarship.program_end_date).toLocaleDateString('en-US', {
                                                     year: 'numeric',
                                                     month: 'long',
@@ -516,16 +582,22 @@ const ScholarshipDetail = () => {
                             </div>
                         </div>
 
-                        {/* Study Fields */}
+                        {/* Elite Study Fields */}
                         {scholarship.study_fields && (
-                            <div className="bg-white rounded-lg shadow-sm border p-6">
-                                <h3 className="text-lg font-bold text-gray-900 mb-4">Study Fields</h3>
-                                <div className="flex flex-wrap gap-2">
+                            <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-6 shadow-2xl hover:border-white/20 transition-all duration-500">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <div className="p-2 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-xl border border-blue-500/30">
+                                        <BookOpen className="w-5 h-5 text-blue-400" />
+                                    </div>
+                                    <h3 className="text-lg font-black bg-gradient-to-r from-white via-blue-200 to-cyan-200 bg-clip-text text-transparent">Elite Study Fields</h3>
+                                </div>
+                                <div className="flex flex-wrap gap-3">
                                     {(Array.isArray(scholarship.study_fields) ? scholarship.study_fields : JSON.parse(scholarship.study_fields || '[]')).map((field, index) => (
-                                        <span 
+                                        <span
                                             key={index}
-                                            className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
+                                            className="inline-flex items-center px-4 py-2 rounded-2xl text-sm font-bold bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-300 border border-blue-500/30 backdrop-blur-lg hover:scale-105 transition-transform duration-300"
                                         >
+                                            <Sparkles className="w-3 h-3 mr-1" />
                                             {field}
                                         </span>
                                     ))}
@@ -533,45 +605,65 @@ const ScholarshipDetail = () => {
                             </div>
                         )}
 
-                        {/* Regions */}
+                        {/* Elite Regions */}
                         {scholarship.regions && scholarship.regions.length > 0 && (
-                            <div className="bg-white rounded-lg shadow-sm border p-6">
-                                <h3 className="text-lg font-bold text-gray-900 mb-4">Eligible Regions</h3>
-                                <div className="space-y-2">
+                            <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-6 shadow-2xl hover:border-white/20 transition-all duration-500">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <div className="p-2 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl border border-purple-500/30">
+                                        <Globe className="w-5 h-5 text-purple-400" />
+                                    </div>
+                                    <h3 className="text-lg font-black bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent">Elite Global Access</h3>
+                                </div>
+                                <div className="space-y-3">
                                     {scholarship.regions.map((region, index) => (
-                                        <div key={index} className="flex items-center gap-2">
-                                            <MapPin className="w-4 h-4 text-gray-500" />
-                                            <span className="text-sm text-gray-700">{region.name}</span>
+                                        <div key={index} className="flex items-center gap-3 p-3 bg-black/40 rounded-2xl border border-purple-500/30 hover:border-purple-500/50 transition-all duration-300 hover:scale-105">
+                                            <div className="p-1 bg-purple-500/20 rounded-lg">
+                                                <MapPin className="w-4 h-4 text-purple-400" />
+                                            </div>
+                                            <span className="text-sm text-gray-300 font-semibold">{region.name}</span>
                                         </div>
                                     ))}
                                 </div>
                             </div>
                         )}
 
-                        {/* Age Limits */}
+                        {/* Elite Age Requirements */}
                         {(scholarship.age_limit_min || scholarship.age_limit_max) && (
-                            <div className="bg-white rounded-lg shadow-sm border p-6">
-                                <h3 className="text-lg font-bold text-gray-900 mb-4">Age Requirements</h3>
-                                <p className="text-gray-700">
-                                    {scholarship.age_limit_min && scholarship.age_limit_max 
-                                        ? `${scholarship.age_limit_min} - ${scholarship.age_limit_max} years`
-                                        : scholarship.age_limit_min 
-                                        ? `Minimum ${scholarship.age_limit_min} years`
-                                        : `Maximum ${scholarship.age_limit_max} years`}
-                                </p>
+                            <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-6 shadow-2xl hover:border-white/20 transition-all duration-500">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <div className="p-2 bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-xl border border-orange-500/30">
+                                        <Users className="w-5 h-5 text-orange-400" />
+                                    </div>
+                                    <h3 className="text-lg font-black bg-gradient-to-r from-white via-orange-200 to-red-200 bg-clip-text text-transparent">Elite Age Criteria</h3>
+                                </div>
+                                <div className="p-4 bg-black/40 rounded-2xl border border-orange-500/30">
+                                    <p className="text-gray-300 font-semibold">
+                                        {scholarship.age_limit_min && scholarship.age_limit_max
+                                            ? `${scholarship.age_limit_min} - ${scholarship.age_limit_max} years`
+                                            : scholarship.age_limit_min
+                                            ? `Minimum ${scholarship.age_limit_min} years`
+                                            : `Maximum ${scholarship.age_limit_max} years`}
+                                    </p>
+                                </div>
                             </div>
                         )}
 
-                        {/* Tags */}
+                        {/* Elite Tags */}
                         {scholarship.tags && (
-                            <div className="bg-white rounded-lg shadow-sm border p-6">
-                                <h3 className="text-lg font-bold text-gray-900 mb-4">Tags</h3>
-                                <div className="flex flex-wrap gap-2">
+                            <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-6 shadow-2xl hover:border-white/20 transition-all duration-500">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <div className="p-2 bg-gradient-to-r from-pink-500/20 to-rose-500/20 rounded-xl border border-pink-500/30">
+                                        <Star className="w-5 h-5 text-pink-400 fill-current" />
+                                    </div>
+                                    <h3 className="text-lg font-black bg-gradient-to-r from-white via-pink-200 to-rose-200 bg-clip-text text-transparent">Elite Tags</h3>
+                                </div>
+                                <div className="flex flex-wrap gap-3">
                                     {(Array.isArray(scholarship.tags) ? scholarship.tags : JSON.parse(scholarship.tags || '[]')).map((tag, index) => (
-                                        <span 
+                                        <span
                                             key={index}
-                                            className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800"
+                                            className="inline-flex items-center px-3 py-2 rounded-2xl text-xs font-bold bg-gradient-to-r from-pink-500/20 to-rose-500/20 text-pink-300 border border-pink-500/30 backdrop-blur-lg hover:scale-105 transition-transform duration-300"
                                         >
+                                            <Diamond className="w-3 h-3 mr-1" />
                                             #{tag}
                                         </span>
                                     ))}
@@ -581,46 +673,59 @@ const ScholarshipDetail = () => {
                     </div>
                 </div>
 
-                {/* Related Scholarships */}
+                {/* Elite Related Scholarships */}
                 {relatedScholarships.length > 0 && (
-                    <div className="mt-12">
-                        <h2 className="text-2xl font-bold text-gray-900 mb-6">Related Scholarships</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="mt-16 relative z-10">
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="p-3 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-2xl border border-indigo-500/30">
+                                <Trophy className="w-8 h-8 text-indigo-400" />
+                            </div>
+                            <h2 className="text-3xl font-black bg-gradient-to-r from-white via-indigo-200 to-purple-200 bg-clip-text text-transparent">Elite Related Opportunities</h2>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {relatedScholarships.map((related) => (
-                                <Link 
+                                <Link
                                     key={related.id}
                                     to={`/scholarships/${related.slug}`}
-                                    className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow p-6"
+                                    className="group bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 hover:border-white/20 shadow-2xl hover:shadow-3xl transition-all duration-500 p-6 hover:scale-105 transform"
                                 >
-                                    <div className="flex items-start gap-3 mb-4">
-                                        {related.provider_logo ? (
-                                            <img 
-                                                src={related.provider_logo} 
-                                                alt={related.provider}
-                                                className="w-12 h-12 rounded object-cover border flex-shrink-0"
-                                            />
-                                        ) : (
-                                            <div className="w-12 h-12 rounded bg-gray-100 flex items-center justify-center flex-shrink-0">
-                                                <Award className="w-6 h-6 text-gray-600" />
-                                            </div>
-                                        )}
+                                    <div className="flex items-start gap-4 mb-6">
+                                        <div className="relative group/logo">
+                                            <div className="absolute -inset-1 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl blur opacity-50 group-hover/logo:opacity-75 transition duration-500"></div>
+                                            {related.provider_logo ? (
+                                                <img
+                                                    src={related.provider_logo}
+                                                    alt={related.provider}
+                                                    className="relative w-12 h-12 rounded-xl object-cover border border-white/20 flex-shrink-0"
+                                                />
+                                            ) : (
+                                                <div className="relative w-12 h-12 rounded-xl bg-black/50 backdrop-blur-lg border border-white/20 flex items-center justify-center flex-shrink-0">
+                                                    <Award className="w-6 h-6 text-yellow-400" />
+                                                </div>
+                                            )}
+                                        </div>
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold text-gray-900 text-sm line-clamp-2 mb-1">
+                                            <h3 className="font-bold text-white text-sm line-clamp-2 mb-2 group-hover:text-indigo-300 transition-colors">
                                                 {related.title}
                                             </h3>
-                                            <p className="text-xs text-gray-600">{related.provider}</p>
+                                            <p className="text-xs text-gray-400 flex items-center">
+                                                <Shield className="w-3 h-3 mr-1" />
+                                                {related.provider}
+                                            </p>
                                         </div>
                                     </div>
                                     
-                                    <p className="text-sm text-gray-700 line-clamp-2 mb-3">
-                                        {related.description || 'No description available'}
+                                    <p className="text-sm text-gray-300 line-clamp-2 mb-4">
+                                        {related.description || 'Elite opportunity awaiting discovery'}
                                     </p>
                                     
                                     <div className="flex items-center justify-between text-xs">
-                                        <span className="font-semibold text-green-600">
-                                            ${related.amount || 'Amount not specified'}
+                                        <span className="font-bold text-green-400 flex items-center">
+                                            <DollarSign className="w-3 h-3 mr-1" />
+                                            ${related.amount || 'Premium Package'}
                                         </span>
-                                        <span className={getDeadlineStatus(related.deadline)}>
+                                        <span className={`font-semibold flex items-center ${getDeadlineStatus(related.deadline).replace('text-', 'text-').replace('600', '400')}`}>
+                                            <Clock className="w-3 h-3 mr-1" />
                                             {formatDeadline(related.deadline)}
                                         </span>
                                     </div>

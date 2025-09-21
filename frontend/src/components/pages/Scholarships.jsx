@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, Filter, Calendar, Globe, GraduationCap, DollarSign, Clock, Award, BookOpen, Users, Trophy, Briefcase } from 'lucide-react'
+import { Search, Filter, Calendar, Globe, GraduationCap, DollarSign, Clock, Award, BookOpen, Users, Trophy, Briefcase, Star, Crown, Shield, Sparkles, Diamond, Zap, CheckCircle, TrendingUp } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
@@ -159,72 +159,121 @@ const Scholarships = () => {
   }
 
   return (
-    <div className="min-h-screen pt-32 bg-gray-50">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-700 text-white py-16">
+    <div className="min-h-screen pt-32 bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900 relative overflow-hidden">
+      {/* Elite Background Effects */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse animation-delay-2000"></div>
+        <div className="absolute top-1/3 left-1/3 w-60 h-60 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse animation-delay-4000"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-40 h-40 bg-yellow-500 rounded-full mix-blend-multiply filter blur-xl opacity-15 animate-pulse animation-delay-6000"></div>
+      </div>
+      {/* Elite Hero Section */}
+      <div className="bg-black/30 backdrop-blur-xl border-b border-white/10 text-white py-20 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Find Your Dream Scholarship
+            <div className="flex justify-center mb-8">
+              <div className="relative group">
+                <div className="absolute -inset-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 animate-pulse"></div>
+                <div className="relative p-6 bg-black/50 backdrop-blur-lg rounded-full border border-white/20">
+                  <Trophy className="w-16 h-16 text-yellow-400" />
+                </div>
+              </div>
+            </div>
+            <h1 className="text-4xl md:text-6xl font-black mb-6 bg-gradient-to-r from-white via-indigo-200 to-purple-200 bg-clip-text text-transparent">
+              Elite Scholarship Portal
             </h1>
-            <p className="text-xl md:text-2xl mb-8 text-blue-100 max-w-3xl mx-auto">
-              Discover thousands of scholarship opportunities from around the world. 
-              Your next step towards academic excellence starts here.
+            <div className="flex justify-center items-center gap-3 mb-6">
+              <Star className="w-6 h-6 text-yellow-400 fill-current" />
+              <span className="text-2xl font-bold text-yellow-400">Premium Educational Opportunities</span>
+              <Star className="w-6 h-6 text-yellow-400 fill-current" />
+            </div>
+            <p className="text-xl md:text-2xl mb-8 text-gray-300 max-w-3xl mx-auto leading-relaxed">
+              Discover elite scholarship opportunities from prestigious institutions worldwide.
+              Your gateway to academic excellence and professional distinction.
             </p>
             
-            {/* Search Bar */}
-            <form onSubmit={handleSearch} className="max-w-2xl mx-auto mb-6">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                <Input
-                  type="text"
-                  placeholder="Search scholarships by keyword, provider, or field..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 pr-4 py-4 text-lg border-0 rounded-full"
-                />
-                <Button
-                  type="submit"
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full px-6"
-                >
-                  Search
-                </Button>
+            {/* Elite Search Bar */}
+            <form onSubmit={handleSearch} className="max-w-3xl mx-auto mb-8">
+              <div className="relative group">
+                <div className="absolute -inset-2 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full blur opacity-50 group-hover:opacity-75 transition duration-500"></div>
+                <div className="relative flex items-center">
+                  <div className="absolute left-6 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                    <Search className="h-6 w-6 text-indigo-400" />
+                    <Crown className="h-5 w-5 text-yellow-400 animate-pulse" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Search elite scholarships by keyword, institution, or field..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-20 pr-32 py-6 text-lg bg-black/50 backdrop-blur-lg border border-white/20 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400 text-white placeholder-gray-400 transition-all duration-300"
+                  />
+                  <button
+                    type="submit"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-bold py-3 px-8 rounded-full transition-all duration-300 hover:scale-105 flex items-center space-x-2"
+                  >
+                    <Zap className="w-4 h-4" />
+                    <span>Search Elite</span>
+                  </button>
+                </div>
               </div>
             </form>
 
-            {/* Quick Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-              <div>
-                <div className="text-3xl font-bold">{scholarships.length || 8}</div>
-                <div className="text-blue-200">Active Scholarships</div>
+            {/* Elite Quick Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+              <div className="p-6 bg-black/30 backdrop-blur-lg rounded-3xl border border-white/10 hover:border-indigo-500/30 transition-all duration-300 hover:scale-105">
+                <div className="flex justify-center mb-3">
+                  <Trophy className="w-8 h-8 text-yellow-400" />
+                </div>
+                <div className="text-3xl font-black text-yellow-400 mb-2">{scholarships.length || 150}+</div>
+                <div className="text-gray-300 font-semibold">Elite Scholarships</div>
               </div>
-              <div>
-                <div className="text-3xl font-bold">{categories.length || 8}</div>
-                <div className="text-blue-200">Categories</div>
+              <div className="p-6 bg-black/30 backdrop-blur-lg rounded-3xl border border-white/10 hover:border-green-500/30 transition-all duration-300 hover:scale-105">
+                <div className="flex justify-center mb-3">
+                  <BookOpen className="w-8 h-8 text-green-400" />
+                </div>
+                <div className="text-3xl font-black text-green-400 mb-2">{categories.length || 25}+</div>
+                <div className="text-gray-300 font-semibold">Elite Categories</div>
               </div>
-              <div>
-                <div className="text-3xl font-bold">{regions.length || 13}</div>
-                <div className="text-blue-200">Countries & Regions</div>
+              <div className="p-6 bg-black/30 backdrop-blur-lg rounded-3xl border border-white/10 hover:border-purple-500/30 transition-all duration-300 hover:scale-105">
+                <div className="flex justify-center mb-3">
+                  <Globe className="w-8 h-8 text-purple-400" />
+                </div>
+                <div className="text-3xl font-black text-purple-400 mb-2">{regions.length || 50}+</div>
+                <div className="text-gray-300 font-semibold">Global Regions</div>
               </div>
-              <div>
-                <div className="text-3xl font-bold">$50M+</div>
-                <div className="text-blue-200">Total Funding</div>
+              <div className="p-6 bg-black/30 backdrop-blur-lg rounded-3xl border border-white/10 hover:border-indigo-500/30 transition-all duration-300 hover:scale-105">
+                <div className="flex justify-center mb-3">
+                  <DollarSign className="w-8 h-8 text-indigo-400" />
+                </div>
+                <div className="text-3xl font-black text-indigo-400 mb-2">$100M+</div>
+                <div className="text-gray-300 font-semibold">Elite Funding</div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Featured Scholarships Section */}
+      {/* Elite Featured Scholarships Section */}
       {featuredScholarships.length > 0 && (
-        <section className="py-16 bg-white">
+        <section className="py-20 bg-black/20 backdrop-blur-xl border-y border-white/10 relative z-10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                Featured Scholarships
+            <div className="text-center mb-16">
+              <div className="flex justify-center mb-6">
+                <div className="p-4 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-2xl border border-yellow-500/30">
+                  <Crown className="w-12 h-12 text-yellow-400" />
+                </div>
+              </div>
+              <h2 className="text-3xl md:text-4xl font-black mb-6 bg-gradient-to-r from-white via-yellow-200 to-orange-200 bg-clip-text text-transparent">
+                Elite Featured Opportunities
               </h2>
-              <p className="text-xl text-gray-600">
-                Don't miss out on these prestigious opportunities
+              <div className="flex justify-center items-center gap-2 mb-4">
+                <Star className="w-5 h-5 text-yellow-400 fill-current" />
+                <span className="text-yellow-400 font-bold">Prestigious & Time-Sensitive</span>
+                <Star className="w-5 h-5 text-yellow-400 fill-current" />
+              </div>
+              <p className="text-xl text-gray-300">
+                Don't miss these exclusive elite scholarship opportunities
               </p>
             </div>
             
@@ -232,54 +281,87 @@ const Scholarships = () => {
               {Array.isArray(featuredScholarships) && featuredScholarships.slice(0, 6).map((scholarship) => {
                 const CategoryIcon = getCategoryIcon(scholarship.category_icon)
                 return (
-                  <Card key={scholarship.id} className="hover:shadow-lg transition-shadow border-l-4 border-l-blue-500">
-                    <CardHeader>
-                      <div className="flex items-center justify-between mb-2">
-                        <Badge
-                          variant="secondary"
-                          className="bg-blue-500 text-white"
-                        >
-                          <CategoryIcon className="h-3 w-3 mr-1" />
-                          {scholarship.category || 'General'}
-                        </Badge>
-                        <Badge variant="outline" className="text-red-600">
-                          {formatDeadline(scholarship.deadline)}
-                        </Badge>
+                  <div key={scholarship.id} className="group bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 hover:border-yellow-500/30 shadow-2xl hover:shadow-3xl transition-all duration-500 p-6 hover:scale-105 transform relative overflow-hidden">
+                    {/* Elite Featured Badge */}
+                    <div className="absolute top-4 right-4">
+                      <div className="flex items-center px-3 py-1 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 text-yellow-400 rounded-full text-xs font-bold border border-yellow-500/30 animate-pulse">
+                        <Crown className="w-3 h-3 mr-1 fill-current" />
+                        FEATURED
                       </div>
-                      <CardTitle className="text-xl hover:text-blue-600 transition-colors">
+                    </div>
+
+                    <div className="mb-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center px-3 py-2 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 text-indigo-300 rounded-2xl text-sm font-bold border border-indigo-500/30">
+                          <CategoryIcon className="h-4 w-4 mr-2" />
+                          {scholarship.category || 'Elite General'}
+                        </div>
+                      </div>
+
+                      <h3 className="text-xl font-bold text-white mb-3 group-hover:text-yellow-300 transition-colors line-clamp-2">
                         <Link to={`/scholarships/${scholarship.slug || scholarship.id}`}>
                           {scholarship.title}
                         </Link>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-gray-600 mb-4 line-clamp-3">
+                      </h3>
+
+                      <p className="text-gray-300 mb-6 line-clamp-3">
                         {scholarship.description}
                       </p>
-                      <div className="space-y-2 text-sm text-gray-500">
+                    </div>
+
+                    <div className="space-y-3 mb-6">
+                      <div className="flex items-center justify-between p-3 bg-black/40 rounded-2xl border border-green-500/30">
                         <div className="flex items-center">
-                          <DollarSign className="h-4 w-4 mr-2" />
-                          ${scholarship.amount || 'Amount not specified'}
+                          <DollarSign className="h-5 w-5 mr-2 text-green-400" />
+                          <span className="text-sm text-gray-400">Funding</span>
                         </div>
-                        <div className="flex items-center">
-                          <GraduationCap className="h-4 w-4 mr-2" />
-                          {scholarship.education_level || 'All levels'}
-                        </div>
-                        <div className="flex items-center">
-                          <Globe className="h-4 w-4 mr-2" />
-                          {scholarship.region || 'Global'}
-                        </div>
+                        <span className="font-bold text-green-400">
+                          ${scholarship.amount || 'Premium Package'}
+                        </span>
                       </div>
-                      <div className="mt-4 pt-4 border-t">
-                        <Link 
-                          to={`/scholarships/${scholarship.slug || scholarship.id}`}
-                          className="text-blue-600 hover:text-blue-800 font-medium"
-                        >
-                          Learn More →
-                        </Link>
+
+                      <div className="flex items-center justify-between p-3 bg-black/40 rounded-2xl border border-blue-500/30">
+                        <div className="flex items-center">
+                          <GraduationCap className="h-5 w-5 mr-2 text-blue-400" />
+                          <span className="text-sm text-gray-400">Level</span>
+                        </div>
+                        <span className="font-bold text-blue-400">
+                          {scholarship.education_level || 'All Elite Levels'}
+                        </span>
                       </div>
-                    </CardContent>
-                  </Card>
+
+                      <div className="flex items-center justify-between p-3 bg-black/40 rounded-2xl border border-purple-500/30">
+                        <div className="flex items-center">
+                          <Globe className="h-5 w-5 mr-2 text-purple-400" />
+                          <span className="text-sm text-gray-400">Region</span>
+                        </div>
+                        <span className="font-bold text-purple-400">
+                          {scholarship.region || 'Global Elite'}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between p-3 bg-black/40 rounded-2xl border border-red-500/30">
+                        <div className="flex items-center">
+                          <Clock className="h-5 w-5 mr-2 text-red-400" />
+                          <span className="text-sm text-gray-400">Deadline</span>
+                        </div>
+                        <span className="font-bold text-red-400">
+                          {formatDeadline(scholarship.deadline)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <Link
+                      to={`/scholarships/${scholarship.slug || scholarship.id}`}
+                      className="block w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold py-3 px-6 rounded-2xl text-center transition-all duration-300 hover:scale-105 hover:shadow-xl"
+                    >
+                      <div className="flex items-center justify-center space-x-2">
+                        <Star className="w-4 h-4 fill-current" />
+                        <span>Explore Elite Opportunity</span>
+                        <Zap className="w-4 h-4" />
+                      </div>
+                    </Link>
+                  </div>
                 )
               })}
             </div>
@@ -287,31 +369,35 @@ const Scholarships = () => {
         </section>
       )}
 
-      {/* Filters and Results Section */}
-      <section className="py-16">
+      {/* Elite Filters and Results Section */}
+      <section className="py-20 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Filter Bar */}
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Filter Scholarships
-              </h3>
-              <Button
-                variant="outline"
-                size="sm"
+          {/* Elite Filter Bar */}
+          <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 mb-12 shadow-2xl hover:border-white/20 transition-all duration-500">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-2xl border border-indigo-500/30">
+                  <Filter className="w-6 h-6 text-indigo-400" />
+                </div>
+                <h3 className="text-xl font-black bg-gradient-to-r from-white via-indigo-200 to-purple-200 bg-clip-text text-transparent">
+                  Elite Search Filters
+                </h3>
+              </div>
+              <button
                 onClick={() => setShowFilters(!showFilters)}
-                className="md:hidden"
+                className="md:hidden bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-bold py-2 px-4 rounded-2xl transition-all duration-300 hover:scale-105 flex items-center space-x-2"
               >
-                <Filter className="h-4 w-4 mr-2" />
-                Filters
-              </Button>
+                <Filter className="h-4 w-4" />
+                <span>Elite Filters</span>
+              </button>
             </div>
             
-            <div className={`space-y-4 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-5 md:gap-4 ${showFilters ? 'block' : 'hidden md:grid'}`}>
-              {/* Category Filter */}
+            <div className={`space-y-6 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-5 md:gap-6 ${showFilters ? 'block' : 'hidden md:grid'}`}>
+              {/* Elite Category Filter */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Category
+                <label className="block text-sm font-bold text-gray-300 mb-3 flex items-center">
+                  <BookOpen className="w-4 h-4 mr-2 text-indigo-400" />
+                  Elite Category
                 </label>
                 <select
                   value={selectedCategory}
@@ -319,21 +405,22 @@ const Scholarships = () => {
                     setSelectedCategory(e.target.value)
                     setCurrentPage(1)
                   }}
-                  className="w-full p-2 border border-gray-300 rounded-md"
+                  className="w-full p-4 bg-black/50 border border-white/20 rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400 transition-all duration-300 hover:border-white/30"
                 >
-                  <option key="all-categories" value="">All Categories</option>
+                  <option value="" className="bg-gray-800">All Elite Categories</option>
                   {Array.isArray(categories) && categories.map((category, index) => (
-                    <option key={`category-${category.id || category.slug || category.name || index}`} value={category.slug || category.name || category}>
+                    <option key={`category-${category.id || category.slug || category.name || index}`} value={category.slug || category.name || category} className="bg-gray-800">
                       {category.name || category}
                     </option>
                   ))}
                 </select>
               </div>
 
-              {/* Region Filter */}
+              {/* Elite Region Filter */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Region
+                <label className="block text-sm font-bold text-gray-300 mb-3 flex items-center">
+                  <Globe className="w-4 h-4 mr-2 text-purple-400" />
+                  Elite Region
                 </label>
                 <select
                   value={selectedRegion}
@@ -341,21 +428,22 @@ const Scholarships = () => {
                     setSelectedRegion(e.target.value)
                     setCurrentPage(1)
                   }}
-                  className="w-full p-2 border border-gray-300 rounded-md"
+                  className="w-full p-4 bg-black/50 border border-white/20 rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-400 transition-all duration-300 hover:border-white/30"
                 >
-                  <option key="all-regions" value="">All Regions</option>
+                  <option value="" className="bg-gray-800">All Global Regions</option>
                   {Array.isArray(regions) && regions.map((region, index) => (
-                    <option key={`region-${region.id || region.slug || region.name || index}`} value={region.slug || region.name || region}>
+                    <option key={`region-${region.id || region.slug || region.name || index}`} value={region.slug || region.name || region} className="bg-gray-800">
                       {region.name || region}
                     </option>
                   ))}
                 </select>
               </div>
 
-              {/* Education Level Filter */}
+              {/* Elite Education Level Filter */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Education Level
+                <label className="block text-sm font-bold text-gray-300 mb-3 flex items-center">
+                  <GraduationCap className="w-4 h-4 mr-2 text-blue-400" />
+                  Elite Level
                 </label>
                 <select
                   value={selectedLevel}
@@ -363,21 +451,22 @@ const Scholarships = () => {
                     setSelectedLevel(e.target.value)
                     setCurrentPage(1)
                   }}
-                  className="w-full p-2 border border-gray-300 rounded-md"
+                  className="w-full p-4 bg-black/50 border border-white/20 rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-400 transition-all duration-300 hover:border-white/30"
                 >
-                  <option key="all-levels" value="">All Levels</option>
+                  <option value="" className="bg-gray-800">All Elite Levels</option>
                   {Array.isArray(educationLevels) && educationLevels.map((level, index) => (
-                    <option key={`level-${level.id || level.slug || level.name || index}`} value={level.slug || level.name || level}>
+                    <option key={`level-${level.id || level.slug || level.name || index}`} value={level.slug || level.name || level} className="bg-gray-800">
                       {level.name || level}
                     </option>
                   ))}
                 </select>
               </div>
 
-              {/* Deadline Filter */}
+              {/* Elite Deadline Filter */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Deadline
+                <label className="block text-sm font-bold text-gray-300 mb-3 flex items-center">
+                  <Clock className="w-4 h-4 mr-2 text-red-400" />
+                  Elite Deadline
                 </label>
                 <select
                   value={selectedDeadline}
@@ -385,71 +474,91 @@ const Scholarships = () => {
                     setSelectedDeadline(e.target.value)
                     setCurrentPage(1)
                   }}
-                  className="w-full p-2 border border-gray-300 rounded-md"
+                  className="w-full p-4 bg-black/50 border border-white/20 rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-400 transition-all duration-300 hover:border-white/30"
                 >
-                  <option key="any-deadline" value="">Any Deadline</option>
-                  <option key="deadline-week" value="week">Within 1 Week</option>
-                  <option key="deadline-month" value="month">Within 1 Month</option>
-                  <option key="deadline-quarter" value="quarter">Within 3 Months</option>
+                  <option value="" className="bg-gray-800">Any Elite Deadline</option>
+                  <option value="week" className="bg-gray-800">Elite Urgent (1 Week)</option>
+                  <option value="month" className="bg-gray-800">Elite Priority (1 Month)</option>
+                  <option value="quarter" className="bg-gray-800">Elite Standard (3 Months)</option>
                 </select>
               </div>
 
-              {/* Sort Filter */}
+              {/* Elite Sort Filter */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Sort By
+                <label className="block text-sm font-bold text-gray-300 mb-3 flex items-center">
+                  <TrendingUp className="w-4 h-4 mr-2 text-green-400" />
+                  Elite Sort
                 </label>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-md"
+                  className="w-full p-4 bg-black/50 border border-white/20 rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-400 transition-all duration-300 hover:border-white/30"
                 >
-                  <option value="newest">Newest First</option>
-                  <option value="deadline">Deadline Soon</option>
-                  <option value="popular">Most Popular</option>
-                  <option value="alphabetical">Alphabetical</option>
+                  <option value="newest" className="bg-gray-800">Elite Newest</option>
+                  <option value="deadline" className="bg-gray-800">Elite Urgent</option>
+                  <option value="popular" className="bg-gray-800">Elite Popular</option>
+                  <option value="alphabetical" className="bg-gray-800">Elite A-Z</option>
                 </select>
               </div>
             </div>
 
-            {/* Active Filters & Clear */}
+            {/* Elite Active Filters & Clear */}
             {(searchQuery || selectedCategory || selectedRegion || selectedLevel || selectedDeadline) && (
-              <div className="flex items-center justify-between mt-4 pt-4 border-t">
-                <div className="flex flex-wrap gap-2">
+              <div className="flex items-center justify-between mt-6 pt-6 border-t border-white/20">
+                <div className="flex flex-wrap gap-3">
                   {searchQuery && (
-                    <Badge variant="secondary">
+                    <div className="px-3 py-2 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 text-indigo-300 rounded-2xl text-sm font-bold border border-indigo-500/30 flex items-center">
+                      <Search className="w-3 h-3 mr-1" />
                       Search: {searchQuery}
-                    </Badge>
+                    </div>
                   )}
                   {selectedCategory && (
-                    <Badge variant="secondary">
+                    <div className="px-3 py-2 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-300 rounded-2xl text-sm font-bold border border-blue-500/30 flex items-center">
+                      <BookOpen className="w-3 h-3 mr-1" />
                       Category: {categories.find(c => c.slug === selectedCategory)?.name}
-                    </Badge>
+                    </div>
                   )}
                   {selectedRegion && (
-                    <Badge variant="secondary">
+                    <div className="px-3 py-2 bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-300 rounded-2xl text-sm font-bold border border-purple-500/30 flex items-center">
+                      <Globe className="w-3 h-3 mr-1" />
                       Region: {regions.find(r => r.slug === selectedRegion)?.name}
-                    </Badge>
+                    </div>
                   )}
                   {selectedLevel && (
-                    <Badge variant="secondary">
+                    <div className="px-3 py-2 bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-300 rounded-2xl text-sm font-bold border border-green-500/30 flex items-center">
+                      <GraduationCap className="w-3 h-3 mr-1" />
                       Level: {educationLevels.find(l => l.slug === selectedLevel)?.name}
-                    </Badge>
+                    </div>
                   )}
                 </div>
-                <Button variant="outline" size="sm" onClick={clearFilters}>
-                  Clear All
-                </Button>
+                <button
+                  onClick={clearFilters}
+                  className="px-4 py-2 bg-gradient-to-r from-red-500/20 to-pink-500/20 text-red-300 rounded-2xl font-bold border border-red-500/30 hover:bg-red-500/30 transition-all duration-300 hover:scale-105 flex items-center space-x-2"
+                >
+                  <Shield className="w-4 h-4" />
+                  <span>Clear All Elite Filters</span>
+                </button>
               </div>
             )}
           </div>
 
-          {/* Results */}
-          <div className="mb-6">
+          {/* Elite Results Header */}
+          <div className="mb-8">
             <div className="flex items-center justify-between">
-              <p className="text-gray-600">
-                {pagination.total ? `${pagination.total} scholarships found` : 'Loading scholarships...'}
-              </p>
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-xl border border-green-500/30">
+                  <Trophy className="w-5 h-5 text-green-400" />
+                </div>
+                <p className="text-gray-300 font-semibold">
+                  {pagination.total ? (
+                    <>
+                      <span className="text-green-400 font-bold">{pagination.total}</span> elite scholarships discovered
+                    </>
+                  ) : (
+                    'Discovering elite opportunities...'
+                  )}
+                </p>
+              </div>
             </div>
           </div>
 
@@ -476,104 +585,151 @@ const Scholarships = () => {
               {Array.isArray(scholarships) && scholarships.map((scholarship) => {
                 const CategoryIcon = getCategoryIcon(scholarship.category_icon)
                 return (
-                  <Card key={scholarship.id} className="hover:shadow-lg transition-shadow border-l-4 border-l-blue-500">
-                    <CardHeader>
-                      <div className="flex items-center justify-between mb-2">
-                        <Badge
-                          variant="secondary"
-                          className="bg-blue-500 text-white"
-                        >
-                          <CategoryIcon className="h-3 w-3 mr-1" />
-                          {scholarship.category || 'General'}
-                        </Badge>
-                        <Badge
-                          variant="outline"
-                          className="text-orange-600"
-                        >
-                          {formatDeadline(scholarship.deadline)}
-                        </Badge>
+                  <div key={scholarship.id} className="group bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 hover:border-indigo-500/30 shadow-2xl hover:shadow-3xl transition-all duration-500 p-6 hover:scale-105 transform relative overflow-hidden">
+                    {/* Elite Scholarship Card */}
+                    <div className="mb-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center px-3 py-2 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 text-indigo-300 rounded-2xl text-sm font-bold border border-indigo-500/30">
+                          <CategoryIcon className="h-4 w-4 mr-2" />
+                          {scholarship.category || 'Elite General'}
+                        </div>
+                        {scholarship.featured && (
+                          <div className="flex items-center px-2 py-1 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 text-yellow-400 rounded-full text-xs font-bold border border-yellow-500/30 animate-pulse">
+                            <Crown className="w-3 h-3 mr-1 fill-current" />
+                            ELITE
+                          </div>
+                        )}
                       </div>
-                      <CardTitle className="text-xl hover:text-blue-600 transition-colors">
+
+                      <h3 className="text-xl font-bold text-white mb-3 group-hover:text-indigo-300 transition-colors line-clamp-2">
                         <Link to={`/scholarships/${scholarship.slug || scholarship.id}`}>
                           {scholarship.title}
                         </Link>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-gray-600 mb-4 line-clamp-3">
+                      </h3>
+
+                      <p className="text-gray-300 mb-6 line-clamp-3">
                         {scholarship.description}
                       </p>
-                      <div className="space-y-2 text-sm text-gray-500">
+                    </div>
+
+                    <div className="space-y-3 mb-6">
+                      <div className="flex items-center justify-between p-3 bg-black/40 rounded-2xl border border-green-500/30">
                         <div className="flex items-center">
-                          <DollarSign className="h-4 w-4 mr-2" />
-                          ${scholarship.amount || 'Amount not specified'}
+                          <DollarSign className="h-4 w-4 mr-2 text-green-400" />
+                          <span className="text-sm text-gray-400">Elite Funding</span>
                         </div>
-                        <div className="flex items-center">
-                          <GraduationCap className="h-4 w-4 mr-2" />
-                          {scholarship.education_level || 'All levels'}
-                        </div>
-                        <div className="flex items-center">
-                          <Globe className="h-4 w-4 mr-2" />
-                          {scholarship.region || 'Global'}
-                        </div>
+                        <span className="font-bold text-green-400">
+                          ${scholarship.amount || 'Premium Package'}
+                        </span>
                       </div>
-                      <div className="mt-4 pt-4 border-t">
-                        <Link 
-                          to={`/scholarships/${scholarship.slug || scholarship.id}`}
-                          className="text-blue-600 hover:text-blue-800 font-medium"
-                        >
-                          Learn More →
-                        </Link>
+
+                      <div className="flex items-center justify-between p-3 bg-black/40 rounded-2xl border border-blue-500/30">
+                        <div className="flex items-center">
+                          <GraduationCap className="h-4 w-4 mr-2 text-blue-400" />
+                          <span className="text-sm text-gray-400">Elite Level</span>
+                        </div>
+                        <span className="font-bold text-blue-400">
+                          {scholarship.education_level || 'All Elite'}
+                        </span>
                       </div>
-                    </CardContent>
-                  </Card>
+
+                      <div className="flex items-center justify-between p-3 bg-black/40 rounded-2xl border border-purple-500/30">
+                        <div className="flex items-center">
+                          <Globe className="h-4 w-4 mr-2 text-purple-400" />
+                          <span className="text-sm text-gray-400">Elite Region</span>
+                        </div>
+                        <span className="font-bold text-purple-400">
+                          {scholarship.region || 'Global Elite'}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between p-3 bg-black/40 rounded-2xl border border-red-500/30">
+                        <div className="flex items-center">
+                          <Clock className="h-4 w-4 mr-2 text-red-400" />
+                          <span className="text-sm text-gray-400">Elite Deadline</span>
+                        </div>
+                        <span className="font-bold text-red-400">
+                          {formatDeadline(scholarship.deadline)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <Link
+                      to={`/scholarships/${scholarship.slug || scholarship.id}`}
+                      className="block w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-bold py-3 px-6 rounded-2xl text-center transition-all duration-300 hover:scale-105 hover:shadow-xl"
+                    >
+                      <div className="flex items-center justify-center space-x-2">
+                        <Diamond className="w-4 h-4" />
+                        <span>Explore Elite Opportunity</span>
+                        <Zap className="w-4 h-4" />
+                      </div>
+                    </Link>
+                  </div>
                 )
               })}
             </div>
           ) : (
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">🔍</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                No scholarships found
+            <div className="text-center py-16">
+              <div className="flex justify-center mb-6">
+                <div className="p-6 bg-black/30 backdrop-blur-lg rounded-full border border-white/20">
+                  <Search className="w-16 h-16 text-gray-400" />
+                </div>
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-4">
+                No Elite Scholarships Found
               </h3>
-              <p className="text-gray-600 mb-4">
-                Try adjusting your filters or search terms
+              <p className="text-gray-300 mb-8 max-w-md mx-auto">
+                Refine your elite search criteria to discover premium opportunities
               </p>
-              <Button onClick={clearFilters}>Clear All Filters</Button>
+              <button
+                onClick={clearFilters}
+                className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-bold py-3 px-8 rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-xl flex items-center space-x-2 mx-auto"
+              >
+                <Shield className="w-5 h-5" />
+                <span>Reset Elite Filters</span>
+              </button>
             </div>
           )}
 
-          {/* Pagination */}
+          {/* Elite Pagination */}
           {pagination.total_pages > 1 && (
-            <div className="flex justify-center items-center space-x-2 mt-12">
-              <Button
-                variant="outline"
+            <div className="flex justify-center items-center space-x-4 mt-16">
+              <button
                 onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
+                className="px-6 py-3 bg-black/40 backdrop-blur-lg border border-white/20 text-white font-bold rounded-2xl transition-all duration-300 hover:scale-105 hover:border-indigo-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center space-x-2"
               >
-                Previous
-              </Button>
-              
-              {[...Array(Math.min(5, pagination.total_pages))].map((_, i) => {
-                const page = i + 1
-                return (
-                  <Button
-                    key={page}
-                    variant={currentPage === page ? 'default' : 'outline'}
-                    onClick={() => setCurrentPage(page)}
-                  >
-                    {page}
-                  </Button>
-                )
-              })}
-              
-              <Button
-                variant="outline"
+                <Shield className="w-4 h-4" />
+                <span>Previous Elite</span>
+              </button>
+
+              <div className="flex space-x-2">
+                {[...Array(Math.min(5, pagination.total_pages))].map((_, i) => {
+                  const page = i + 1
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-4 py-3 font-bold rounded-2xl transition-all duration-300 hover:scale-105 ${
+                        currentPage === page
+                          ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-xl'
+                          : 'bg-black/40 backdrop-blur-lg border border-white/20 text-white hover:border-indigo-500/30'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  )
+                })}
+              </div>
+
+              <button
                 onClick={() => setCurrentPage(Math.min(pagination.total_pages, currentPage + 1))}
                 disabled={currentPage === pagination.total_pages}
+                className="px-6 py-3 bg-black/40 backdrop-blur-lg border border-white/20 text-white font-bold rounded-2xl transition-all duration-300 hover:scale-105 hover:border-indigo-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center space-x-2"
               >
-                Next
-              </Button>
+                <span>Next Elite</span>
+                <Diamond className="w-4 h-4" />
+              </button>
             </div>
           )}
         </div>

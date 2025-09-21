@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ExternalLink, Github, Calendar, Users, Code, Database, Smartphone, Globe } from 'lucide-react'
+import { ExternalLink, Github, Calendar, Users, Code, Database, Smartphone, Globe, Star, Trophy, Target, Heart, Lightbulb, Play, Award, Clock, Mail, Phone, CheckCircle, ArrowRight, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollReveal } from '@/components/ui/scroll-reveal'
@@ -236,42 +236,77 @@ const Portfolio = () => {
   ]
 
   return (
-    <div className="min-h-screen pt-32">
-      {/* Hero Section */}
-      <section className="py-16 bg-gradient-to-br from-blue-50 to-indigo-100 relative overflow-hidden">
-        {/* Animated background elements */}
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-10 left-10 w-64 h-64 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl animate-bounce-subtle"></div>
-          <div className="absolute top-40 right-10 w-64 h-64 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl animate-bounce-subtle animate-delay-300"></div>
-          <div className="absolute bottom-10 left-1/2 w-64 h-64 bg-pink-400 rounded-full mix-blend-multiply filter blur-xl animate-bounce-subtle animate-delay-600"></div>
+    <div className="min-h-screen pt-20">
+      {/* Enhanced Hero Section */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+        <div className="absolute inset-0 opacity-20">
+          <div className="w-full h-full bg-repeat bg-[length:60px_60px]"
+               style={{
+                 backgroundImage: `radial-gradient(circle at 30px 30px, white 2px, transparent 2px)`
+               }}>
+          </div>
         </div>
-        
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <ScrollReveal animation="fade-up">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 gradient-text">
-              Our Portfolio
+
+        {/* Animated floating elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute top-3/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
+          <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl animate-pulse" style={{animationDelay: '4s'}}></div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 text-white">
+          <ScrollReveal>
+            <div className="inline-flex items-center px-6 py-3 bg-blue-600/20 backdrop-blur-sm rounded-full text-blue-200 text-sm font-medium mb-8 border border-blue-400/20">
+              <Trophy className="h-4 w-4 mr-2" />
+              Our Work Portfolio
+            </div>
+          </ScrollReveal>
+
+          <ScrollReveal delay={200}>
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+              Showcasing Our
+              <span className="block bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
+                Digital Masterpieces
+              </span>
             </h1>
           </ScrollReveal>
-          <ScrollReveal animation="fade-up" delay={200}>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-              Explore our successful projects and see how we've helped businesses 
-              transform their ideas into powerful digital solutions.
+
+          <ScrollReveal delay={300}>
+            <p className="text-xl md:text-2xl text-blue-100 mb-12 leading-relaxed max-w-4xl mx-auto">
+              Explore our successful projects and see how we've helped businesses
+              transform their ideas into powerful digital solutions across various industries.
             </p>
           </ScrollReveal>
-          
-          {/* Stats */}
-          <ScrollReveal animation="fade-up" delay={400}>
+
+          <ScrollReveal delay={400}>
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
+              <button
+                className="bg-white text-blue-900 hover:bg-blue-50 px-10 py-5 rounded-2xl font-bold text-lg shadow-2xl hover:scale-105 transition-all duration-300 group flex items-center"
+                onClick={handleStartProject}
+              >
+                <Lightbulb className="mr-3 h-6 w-6" />
+                Start Your Project
+                <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
+              </button>
+              <button
+                className="border-2 border-white/30 text-white hover:bg-white/10 px-10 py-5 rounded-2xl font-bold text-lg backdrop-blur-sm hover:scale-105 transition-all duration-300 flex items-center"
+                onClick={handleScheduleConsultation}
+              >
+                <Play className="mr-3 h-6 w-6" />
+                View Live Demos
+              </button>
+            </div>
+          </ScrollReveal>
+
+          {/* Enhanced Stats */}
+          <ScrollReveal delay={500}>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
               {stats.map((stat, index) => (
-                <div 
-                  key={index} 
-                  className="text-center hover-scale transition-smooth cursor-pointer group animate-scale-in"
-                  style={{ animationDelay: `${0.6 + index * 0.1}s` }}
-                >
-                  <div className="text-3xl font-bold text-primary mb-2 group-hover:text-blue-600 transition-colors">
+                <div key={index} className="text-center bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300">
+                  <div className="text-3xl md:text-4xl font-bold text-white mb-2">
                     {stat.value}
                   </div>
-                  <div className="text-gray-600 group-hover:text-gray-800 transition-colors">
+                  <div className="text-blue-200 font-medium">
                     {stat.label}
                   </div>
                 </div>
@@ -281,16 +316,29 @@ const Portfolio = () => {
         </div>
       </section>
 
-      {/* Featured Projects */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <ScrollReveal animation="fade-up">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                Featured Projects
+      {/* Enhanced Featured Projects */}
+      <section className="py-20 bg-gradient-to-br from-gray-50 to-blue-50 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-5">
+          <div className="w-full h-full bg-repeat bg-[length:40px_40px]"
+               style={{
+                 backgroundImage: `radial-gradient(circle at 20px 20px, #3B82F6 1px, transparent 1px)`
+               }}>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <ScrollReveal>
+            <div className="text-center mb-20">
+              <div className="inline-flex items-center px-4 py-2 bg-purple-600/10 rounded-full text-purple-600 text-sm font-medium mb-6">
+                <Star className="h-4 w-4 mr-2" />
+                Featured Work
+              </div>
+              <h2 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+                Our Best Projects
               </h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                Highlighted work that showcases our expertise across different industries and technologies.
+              <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
+                Highlighted work that showcases our expertise across different industries
+                and cutting-edge technologies.
               </p>
             </div>
           </ScrollReveal>
@@ -305,108 +353,169 @@ const Portfolio = () => {
           >
             {(list) => (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {list.map((project, index) => (
-                  <ScrollReveal key={project.id || index} animation="scale-in" delay={index * 200}>
-                    <Card className="overflow-hidden hover-lift hover-glow transition-smooth cursor-pointer group">
-                      <div className="aspect-video bg-gray-200 relative overflow-hidden">
-                        {project.image ? (
-                          <img
-                            src={project.image}
-                            alt={project.title}
-                            className="absolute inset-0 w-full h-full object-cover"
-                            onError={(e) => { e.currentTarget.style.display = 'none' }}
-                          />
-                        ) : null}
-                        <div className="absolute inset-0 bg-gradient-to-br from-primary/80 to-blue-600/80 flex items-center justify-center group-hover:from-primary/90 group-hover:to-blue-600/90 transition-all gradient-shift">
-                          <span className="text-white text-lg font-semibold group-hover:scale-110 transition-transform">
-                            {project.title}
-                          </span>
+                {list.map((project, index) => {
+                  const gradients = [
+                    'from-blue-500 to-purple-600',
+                    'from-purple-500 to-pink-600',
+                    'from-green-500 to-blue-600',
+                    'from-orange-500 to-red-600',
+                    'from-indigo-500 to-purple-600',
+                    'from-teal-500 to-blue-600'
+                  ]
+                  const gradient = gradients[index % gradients.length]
+
+                  return (
+                    <ScrollReveal key={project.id || index} delay={index * 100}>
+                      <div className="group cursor-pointer">
+                        <div className="bg-white/80 backdrop-blur-sm rounded-3xl overflow-hidden border border-white/50 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 h-full">
+                          {/* Project Image/Preview */}
+                          <div className="aspect-video bg-gray-200 relative overflow-hidden">
+                            {project.image ? (
+                              <img
+                                src={project.image}
+                                alt={project.title}
+                                className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                                onError={(e) => { e.currentTarget.style.display = 'none' }}
+                              />
+                            ) : null}
+                            <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-80 group-hover:opacity-90 transition-opacity flex items-center justify-center`}>
+                              <div className="text-center text-white">
+                                <h3 className="text-2xl font-bold mb-2 group-hover:scale-110 transition-transform">{project.title}</h3>
+                                <div className="inline-flex items-center px-3 py-1 bg-white/20 rounded-full text-sm font-medium backdrop-blur-sm">
+                                  <Award className="h-4 w-4 mr-1" />
+                                  Featured
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Project Info */}
+                          <div className="p-8">
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className="text-2xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                                {project.title}
+                              </h3>
+                              <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                                {project.clientType}
+                              </span>
+                            </div>
+
+                            <p className="text-gray-600 mb-6 leading-relaxed">
+                              {project.description}
+                            </p>
+
+                            {/* Technologies */}
+                            {Array.isArray(project.technologies) && project.technologies.length > 0 && (
+                              <div className="flex flex-wrap gap-2 mb-6">
+                                {project.technologies.slice(0, 4).map((tech, techIndex) => (
+                                  <span key={`${project.id}-tech-${techIndex}`} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium hover:bg-blue-100 hover:text-blue-700 transition-colors">
+                                    {tech}
+                                  </span>
+                                ))}
+                                {project.technologies.length > 4 && (
+                                  <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium">
+                                    +{project.technologies.length - 4} more
+                                  </span>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Project Stats */}
+                            <div className="grid grid-cols-2 gap-4 mb-6">
+                              <div className="bg-gray-50 rounded-xl p-3 text-center">
+                                <Clock className="h-5 w-5 text-blue-600 mx-auto mb-1" />
+                                <div className="text-sm font-medium text-gray-900">{project.duration}</div>
+                                <div className="text-xs text-gray-500">Duration</div>
+                              </div>
+                              <div className="bg-gray-50 rounded-xl p-3 text-center">
+                                <Users className="h-5 w-5 text-green-600 mx-auto mb-1" />
+                                <div className="text-sm font-medium text-gray-900">{project.teamSize} people</div>
+                                <div className="text-xs text-gray-500">Team Size</div>
+                              </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-3">
+                              {project.liveUrl && (
+                                <button
+                                  className="flex-1 bg-blue-600 text-white px-4 py-3 rounded-xl font-semibold hover:bg-blue-700 hover:scale-105 transition-all duration-300 flex items-center justify-center shadow-lg"
+                                  onClick={() => window.open(project.liveUrl, '_blank')}
+                                >
+                                  <ExternalLink className="h-4 w-4 mr-2" />
+                                  Live Demo
+                                </button>
+                              )}
+                              {project.githubUrl && (
+                                <button
+                                  className="flex-1 border-2 border-gray-300 text-gray-700 px-4 py-3 rounded-xl font-semibold hover:border-blue-600 hover:text-blue-600 hover:scale-105 transition-all duration-300 flex items-center justify-center"
+                                  onClick={() => window.open(project.githubUrl, '_blank')}
+                                >
+                                  <Github className="h-4 w-4 mr-2" />
+                                  View Code
+                                </button>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </div>
-                      <CardHeader>
-                        <CardTitle className="flex items-center justify-between group-hover:text-primary transition-colors">
-                          {project.title}
-                          <span className="text-sm bg-primary/10 text-primary px-2 py-1 rounded group-hover:bg-primary/20 transition-colors">
-                            {project.clientType}
-                          </span>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-gray-600 mb-4 group-hover:text-gray-800 transition-colors">{project.description}</p>
-                        {Array.isArray(project.technologies) && (
-                          <div className="flex flex-wrap gap-2 mb-4">
-                            {project.technologies.slice(0, 3).map((tech, techIndex) => (
-                              <span key={`${project.id}-tech-${techIndex}`} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded hover-scale transition-smooth cursor-pointer">
-                                {tech}
-                              </span>
-                            ))}
-                            {project.technologies.length > 3 && (
-                              <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded hover-scale transition-smooth cursor-pointer">
-                                +{project.technologies.length - 3} more
-                              </span>
-                            )}
-                          </div>
-                        )}
-                        <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
-                          <div className="flex items-center group-hover:text-gray-800 transition-colors">
-                            <Calendar className="h-4 w-4 mr-2" />
-                            {project.duration}
-                          </div>
-                          <div className="flex items-center group-hover:text-gray-800 transition-colors">
-                            <Users className="h-4 w-4 mr-2" />
-                            {project.teamSize} people
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          {project.liveUrl && (
-                            <Button size="sm" className="flex-1 hover-glow" onClick={() => window.open(project.liveUrl, '_blank')}>
-                              <ExternalLink className="h-4 w-4 mr-2" />
-                              Live Demo
-                            </Button>
-                          )}
-                          {project.githubUrl && (
-                            <Button variant="outline" size="sm" className="flex-1" onClick={() => window.open(project.githubUrl, '_blank')}>
-                              <Github className="h-4 w-4 mr-2" />
-                              Code
-                            </Button>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </ScrollReveal>
-                ))}
+                    </ScrollReveal>
+                  )
+                })}
               </div>
             )}
           </DataRenderer>
         </div>
       </section>
 
-      {/* All Projects */}
-      <section className="py-16 bg-gray-50">
+      {/* Enhanced All Projects */}
+      <section className="py-20 bg-white relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <ScrollReveal animation="fade-up">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                All Projects
+          <ScrollReveal>
+            <div className="text-center mb-20">
+              <div className="inline-flex items-center px-4 py-2 bg-green-600/10 rounded-full text-green-600 text-sm font-medium mb-6">
+                <Code className="h-4 w-4 mr-2" />
+                Complete Portfolio
+              </div>
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+                Browse All Projects
               </h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
-                Browse through our complete portfolio organized by category.
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-12 leading-relaxed">
+                Explore our complete portfolio organized by category and technology.
+                Each project represents our commitment to excellence and innovation.
               </p>
 
-              {/* Category Filter */}
+              {/* Enhanced Category Filter */}
               <div className="flex flex-wrap justify-center gap-4">
-                {categories.map((category, index) => (
-                  <Button
-                    key={category.id}
-                    variant={selectedCategory === category.id ? 'default' : 'outline'}
-                    onClick={() => setSelectedCategory(slugify(category.id))}
-                    className={`flex items-center hover-scale transition-bounce animate-scale-in ${selectedCategory === category.id ? 'hover-glow' : ''}`}
-                    style={{ animationDelay: `${index * 0.1}s` }}
-                  >
-                    {React.createElement(category.icon, { className: 'h-4 w-4 mr-2 transition-transform group-hover:scale-110' })}
-                    {category.name}
-                  </Button>
-                ))}
+                {categories.map((category, index) => {
+                  const isActive = selectedCategory === category.id
+                  const gradients = [
+                    'from-blue-500 to-blue-600',
+                    'from-purple-500 to-purple-600',
+                    'from-green-500 to-green-600',
+                    'from-orange-500 to-orange-600'
+                  ]
+                  const gradient = gradients[index % gradients.length]
+
+                  return (
+                    <button
+                      key={category.id}
+                      onClick={() => setSelectedCategory(slugify(category.id))}
+                      className={`flex items-center px-6 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 ${
+                        isActive
+                          ? `bg-gradient-to-r ${gradient} text-white shadow-lg scale-105`
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
+                      }`}
+                    >
+                      {React.createElement(category.icon, { className: 'h-5 w-5 mr-3' })}
+                      {category.name}
+                      <span className={`ml-3 px-2 py-1 rounded-full text-sm ${
+                        isActive ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-600'
+                      }`}>
+                        {selectedCategory === category.id ? filteredProjects.length : projects.filter(p => category.id === 'all' || p.category === category.id).length}
+                      </span>
+                    </button>
+                  )
+                })}
               </div>
             </div>
           </ScrollReveal>
@@ -420,100 +529,194 @@ const Portfolio = () => {
             errorComponent={<ErrorMessage title="Unable to load projects" />}
           >
             {(list) => (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {list.map((project, index) => (
-                  <ScrollReveal key={project.id || index} animation="scale-in" delay={index * 100}>
-                    <Card className="overflow-hidden hover-lift hover-glow transition-smooth cursor-pointer group">
-                      <div className="aspect-video bg-gray-200 relative overflow-hidden">
-                        {project.image ? (
-                          <img
-                            src={project.image}
-                            alt={project.title}
-                            className="absolute inset-0 w-full h-full object-cover"
-                            onError={(e) => { e.currentTarget.style.display = 'none' }}
-                          />
-                        ) : null}
-                        <div className="absolute inset-0 bg-gradient-to-br from-primary/60 to-blue-600/60 flex items-center justify-center group-hover:from-primary/80 group-hover:to-blue-600/80 transition-all gradient-shift">
-                          <span className="text-white font-medium group-hover:scale-110 transition-transform">{project.title}</span>
-                        </div>
-                        {project.featured && (
-                          <div className="absolute top-2 right-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded animate-bounce-subtle">
-                            Featured
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {list.map((project, index) => {
+                  const gradients = [
+                    'from-blue-500 to-purple-600',
+                    'from-green-500 to-teal-600',
+                    'from-orange-500 to-red-600',
+                    'from-purple-500 to-pink-600',
+                    'from-indigo-500 to-blue-600',
+                    'from-teal-500 to-green-600'
+                  ]
+                  const gradient = gradients[index % gradients.length]
+
+                  return (
+                    <ScrollReveal key={project.id || index} delay={index * 50}>
+                      <div className="group cursor-pointer">
+                        <div className="bg-white rounded-3xl overflow-hidden border border-gray-100 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 h-full">
+                          {/* Project Image */}
+                          <div className="aspect-[4/3] bg-gray-200 relative overflow-hidden">
+                            {project.image ? (
+                              <img
+                                src={project.image}
+                                alt={project.title}
+                                className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                onError={(e) => { e.currentTarget.style.display = 'none' }}
+                              />
+                            ) : null}
+                            <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-70 group-hover:opacity-80 transition-opacity flex items-center justify-center`}>
+                              <div className="text-center text-white">
+                                <h3 className="text-xl font-bold mb-2 group-hover:scale-110 transition-transform">{project.title}</h3>
+                                {project.featured && (
+                                  <div className="inline-flex items-center px-2 py-1 bg-yellow-500 rounded-full text-xs font-medium">
+                                    <Star className="h-3 w-3 mr-1" />
+                                    Featured
+                                  </div>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                        )}
-                      </div>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-lg group-hover:text-primary transition-colors">{project.title}</CardTitle>
-                        <p className="text-sm text-gray-600 group-hover:text-gray-800 transition-colors">{project.clientType}</p>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-gray-600 text-sm mb-3 line-clamp-2 group-hover:text-gray-800 transition-colors">
-                          {project.description}
-                        </p>
-                        {Array.isArray(project.technologies) && (
-                          <div className="flex flex-wrap gap-1 mb-3">
-                            {project.technologies.slice(0, 3).map((tech, techIndex) => (
-                              <span key={`${project.id}-t-${techIndex}`} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded hover-scale transition-smooth cursor-pointer">
-                                {tech}
+
+                          {/* Project Info */}
+                          <div className="p-6">
+                            <div className="flex items-center justify-between mb-3">
+                              <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                                {project.title}
+                              </h3>
+                              <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium">
+                                {project.clientType}
                               </span>
-                            ))}
+                            </div>
+
+                            <p className="text-gray-600 text-sm mb-4 leading-relaxed line-clamp-3">
+                              {project.description}
+                            </p>
+
+                            {/* Technologies */}
+                            {Array.isArray(project.technologies) && project.technologies.length > 0 && (
+                              <div className="flex flex-wrap gap-2 mb-4">
+                                {project.technologies.slice(0, 3).map((tech, techIndex) => (
+                                  <span key={`${project.id}-t-${techIndex}`} className="px-2 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium hover:bg-blue-100 hover:text-blue-600 transition-colors">
+                                    {tech}
+                                  </span>
+                                ))}
+                                {project.technologies.length > 3 && (
+                                  <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium">
+                                    +{project.technologies.length - 3}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Project Meta */}
+                            <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
+                              <div className="flex items-center">
+                                <Clock className="h-3 w-3 mr-1" />
+                                {project.duration}
+                              </div>
+                              <div className="flex items-center">
+                                <Users className="h-3 w-3 mr-1" />
+                                {project.teamSize} people
+                              </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-2">
+                              {project.liveUrl && (
+                                <button
+                                  className="flex-1 bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 hover:scale-105 transition-all duration-300 flex items-center justify-center"
+                                  onClick={() => window.open(project.liveUrl, '_blank')}
+                                >
+                                  <ExternalLink className="h-3 w-3 mr-1" />
+                                  Demo
+                                </button>
+                              )}
+                              {project.githubUrl && (
+                                <button
+                                  className="flex-1 border border-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium hover:border-blue-600 hover:text-blue-600 hover:scale-105 transition-all duration-300 flex items-center justify-center"
+                                  onClick={() => window.open(project.githubUrl, '_blank')}
+                                >
+                                  <Github className="h-3 w-3 mr-1" />
+                                  Code
+                                </button>
+                              )}
+                            </div>
                           </div>
-                        )}
-                        <div className="flex justify-between items-center text-xs text-gray-500 mb-3 group-hover:text-gray-700 transition-colors">
-                          <span>{project.duration}</span>
-                          <span>{project.teamSize} people</span>
                         </div>
-                        <div className="flex gap-2">
-                          {project.liveUrl && (
-                            <Button size="sm" variant="outline" className="flex-1 text-xs hover-glow" onClick={() => window.open(project.liveUrl, '_blank')}>
-                              <ExternalLink className="h-3 w-3 mr-1" />
-                              Demo
-                            </Button>
-                          )}
-                          {project.githubUrl && (
-                            <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => window.open(project.githubUrl, '_blank')}>
-                              <Github className="h-3 w-3 mr-1" />
-                              Code
-                            </Button>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </ScrollReveal>
-                ))}
+                      </div>
+                    </ScrollReveal>
+                  )
+                })}
               </div>
             )}
           </DataRenderer>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-16 bg-primary text-white relative overflow-hidden">
-        {/* Animated background pattern */}
+      {/* Enhanced CTA Section */}
+      <section className="py-20 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/5 to-transparent transform -skew-y-3 animate-pulse"></div>
+          <div className="w-full h-full bg-repeat bg-[length:80px_80px]"
+               style={{
+                 backgroundImage: `radial-gradient(circle at 40px 40px, white 2px, transparent 2px)`
+               }}>
+          </div>
         </div>
-        
+
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '3s'}}></div>
+        </div>
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <ScrollReveal animation="fade-up">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6 animate-fade-in">
-              Ready to Start Your Project?
+          <ScrollReveal>
+            <div className="inline-flex items-center px-6 py-3 bg-green-600/20 rounded-full text-green-200 text-sm font-medium mb-8">
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Ready to Build Something Amazing?
+            </div>
+            <h2 className="text-5xl md:text-6xl font-bold mb-8 leading-tight">
+              Let's Create Your Next
+              <span className="block bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                Digital Success Story
+              </span>
             </h2>
-          </ScrollReveal>
-          <ScrollReveal animation="fade-up" delay={200}>
-            <p className="text-xl mb-8 max-w-2xl mx-auto">
-              Let's discuss your ideas and create something amazing together. 
-              Contact us today for a free consultation.
+            <p className="text-xl md:text-2xl text-blue-100 mb-12 leading-relaxed max-w-4xl mx-auto">
+              Join our growing list of satisfied clients. Let's discuss your ideas
+              and create something amazing together that drives real results.
             </p>
-          </ScrollReveal>
-          <ScrollReveal animation="fade-up" delay={400}>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" variant="secondary" className="text-lg px-8 py-3 btn-animate hover-glow hover-lift transition-smooth" onClick={handleStartProject}>
-                Start a Project
-              </Button>
-              <Button size="lg" variant="outline" className="text-lg px-8 py-3 text-blue-900 border-blue-100 hover:bg-white hover:text-primary hover-scale transition-bounce" onClick={handleScheduleConsultation}>
-                Schedule Consultation
-              </Button>
+            <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
+              <button
+                className="bg-white text-blue-900 hover:bg-blue-50 px-10 py-5 rounded-2xl font-bold text-lg shadow-2xl hover:scale-105 transition-all duration-300 group flex items-center justify-center"
+                onClick={handleStartProject}
+              >
+                <Zap className="mr-3 h-6 w-6" />
+                Start Your Project
+                <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
+              </button>
+              <button
+                className="border-2 border-white/30 text-white hover:bg-white/10 px-10 py-5 rounded-2xl font-bold text-lg backdrop-blur-sm hover:scale-105 transition-all duration-300 flex items-center justify-center"
+                onClick={handleScheduleConsultation}
+              >
+                <Phone className="mr-3 h-6 w-6" />
+                Free Consultation
+              </button>
+            </div>
+
+            {/* Process highlights */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300">
+                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Lightbulb className="h-6 w-6 text-blue-300" />
+                </div>
+                <h3 className="font-bold text-white mb-2">Free Discovery Call</h3>
+                <p className="text-blue-200">Discuss your vision and requirements</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300">
+                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Target className="h-6 w-6 text-blue-300" />
+                </div>
+                <h3 className="font-bold text-white mb-2">Custom Proposal</h3>
+                <p className="text-blue-200">Tailored solution for your needs</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300">
+                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Award className="h-6 w-6 text-blue-300" />
+                </div>
+                <h3 className="font-bold text-white mb-2">Project Delivery</h3>
+                <p className="text-blue-200">On-time, high-quality results</p>
+              </div>
             </div>
           </ScrollReveal>
         </div>
