@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Header Fix</title>
+</head>
+<body>
+    <h3>Test Authorization Header Fix</h3>
+    <button onclick="testHeaderMerging()">Test Header Merging Logic</button>
+    <div id="result"></div>
+
+    <script>
+        function testHeaderMerging() {
+            console.log('Testing header merging logic...');
+
+            // Simulate the old (broken) way
+            const token = 'test-token-123';
+            const defaultHeaders = {
+                'Content-Type': 'application/json',
+            };
+
+            if (token) {
+                defaultHeaders.Authorization = `Bearer ${token}`;
+            }
+
+            const options = {
+                method: 'POST',
+                headers: {
+                    'X-Custom': 'value'
+                },
+                body: JSON.stringify({test: 'data'})
+            };
+
+            // OLD WAY (broken)
+            console.log('=== OLD WAY (broken) ===');
+            const oldConfig = {
+                method: 'GET',
+                headers: {
+                    ...defaultHeaders,
+                    ...(options.headers || {})
+                },
+                ...options  // This overwrites headers!
+            };
+            console.log('Old config headers:', oldConfig.headers);
+            console.log('Old hasAuthHeader:', !!oldConfig.headers.Authorization);
+
+            // NEW WAY (fixed)
+            console.log('=== NEW WAY (fixed) ===');
+            const mergedHeaders = {
+                ...defaultHeaders,
+                ...(options.headers || {})
+            };
+
+            const newConfig = {
+                method: 'GET',
+                ...options,
+                headers: mergedHeaders  // Headers set AFTER options spread
+            };
+            console.log('New config headers:', newConfig.headers);
+            console.log('New hasAuthHeader:', !!newConfig.headers.Authorization);
+
+            // Show result on page
+            document.getElementById('result').innerHTML = `
+                <h4>Results:</h4>
+                <p><strong>Old way Authorization header:</strong> ${oldConfig.headers.Authorization ? '✅ Present' : '❌ Missing'}</p>
+                <p><strong>New way Authorization header:</strong> ${newConfig.headers.Authorization ? '✅ Present' : '❌ Missing'}</p>
+                <p>Check console for detailed logs</p>
+            `;
+        }
+    </script>
+</body>
+</html>

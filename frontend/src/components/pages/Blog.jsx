@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Search, Calendar, User, Tag, Clock, ArrowRight, TrendingUp, Eye, Heart, MessageCircle, Share2, BookOpen, Filter, Star, ChevronDown, ExternalLink, Bell, Crown, Shield, Sparkles, Diamond, Zap, Trophy, Award, Target, Rocket } from 'lucide-react'
+import { Search, Calendar, User, Tag, Clock, ArrowRight, TrendingUp, Eye, Heart, MessageCircle, Share2, BookOpen, Filter, Star, ChevronDown, ExternalLink, Bell, Crown, Shield, Sparkles, Diamond, Zap, Trophy, Award, Target, Rocket, Twitter, Facebook, Linkedin, Copy, Send } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -21,10 +21,71 @@ const Blog = ({ contentType = 'blog' }) => {
   const [selectedPost, setSelectedPost] = useState(null)
   const [showPostModal, setShowPostModal] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
+  const [openShareDropdown, setOpenShareDropdown] = useState(null)
+
+  // Callback to update article stats in real-time
+  const updateArticleStats = (articleId, updates) => {
+    setPosts(prevPosts =>
+      prevPosts.map(post =>
+        post.id === articleId ? { ...post, ...updates } : post
+      )
+    )
+
+    setSelectedPost(prev =>
+      prev && prev.id === articleId ? { ...prev, ...updates } : prev
+    )
+  }
 
   useEffect(() => {
     loadContent()
   }, [contentType])
+
+  // Refresh engagement stats for visible posts
+  const refreshEngagementStats = async (postsToUpdate) => {
+    if (!postsToUpdate || postsToUpdate.length === 0) return
+
+    try {
+      // Get fresh data from the content API
+      const response = await apiRequest(`/api/content?type=${contentType}`)
+      if (response.success && response.data) {
+        const freshPosts = response.data
+
+        // Update posts with fresh stats
+        setPosts(prevPosts =>
+          prevPosts.map(post => {
+            const freshPost = freshPosts.find(fresh => fresh.id === post.id)
+            if (freshPost) {
+              return {
+                ...post,
+                views: freshPost.views || post.views || 0,
+                like_count: freshPost.like_count || post.like_count || 0,
+                comment_count: freshPost.comment_count || post.comment_count || 0
+              }
+            }
+            return post
+          })
+        )
+        secureLog('info', 'Refreshed engagement stats for posts', {
+          postCount: postsToUpdate.length,
+          contentType
+        })
+      }
+    } catch (error) {
+      secureLog('error', 'Failed to refresh engagement stats', { error })
+    }
+  }
+
+  // Auto-refresh engagement stats when posts load
+  useEffect(() => {
+    if (posts.length > 0) {
+      // Refresh stats for visible posts after a short delay
+      const timeoutId = setTimeout(() => {
+        refreshEngagementStats(posts)
+      }, 1000)
+
+      return () => clearTimeout(timeoutId)
+    }
+  }, [posts.length]) // Only run when posts are first loaded
 
   const loadContent = async () => {
     setLoading(true)
@@ -236,10 +297,31 @@ const Blog = ({ contentType = 'blog' }) => {
     }
   }
 
-  const openPost = (post) => {
+  const openPost = async (post) => {
     setSelectedPost(post)
     setShowPostModal(true)
     document.body.style.overflow = 'hidden'
+
+    // Track view when article is opened
+    try {
+      const response = await apiRequest(`/api/content/${post.id}/view`, {
+        method: 'POST'
+      })
+
+      if (response.success) {
+        // Update the post in the posts array with new view count
+        setPosts(prevPosts =>
+          prevPosts.map(p =>
+            p.id === post.id ? { ...p, views: response.views } : p
+          )
+        )
+
+        // Update selectedPost with new view count
+        setSelectedPost(prev => ({ ...prev, views: response.views }))
+      }
+    } catch (error) {
+      secureLog('error', 'Failed to track article view', { postId: post.id, error })
+    }
   }
 
   const closePost = () => {
@@ -247,6 +329,72 @@ const Blog = ({ contentType = 'blog' }) => {
     setShowPostModal(false)
     document.body.style.overflow = 'unset'
   }
+
+  // Social sharing functions
+  const shareOnTwitter = (post) => {
+    const text = `Check out this article: ${post.title}`
+    const url = `${window.location.origin}/blog/${post.slug || post.id}`
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`
+    window.open(twitterUrl, '_blank', 'width=600,height=400')
+  }
+
+  const shareOnFacebook = (post) => {
+    const url = `${window.location.origin}/blog/${post.slug || post.id}`
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`
+    window.open(facebookUrl, '_blank', 'width=600,height=400')
+  }
+
+  const shareOnLinkedIn = (post) => {
+    const url = `${window.location.origin}/blog/${post.slug || post.id}`
+    const title = post.title
+    const summary = post.excerpt || 'Check out this article'
+    const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}&summary=${encodeURIComponent(summary)}`
+    window.open(linkedinUrl, '_blank', 'width=600,height=400')
+  }
+
+  const shareOnWhatsApp = (post) => {
+    const text = `Check out this article: ${post.title}`
+    const url = `${window.location.origin}/blog/${post.slug || post.id}`
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`
+    window.open(whatsappUrl, '_blank')
+  }
+
+  const copyToClipboard = async (post) => {
+    const url = `${window.location.origin}/blog/${post.slug || post.id}`
+    try {
+      await navigator.clipboard.writeText(url)
+      toast.success('Link copied to clipboard!')
+    } catch (error) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea')
+      textArea.value = url
+      document.body.appendChild(textArea)
+      textArea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textArea)
+      toast.success('Link copied to clipboard!')
+    }
+  }
+
+  // Toggle share dropdown
+  const toggleShareDropdown = (postId, e) => {
+    e.stopPropagation()
+    setOpenShareDropdown(openShareDropdown === postId ? null : postId)
+  }
+
+  // Close share dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.share-dropdown-container')) {
+        setOpenShareDropdown(null)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900 relative overflow-hidden">
@@ -527,7 +675,7 @@ const Blog = ({ contentType = 'blog' }) => {
                       </div>
                     ) : (
                       filteredPosts.map((post) => (
-                        <div key={post.id} className="group overflow-hidden bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-[1.02] hover:border-indigo-500/30">
+                        <div key={post.id} className="group relative overflow-visible bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-[1.02] hover:border-indigo-500/30">
                           <div className="lg:flex">
                             <div className="lg:w-2/5">
                               <div className="aspect-video lg:aspect-square relative overflow-hidden">
@@ -615,23 +763,95 @@ const Blog = ({ contentType = 'blog' }) => {
                               </div>
 
                               {/* Engagement Metrics */}
-                              <div className="flex items-center space-x-6 mt-6 pt-6 border-t border-slate-100 text-sm text-slate-500">
-                                <span className="flex items-center hover:text-blue-600 transition-colors cursor-pointer">
-                                  <Eye className="w-4 h-4 mr-1" />
-                                  {post.views || 0} views
-                                </span>
-                                <span className="flex items-center hover:text-red-600 transition-colors cursor-pointer">
-                                  <Heart className="w-4 h-4 mr-1" />
-                                  {post.like_count || 0} likes
-                                </span>
-                                <span className="flex items-center hover:text-green-600 transition-colors cursor-pointer">
-                                  <MessageCircle className="w-4 h-4 mr-1" />
-                                  {post.comment_count || 0} comments
-                                </span>
-                                <span className="flex items-center hover:text-purple-600 transition-colors cursor-pointer">
-                                  <Share2 className="w-4 h-4 mr-1" />
-                                  Share
-                                </span>
+                              <div className="flex items-center justify-between mt-6 pt-6 border-t border-slate-100 text-sm text-slate-500">
+                                <div className="flex items-center space-x-6">
+                                  <span className="flex items-center hover:text-blue-600 transition-colors cursor-pointer">
+                                    <Eye className="w-4 h-4 mr-1" />
+                                    {post.views || 0} views
+                                  </span>
+                                  <span className="flex items-center hover:text-red-600 transition-colors cursor-pointer">
+                                    <Heart className="w-4 h-4 mr-1" />
+                                    {post.like_count || 0} likes
+                                  </span>
+                                  <span className="flex items-center hover:text-green-600 transition-colors cursor-pointer">
+                                    <MessageCircle className="w-4 h-4 mr-1" />
+                                    {post.comment_count || 0} comments
+                                  </span>
+                                </div>
+
+                                {/* Share Button with Dropdown */}
+                                <div className="relative share-dropdown-container">
+                                  <span
+                                    className="flex items-center hover:text-purple-600 transition-colors cursor-pointer"
+                                    onClick={(e) => toggleShareDropdown(post.id, e)}
+                                  >
+                                    <Share2 className="w-4 h-4 mr-1" />
+                                    Share
+                                  </span>
+
+                                  {/* Share Dropdown */}
+                                  <div className={`absolute right-0 bottom-full mb-2 bg-white rounded-xl shadow-2xl border border-gray-200 p-2 transition-all duration-200 z-[9999] min-w-48 backdrop-blur-sm transform will-change-transform ${
+                                    openShareDropdown === post.id
+                                      ? 'opacity-100 visible'
+                                      : 'opacity-0 invisible'
+                                  }`}>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        shareOnTwitter(post);
+                                        setOpenShareDropdown(null);
+                                      }}
+                                      className="flex items-center space-x-3 p-3 rounded-lg hover:bg-blue-50 text-left transition-colors w-full"
+                                    >
+                                      <Twitter className="w-4 h-4 text-blue-500" />
+                                      <span className="text-sm font-medium text-gray-700">Twitter</span>
+                                    </button>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        shareOnFacebook(post);
+                                        setOpenShareDropdown(null);
+                                      }}
+                                      className="flex items-center space-x-3 p-3 rounded-lg hover:bg-blue-50 text-left transition-colors w-full"
+                                    >
+                                      <Facebook className="w-4 h-4 text-blue-600" />
+                                      <span className="text-sm font-medium text-gray-700">Facebook</span>
+                                    </button>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        shareOnLinkedIn(post);
+                                        setOpenShareDropdown(null);
+                                      }}
+                                      className="flex items-center space-x-3 p-3 rounded-lg hover:bg-blue-50 text-left transition-colors w-full"
+                                    >
+                                      <Linkedin className="w-4 h-4 text-blue-700" />
+                                      <span className="text-sm font-medium text-gray-700">LinkedIn</span>
+                                    </button>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        shareOnWhatsApp(post);
+                                        setOpenShareDropdown(null);
+                                      }}
+                                      className="flex items-center space-x-3 p-3 rounded-lg hover:bg-green-50 text-left transition-colors w-full"
+                                    >
+                                      <Send className="w-4 h-4 text-green-600" />
+                                      <span className="text-sm font-medium text-gray-700">WhatsApp</span>
+                                    </button>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        copyToClipboard(post);
+                                        setOpenShareDropdown(null);
+                                      }}
+                                      className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 text-left transition-colors w-full border-t border-gray-100 mt-1 pt-3"
+                                    >
+                                      <Copy className="w-4 h-4 text-gray-600" />
+                                      <span className="text-sm font-medium text-gray-700">Copy Link</span>
+                                    </button>
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -791,48 +1011,135 @@ const Blog = ({ contentType = 'blog' }) => {
         </div>
       </div>
 
-      {/* Premium Article Modal */}
+      {/* Enhanced Article Modal */}
       {showPostModal && selectedPost && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl max-w-6xl w-full max-h-[95vh] overflow-hidden shadow-2xl relative">
+            {/* Gradient Background */}
+            <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-indigo-500/10"></div>
+
             {/* Modal Header */}
-            <div className="sticky top-0 bg-white/95 backdrop-blur-sm border-b px-8 py-6 flex items-center justify-between z-10">
-              <h2 className="text-2xl font-bold text-slate-900 line-clamp-1 mr-4">
-                {selectedPost.title}
-              </h2>
-              <Button variant="ghost" onClick={closePost} className="flex-shrink-0 hover:bg-slate-100">
-                <ExternalLink className="w-5 h-5" />
-              </Button>
+            <div className="sticky top-0 bg-white/95 backdrop-blur-md border-b border-gray-100 px-8 py-6 flex items-center justify-between z-10 relative">
+              <div className="flex-1">
+                <h2 className="text-3xl font-bold text-slate-900 line-clamp-2 leading-tight">
+                  {selectedPost.title}
+                </h2>
+
+                {/* Enhanced Meta Info */}
+                <div className="flex items-center space-x-6 mt-3 text-sm text-slate-500">
+                  <span className="flex items-center bg-slate-100 px-3 py-1 rounded-full">
+                    <Calendar className="h-3 w-3 mr-2" />
+                    {formatDate(selectedPost.created_at)}
+                  </span>
+                  <span className="flex items-center bg-slate-100 px-3 py-1 rounded-full">
+                    <Clock className="h-3 w-3 mr-2" />
+                    {getReadingTime(selectedPost.content)} min
+                  </span>
+                  <span className="flex items-center bg-slate-100 px-3 py-1 rounded-full">
+                    <User className="h-3 w-3 mr-2" />
+                    {selectedPost.author || 'Sabiteck Team'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center space-x-3 ml-4">
+                {/* Share Dropdown */}
+                <div className="relative group">
+                  <Button variant="ghost" className="flex items-center space-x-2 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                    <Share2 className="w-4 h-4" />
+                    <span className="hidden sm:inline">Share</span>
+                  </Button>
+
+                  {/* Share Options */}
+                  <div className="absolute right-0 top-full mt-2 bg-white rounded-2xl shadow-2xl border border-gray-200 p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[9999] backdrop-blur-sm">
+                    <div className="grid grid-cols-2 gap-2 w-48">
+                      <button
+                        onClick={() => shareOnTwitter(selectedPost)}
+                        className="flex items-center space-x-3 p-3 rounded-xl hover:bg-blue-50 text-left transition-colors"
+                      >
+                        <Twitter className="w-4 h-4 text-blue-500" />
+                        <span className="text-sm font-medium">Twitter</span>
+                      </button>
+                      <button
+                        onClick={() => shareOnFacebook(selectedPost)}
+                        className="flex items-center space-x-3 p-3 rounded-xl hover:bg-blue-50 text-left transition-colors"
+                      >
+                        <Facebook className="w-4 h-4 text-blue-600" />
+                        <span className="text-sm font-medium">Facebook</span>
+                      </button>
+                      <button
+                        onClick={() => shareOnLinkedIn(selectedPost)}
+                        className="flex items-center space-x-3 p-3 rounded-xl hover:bg-blue-50 text-left transition-colors"
+                      >
+                        <Linkedin className="w-4 h-4 text-blue-700" />
+                        <span className="text-sm font-medium">LinkedIn</span>
+                      </button>
+                      <button
+                        onClick={() => shareOnWhatsApp(selectedPost)}
+                        className="flex items-center space-x-3 p-3 rounded-xl hover:bg-green-50 text-left transition-colors"
+                      >
+                        <Send className="w-4 h-4 text-green-600" />
+                        <span className="text-sm font-medium">WhatsApp</span>
+                      </button>
+                      <button
+                        onClick={() => copyToClipboard(selectedPost)}
+                        className="flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-50 text-left transition-colors col-span-2"
+                      >
+                        <Copy className="w-4 h-4 text-gray-600" />
+                        <span className="text-sm font-medium">Copy Link</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <Button variant="ghost" onClick={closePost} className="flex-shrink-0 hover:bg-red-50 hover:text-red-600 transition-colors">
+                  <ExternalLink className="w-5 h-5" />
+                </Button>
+              </div>
             </div>
 
             <div className="overflow-y-auto max-h-[calc(90vh-100px)]">
               <div className="p-8">
-                {/* Article Meta */}
-                <div className="flex items-center justify-between mb-8 pb-6 border-b">
-                  <div className="flex items-center space-x-6 text-sm text-slate-500">
-                    <span className="flex items-center">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      {formatDate(selectedPost.created_at)}
-                    </span>
-                    <span className="flex items-center">
-                      <Clock className="h-4 w-4 mr-2" />
-                      {getReadingTime(selectedPost.content)} min read
-                    </span>
-                    <span className="flex items-center">
-                      <User className="h-4 w-4 mr-2" />
-                      {selectedPost.author || 'Sabiteck Team'}
-                    </span>
-                  </div>
+                {/* Enhanced Article Stats */}
+                <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-2xl p-6 mb-8">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-8">
+                      <div className="flex items-center space-x-2">
+                        <div className="p-2 bg-blue-100 rounded-xl">
+                          <Eye className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <div className="text-2xl font-bold text-slate-900">{selectedPost.views || 0}</div>
+                          <div className="text-sm text-slate-500">Views</div>
+                        </div>
+                      </div>
 
-                  <div className="flex items-center space-x-4 text-sm text-slate-500">
-                    <span className="flex items-center">
-                      <Eye className="w-4 h-4 mr-1" />
-                      {selectedPost.views || 0}
-                    </span>
-                    <span className="flex items-center">
-                      <Heart className="w-4 h-4 mr-1" />
-                      {selectedPost.like_count || 0}
-                    </span>
+                      <div className="flex items-center space-x-2">
+                        <div className="p-2 bg-red-100 rounded-xl">
+                          <Heart className="w-5 h-5 text-red-600" />
+                        </div>
+                        <div>
+                          <div className="text-2xl font-bold text-slate-900">{selectedPost.like_count || 0}</div>
+                          <div className="text-sm text-slate-500">Likes</div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <div className="p-2 bg-green-100 rounded-xl">
+                          <MessageCircle className="w-5 h-5 text-green-600" />
+                        </div>
+                        <div>
+                          <div className="text-2xl font-bold text-slate-900">{selectedPost.comment_count || 0}</div>
+                          <div className="text-sm text-slate-500">Comments</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <div className="text-lg font-semibold text-slate-900">{getReadingTime(selectedPost.content)} min read</div>
+                      <div className="text-sm text-slate-500">Published {formatDate(selectedPost.created_at)}</div>
+                    </div>
                   </div>
                 </div>
 
@@ -878,6 +1185,7 @@ const Blog = ({ contentType = 'blog' }) => {
                   contentId={selectedPost.id}
                   initialCommentCount={selectedPost.comment_count || 0}
                   initialLikeCount={selectedPost.like_count || 0}
+                  onStatsUpdate={updateArticleStats}
                 />
               </div>
             </div>

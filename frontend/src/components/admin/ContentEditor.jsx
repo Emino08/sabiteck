@@ -18,16 +18,32 @@ const ContentEditor = () => {
   const [contentType, setContentType] = useState('all')
   const [content, setContent] = useState([])
   const [currentContent, setCurrentContent] = useState({
+    // Core content fields
     title: '',
     content_type: 'blog',
     category: '',
     content: '',
     excerpt: '',
+
+    // Media and presentation
     featured_image: '',
+    gallery: '',
+
+    // Metadata and SEO
     author: '',
-    tags: [],
     meta_description: '',
-    published: true
+    meta_title: '',
+
+    // Publishing and classification
+    published: true,
+    featured: false,
+    tags: '',
+
+    // Additional fields
+    slug: '',
+    views: 0,
+    comment_count: 0,
+    like_count: 0
   })
   const [editingContent, setEditingContent] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
@@ -43,6 +59,18 @@ const ContentEditor = () => {
   const [editorMode, setEditorMode] = useState('visual') // 'visual' or 'code'
   const [previewMode, setPreviewMode] = useState(false)
 
+  // Sonnet Modal states
+  const [sonnetModal, setSonnetModal] = useState({
+    show: false,
+    type: '', // 'confirm', 'input', 'media'
+    title: '',
+    message: '',
+    placeholder: '',
+    inputValue: '',
+    onConfirm: null,
+    onCancel: null
+  })
+
   useEffect(() => {
     loadContent()
     loadCategories()
@@ -53,8 +81,9 @@ const ContentEditor = () => {
     try {
       const response = await apiRequest('/api/blog/categories')
       if (response.success) {
-        const categoriesData = response.categories || []
-        setCategories(categoriesData.map(cat => cat.name || cat))
+        // Convert the numbered object keys to array
+        const categoriesArray = Object.values(response).filter(item => item && item.id && item.name)
+        setCategories(categoriesArray.map(cat => cat.name))
       }
     } catch (error) {
       console.error('Error loading categories:', error)
@@ -66,9 +95,10 @@ const ContentEditor = () => {
     try {
       const response = await apiRequest('/api/content/types')
       if (response.success) {
-        const typesData = response.content_types || []
-        setContentTypes(typesData.map(type => ({
-          value: type.slug || type.name.toLowerCase(),
+        // Convert the numbered object keys to array
+        const typesArray = Object.values(response).filter(item => item && item.id && item.name)
+        setContentTypes(typesArray.map(type => ({
+          value: type.type || type.name.toLowerCase().replace(/\s+/g, '-'),
           label: type.name,
           icon: FileText
         })))
@@ -95,6 +125,60 @@ const ContentEditor = () => {
       console.error('Content loading error:', error);
       toast.error('Failed to load content')
     }
+  }
+
+  // Sonnet Modal Helper Functions
+  const showConfirmModal = (title, message, onConfirm, onCancel = null) => {
+    setSonnetModal({
+      show: true,
+      type: 'confirm',
+      title,
+      message,
+      onConfirm,
+      onCancel: onCancel || (() => setSonnetModal(prev => ({ ...prev, show: false }))),
+      placeholder: '',
+      inputValue: ''
+    })
+  }
+
+  const showInputModal = (title, placeholder, onConfirm, defaultValue = '', onCancel = null) => {
+    setSonnetModal({
+      show: true,
+      type: 'input',
+      title,
+      message: '',
+      placeholder,
+      inputValue: defaultValue,
+      onConfirm,
+      onCancel: onCancel || (() => setSonnetModal(prev => ({ ...prev, show: false }))),
+    })
+  }
+
+  const showMediaModal = (mediaType, onConfirm, onCancel = null) => {
+    setSonnetModal({
+      show: true,
+      type: 'media',
+      title: `Insert ${mediaType.charAt(0).toUpperCase() + mediaType.slice(1)}`,
+      message: '',
+      placeholder: `Enter ${mediaType} URL...`,
+      inputValue: '',
+      mediaType,
+      onConfirm,
+      onCancel: onCancel || (() => setSonnetModal(prev => ({ ...prev, show: false }))),
+    })
+  }
+
+  const closeSonnetModal = () => {
+    setSonnetModal({
+      show: false,
+      type: '',
+      title: '',
+      message: '',
+      placeholder: '',
+      inputValue: '',
+      onConfirm: null,
+      onCancel: null
+    })
   }
 
   const saveContent = async () => {
@@ -134,36 +218,80 @@ const ContentEditor = () => {
     }
   }
 
-  const deleteContent = async (contentId) => {
-    if (!confirm('Are you sure you want to delete this content?')) return
-    
-    try {
-      const token = localStorage.getItem('auth_token')
-      await apiRequest(`/api/admin/content/${contentId}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-      
-      toast.success('Content deleted successfully!')
-      loadContent()
-    } catch (error) {
-      toast.error('Failed to delete content')
-    }
+  const deleteContent = (contentId) => {
+    showConfirmModal(
+      '🗑️ Delete Content',
+      'Are you sure you want to permanently delete this content? This action cannot be undone.',
+      async () => {
+        try {
+          const token = localStorage.getItem('auth_token')
+          await apiRequest(`/api/admin/content/${contentId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
+
+          toast.success('Content deleted successfully!')
+          loadContent()
+          closeSonnetModal()
+        } catch (error) {
+          toast.error('Failed to delete content')
+        }
+      }
+    )
   }
 
   const editContent = (contentItem) => {
+    console.log('Editing content item:', contentItem); // Debug log
     setEditingContent(contentItem)
+
+    // Handle tags properly - can be JSON string, array, or null
+    let tagsValue = '';
+    if (contentItem.tags) {
+      if (Array.isArray(contentItem.tags)) {
+        tagsValue = contentItem.tags.join(', ');
+      } else if (typeof contentItem.tags === 'string') {
+        try {
+          // Try to parse as JSON first
+          const parsedTags = JSON.parse(contentItem.tags);
+          if (Array.isArray(parsedTags)) {
+            tagsValue = parsedTags.join(', ');
+          } else {
+            tagsValue = contentItem.tags === 'null' ? '' : contentItem.tags;
+          }
+        } catch (e) {
+          // If JSON parsing fails, treat as comma-separated string
+          tagsValue = contentItem.tags === 'null' ? '' : contentItem.tags;
+        }
+      }
+    }
+
     setCurrentContent({
+      // Core content fields
       title: contentItem.title || '',
       content_type: contentItem.content_type || 'blog',
       category: contentItem.category || '',
       content: contentItem.content || '',
       excerpt: contentItem.excerpt || '',
+
+      // Media and presentation
       featured_image: contentItem.featured_image || '',
+
+      // Metadata and SEO
       author: contentItem.author || '',
       meta_description: contentItem.meta_description || '',
+      meta_title: contentItem.meta_title || '',
+
+      // Publishing and classification
       published: Boolean(contentItem.published),
-      tags: Array.isArray(contentItem.tags) ? contentItem.tags.join(', ') : (contentItem.tags || '')
+      featured: Boolean(contentItem.featured),
+      tags: tagsValue,
+
+      // Additional fields that might be missing
+      slug: contentItem.slug || '',
+      gallery: contentItem.gallery || '',
+      views: contentItem.views || 0,
+      comment_count: contentItem.comment_count || 0,
+      like_count: contentItem.like_count || 0
     })
     setModalType('edit')
     setShowModal(true)
@@ -177,48 +305,85 @@ const ContentEditor = () => {
   const resetForm = () => {
     setEditingContent(null)
     setCurrentContent({
+      // Core content fields
       title: '',
       content_type: 'blog',
       category: '',
       content: '',
       excerpt: '',
+
+      // Media and presentation
       featured_image: '',
+      gallery: '',
+
+      // Metadata and SEO
       author: '',
-      tags: [],
       meta_description: '',
-      published: true
+      meta_title: '',
+
+      // Publishing and classification
+      published: true,
+      featured: false,
+      tags: '',
+
+      // Additional fields
+      slug: '',
+      views: 0,
+      comment_count: 0,
+      like_count: 0
     })
     setShowModal(false)
     setModalType('')
   }
 
   const insertMedia = (type) => {
-    let mediaHtml = ''
-    const url = prompt(`Enter ${type} URL:`)
-    if (!url) return
+    if (type === 'link') {
+      // For links, we need URL first, then link text
+      showMediaModal(type, (url) => {
+        if (!url) return
 
-    switch(type) {
-      case 'image':
-        mediaHtml = `<img src="${url}" alt="Image" style="max-width: 100%; height: auto;" />`
-        break
-      case 'video':
-        if (url.includes('youtube.com') || url.includes('youtu.be')) {
-          const videoId = url.includes('youtu.be') ? url.split('/').pop() : url.split('v=')[1]?.split('&')[0]
-          mediaHtml = `<iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`
-        } else {
-          mediaHtml = `<video controls style="max-width: 100%;"><source src="${url}" type="video/mp4"></video>`
+        // After URL is provided, ask for link text
+        showInputModal(
+          '🔗 Link Text',
+          'Enter the display text for this link...',
+          (linkText) => {
+            const mediaHtml = `<a href="${url}" target="_blank">${linkText || url}</a>`
+            setCurrentContent({
+              ...currentContent,
+              content: currentContent.content + '\n\n' + mediaHtml
+            })
+            closeSonnetModal()
+          },
+          url // default to URL as link text
+        )
+      })
+    } else {
+      // For images and videos, just need URL
+      showMediaModal(type, (url) => {
+        if (!url) return
+
+        let mediaHtml = ''
+        switch(type) {
+          case 'image':
+            mediaHtml = `<img src="${url}" alt="Image" style="max-width: 100%; height: auto;" />`
+            break
+          case 'video':
+            if (url.includes('youtube.com') || url.includes('youtu.be')) {
+              const videoId = url.includes('youtu.be') ? url.split('/').pop() : url.split('v=')[1]?.split('&')[0]
+              mediaHtml = `<iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`
+            } else {
+              mediaHtml = `<video controls style="max-width: 100%;"><source src="${url}" type="video/mp4"></video>`
+            }
+            break
         }
-        break
-      case 'link':
-        const linkText = prompt('Enter link text:')
-        mediaHtml = `<a href="${url}" target="_blank">${linkText || url}</a>`
-        break
-    }
 
-    setCurrentContent({
-      ...currentContent,
-      content: currentContent.content + '\n\n' + mediaHtml
-    })
+        setCurrentContent({
+          ...currentContent,
+          content: currentContent.content + '\n\n' + mediaHtml
+        })
+        closeSonnetModal()
+      })
+    }
   }
 
   const filteredContent = content.filter(item => {
@@ -806,6 +971,65 @@ const ContentEditor = () => {
                             placeholder="Professional SEO description for search engines..."
                           />
                         </div>
+
+                        <div>
+                          <label className="block text-sm font-bold text-white mb-3">Meta Title</label>
+                          <Input
+                            value={currentContent.meta_title || ''}
+                            onChange={(e) => setCurrentContent({...currentContent, meta_title: e.target.value})}
+                            placeholder="Professional SEO title"
+                            className="bg-black/50 border-white/20 text-white placeholder-gray-400 rounded-xl"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-bold text-white mb-3">Gallery URLs</label>
+                          <textarea
+                            value={currentContent.gallery || ''}
+                            onChange={(e) => setCurrentContent({...currentContent, gallery: e.target.value})}
+                            className="w-full px-4 py-3 bg-black/50 border border-white/20 text-white placeholder-gray-400 rounded-xl text-sm focus:border-indigo-400 transition-all resize-none"
+                            rows={3}
+                            placeholder="Comma-separated gallery image URLs..."
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-bold text-white mb-3">Custom Slug</label>
+                          <Input
+                            value={currentContent.slug || ''}
+                            onChange={(e) => setCurrentContent({...currentContent, slug: e.target.value})}
+                            placeholder="custom-url-slug (auto-generated if empty)"
+                            className="bg-black/50 border-white/20 text-white placeholder-gray-400 rounded-xl"
+                          />
+                        </div>
+
+                        <div className="flex space-x-6">
+                          <div className="flex items-center space-x-3">
+                            <input
+                              type="checkbox"
+                              id="published"
+                              checked={currentContent.published || false}
+                              onChange={(e) => setCurrentContent({...currentContent, published: e.target.checked})}
+                              className="w-5 h-5 bg-black/50 border-white/20 rounded text-indigo-600 focus:ring-indigo-500"
+                            />
+                            <label htmlFor="published" className="text-sm font-bold text-white">
+                              Published
+                            </label>
+                          </div>
+
+                          <div className="flex items-center space-x-3">
+                            <input
+                              type="checkbox"
+                              id="featured"
+                              checked={currentContent.featured || false}
+                              onChange={(e) => setCurrentContent({...currentContent, featured: e.target.checked})}
+                              className="w-5 h-5 bg-black/50 border-white/20 rounded text-indigo-600 focus:ring-indigo-500"
+                            />
+                            <label htmlFor="featured" className="text-sm font-bold text-white">
+                              Featured Content
+                            </label>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -839,6 +1063,77 @@ const ContentEditor = () => {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Elegant Sonnet Modal */}
+      {sonnetModal.show && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[60] px-4">
+          <div className="bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-xl rounded-2xl border border-white/20 p-8 max-w-md w-full mx-auto shadow-2xl">
+
+            {/* Header */}
+            <div className="text-center mb-6">
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                {sonnetModal.title}
+              </h3>
+              {sonnetModal.message && (
+                <p className="text-gray-300 mt-3 leading-relaxed">
+                  {sonnetModal.message}
+                </p>
+              )}
+            </div>
+
+            {/* Input Field for input/media modals */}
+            {(sonnetModal.type === 'input' || sonnetModal.type === 'media') && (
+              <div className="mb-6">
+                <Input
+                  value={sonnetModal.inputValue}
+                  onChange={(e) => setSonnetModal(prev => ({...prev, inputValue: e.target.value}))}
+                  placeholder={sonnetModal.placeholder}
+                  className="bg-black/50 border-white/20 text-white placeholder-gray-400 rounded-xl text-lg py-4"
+                  autoFocus
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      sonnetModal.onConfirm?.(sonnetModal.inputValue)
+                    }
+                  }}
+                />
+                {sonnetModal.type === 'media' && (
+                  <p className="text-xs text-gray-400 mt-2 flex items-center">
+                    <Globe className="w-3 h-3 mr-1" />
+                    Enter a valid URL (e.g., https://example.com/image.jpg)
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex space-x-4">
+              <Button
+                onClick={() => sonnetModal.onCancel?.()}
+                className="flex-1 bg-black/30 backdrop-blur-lg border border-white/20 text-white hover:bg-red-500/20 hover:border-red-400/50 font-semibold py-3 transition-all"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  if (sonnetModal.type === 'confirm') {
+                    sonnetModal.onConfirm?.()
+                  } else {
+                    sonnetModal.onConfirm?.(sonnetModal.inputValue)
+                  }
+                }}
+                className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-bold py-3 shadow-xl transition-all"
+              >
+                {sonnetModal.type === 'confirm'
+                  ? 'Confirm'
+                  : sonnetModal.type === 'media'
+                    ? 'Insert'
+                    : 'Save'
+                }
+              </Button>
             </div>
           </div>
         </div>

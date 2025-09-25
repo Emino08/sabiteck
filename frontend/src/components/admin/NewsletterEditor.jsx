@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { toast } from 'sonner'
 import {
   Send, Save, Eye, Image, Link, Palette, Users, Filter,
@@ -9,9 +9,17 @@ import {
   AlignLeft, AlignCenter, AlignRight, List, Hash,
   Code, Maximize2, Minimize2, Play, Pause, RotateCcw, Minus,
   BookOpen, Layers, Search, Plus, MoreVertical, Archive,
-  Tag, FolderOpen, Bookmark, Heart, Share2
+  Tag, FolderOpen, Bookmark, Heart, Share2, Move,
+  RotateCw, ZoomIn, ZoomOut, Square, Circle, Triangle,
+  MousePointer, Hand, Crop, Brush, Eraser, PaintBucket,
+  FlipHorizontal, FlipVertical, Copy, Trash2, ArrowUp,
+  ArrowDown, ArrowLeft, ArrowRight, Grid, Sliders,
+  Paintbrush, ImagePlus, PenTool, ChevronUp, ChevronDown,
+  ChevronLeft, ChevronRight, X
 } from 'lucide-react'
 import { Button } from '../ui/button'
+
+const API_BASE = 'http://localhost:8002'
 import { Input } from '../ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { apiRequest } from '../../utils/api'
@@ -61,6 +69,54 @@ const NewsletterEditor = () => {
   })
   const [selectedContent, setSelectedContent] = useState(null)
   const [contentView, setContentView] = useState('grid')
+
+  // Enhanced Visual Editor States
+  const [visualElements, setVisualElements] = useState([])
+  const [selectedElement, setSelectedElement] = useState(null)
+  const [draggedElement, setDraggedElement] = useState(null)
+  const [visualEditMode, setVisualEditMode] = useState('select') // select, draw, text, image
+  const [showShapeToolbar, setShowShapeToolbar] = useState(false)
+  const [showImageUploader, setShowImageUploader] = useState(false)
+  const [showLinkEditor, setShowLinkEditor] = useState(false)
+
+  // Image Management States
+  const [uploadedImages, setUploadedImages] = useState([])
+  const [imageLibrary, setImageLibrary] = useState([])
+  const [currentImageUrl, setCurrentImageUrl] = useState('')
+
+  // Shape and Drawing States
+  const [currentShape, setCurrentShape] = useState('rectangle')
+  const [shapeColor, setShapeColor] = useState('#007bff')
+  const [strokeWidth, setStrokeWidth] = useState(2)
+  const [fillOpacity, setFillOpacity] = useState(0.3)
+
+  // Canvas and Positioning
+  const canvasRef = useRef(null)
+  const [canvasSize, setCanvasSize] = useState({ width: 1200, height: 800 })
+  const [zoom, setZoom] = useState(1)
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 })
+
+  // Link Management State
+  const [linkData, setLinkData] = useState({
+    url: '',
+    text: '',
+    target: '_blank',
+    style: 'button'
+  })
+
+  // Advanced Settings & Color Schemes
+  const [showColorSchemes, setShowColorSchemes] = useState(false)
+  const [showAdvancedSettings, setShowAdvancedSettings] = useState(false)
+  const [colorScheme, setColorScheme] = useState('default')
+  const [scheduledDateTime, setScheduledDateTime] = useState('')
+
+  // Resize and Manipulation
+  const [resizeMode, setResizeMode] = useState(false)
+  const [resizeHandle, setResizeHandle] = useState(null)
+
+  // Text Editing States
+  const [editingTextId, setEditingTextId] = useState(null)
+  const [editingText, setEditingText] = useState('')
 
   useEffect(() => {
     console.log('📅 useEffect triggered - calling loadData')
@@ -230,7 +286,7 @@ const NewsletterEditor = () => {
     setEditForm({
       email: subscriber.email || '',
       name: subscriber.name || '',
-      active: subscriber.status === 'active' || false
+      active: (subscriber.status === 'subscribed' && subscriber.active === 1) || false
     })
     setShowEditDialog(true)
   }
@@ -269,17 +325,27 @@ const NewsletterEditor = () => {
     setLoading(true)
     try {
       const token = localStorage.getItem('auth_token')
+
+      // Prepare data in the format expected by the backend
+      const updateData = {
+        email: editForm.email,
+        name: editForm.name,
+        status: editForm.active ? 'subscribed' : 'unsubscribed',
+        active: editForm.active ? 1 : 0
+      }
+
       await apiRequest(`/api/admin/newsletter/subscribers/${selectedSubscriber.id}`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(editForm)
+        body: JSON.stringify(updateData)
       })
-      
+
       toast.success('Subscriber updated successfully!')
       setShowEditDialog(false)
       loadData() // Reload data
     } catch (error) {
-      toast.error('Failed to update subscriber')
+      console.error('Update error:', error)
+      toast.error('Failed to update subscriber: ' + (error.message || 'Unknown error'))
     } finally {
       setLoading(false)
     }
@@ -291,7 +357,7 @@ const NewsletterEditor = () => {
       const response = await fetch('/api/admin/newsletter/subscribers/export', {
         headers: { 'Authorization': `Bearer ${token}` }
       })
-      
+
       if (response.ok) {
         const blob = await response.blob()
         const url = window.URL.createObjectURL(blob)
@@ -345,6 +411,359 @@ const NewsletterEditor = () => {
       event.target.value = '' // Clear file input
     }
   }
+
+  // Enhanced Visual Editor Methods
+  const insertImage = useCallback((imageUrl, position = { x: 100, y: 100 }) => {
+    console.log('insertImage called with URL:', imageUrl)
+    const newElement = {
+      id: Date.now(),
+      type: 'image',
+      src: imageUrl,
+      x: position.x,
+      y: position.y,
+      width: 200,
+      height: 150,
+      rotation: 0,
+      opacity: 1,
+      zIndex: visualElements.length
+    }
+    console.log('Creating new element:', newElement)
+    setVisualElements([...visualElements, newElement])
+    console.log('Visual elements after insert:', [...visualElements, newElement])
+    toast.success('Image inserted successfully!')
+  }, [visualElements])
+
+  const insertShape = useCallback((shapeType, position = { x: 100, y: 100 }) => {
+    const newElement = {
+      id: Date.now(),
+      type: 'shape',
+      shape: shapeType,
+      x: position.x,
+      y: position.y,
+      width: 150,
+      height: 100,
+      color: shapeColor,
+      strokeWidth: strokeWidth,
+      opacity: fillOpacity,
+      rotation: 0,
+      zIndex: visualElements.length
+    }
+    setVisualElements([...visualElements, newElement])
+    setVisualEditMode('select')
+    toast.success(`${shapeType} shape added!`)
+  }, [visualElements, shapeColor, strokeWidth, fillOpacity])
+
+  const insertLink = useCallback((text, url, style = 'button') => {
+    const newElement = {
+      id: Date.now(),
+      type: 'link',
+      text: text,
+      url: url,
+      style: style,
+      x: 100,
+      y: 100,
+      width: 150,
+      height: 40,
+      color: '#007bff',
+      backgroundColor: style === 'button' ? '#007bff' : 'transparent',
+      textColor: style === 'button' ? '#ffffff' : '#007bff',
+      fontSize: 16,
+      zIndex: visualElements.length
+    }
+    setVisualElements([...visualElements, newElement])
+    setShowLinkEditor(false)
+    toast.success('Link inserted successfully!')
+  }, [visualElements])
+
+  const insertText = useCallback((text = 'Click to edit text', position = { x: 100, y: 100 }) => {
+    const newElement = {
+      id: Date.now(),
+      type: 'text',
+      text: text,
+      x: position.x,
+      y: position.y,
+      width: 200,
+      height: 40,
+      fontSize: 16,
+      fontWeight: 'normal',
+      fontStyle: 'normal',
+      textAlign: 'left',
+      textColor: '#000000',
+      backgroundColor: 'transparent',
+      rotation: 0,
+      opacity: 1,
+      zIndex: visualElements.length
+    }
+    setVisualElements([...visualElements, newElement])
+    toast.success('Text element added!')
+  }, [visualElements])
+
+  const updateElement = useCallback((elementId, updates) => {
+    setVisualElements(elements =>
+      elements.map(el => el.id === elementId ? { ...el, ...updates } : el)
+    )
+  }, [])
+
+  const deleteElement = useCallback((elementId) => {
+    setVisualElements(elements => elements.filter(el => el.id !== elementId))
+    setSelectedElement(null)
+    toast.success('Element deleted!')
+  }, [])
+
+  const moveElement = useCallback((elementId, direction) => {
+    setVisualElements(elements => {
+      const element = elements.find(el => el.id === elementId)
+      if (!element) return elements
+
+      const step = 10
+      const updates = {}
+
+      switch (direction) {
+        case 'up': updates.y = Math.max(0, element.y - step); break
+        case 'down': updates.y = element.y + step; break
+        case 'left': updates.x = Math.max(0, element.x - step); break
+        case 'right': updates.x = element.x + step; break
+      }
+
+      return elements.map(el => el.id === elementId ? { ...el, ...updates } : el)
+    })
+  }, [])
+
+  const resizeElement = useCallback((elementId, newWidth, newHeight, newX, newY) => {
+    setVisualElements(elements => {
+      return elements.map(el => {
+        if (el.id === elementId) {
+          const updates = {
+            width: Math.max(20, newWidth), // Minimum 20px width
+            height: Math.max(20, newHeight), // Minimum 20px height
+          }
+
+          // Update position if provided (for corner resize handles)
+          if (newX !== undefined) updates.x = Math.max(0, newX)
+          if (newY !== undefined) updates.y = Math.max(0, newY)
+
+          return { ...el, ...updates }
+        }
+        return el
+      })
+    })
+  }, [])
+
+  // Handle mouse events for resizing
+  useEffect(() => {
+    if (!resizeMode || !selectedElement || !resizeHandle) return
+
+    const handleMouseMove = (e) => {
+      const element = selectedElement
+      const rect = canvasRef.current?.getBoundingClientRect()
+      if (!rect) return
+
+      const mouseX = e.clientX - rect.left - element.x
+      const mouseY = e.clientY - rect.top - element.y
+
+      let newWidth = element.width
+      let newHeight = element.height
+      let newX = element.x
+      let newY = element.y
+
+      switch (resizeHandle) {
+        case 'se': // Southeast (bottom-right)
+          newWidth = mouseX
+          newHeight = mouseY
+          break
+        case 'sw': // Southwest (bottom-left)
+          newWidth = element.width - mouseX
+          newHeight = mouseY
+          newX = element.x + mouseX
+          break
+        case 'ne': // Northeast (top-right)
+          newWidth = mouseX
+          newHeight = element.height - mouseY
+          newY = element.y + mouseY
+          break
+        case 'nw': // Northwest (top-left)
+          newWidth = element.width - mouseX
+          newHeight = element.height - mouseY
+          newX = element.x + mouseX
+          newY = element.y + mouseY
+          break
+        case 'e': // East (right)
+          newWidth = mouseX
+          break
+        case 'w': // West (left)
+          newWidth = element.width - mouseX
+          newX = element.x + mouseX
+          break
+        case 's': // South (bottom)
+          newHeight = mouseY
+          break
+        case 'n': // North (top)
+          newHeight = element.height - mouseY
+          newY = element.y + mouseY
+          break
+      }
+
+      resizeElement(element.id, newWidth, newHeight, newX, newY)
+    }
+
+    const handleMouseUp = () => {
+      setResizeMode(false)
+      setResizeHandle(null)
+      toast.success('Element resized!')
+    }
+
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [resizeMode, selectedElement, resizeHandle, resizeElement])
+
+  const changeLayer = useCallback((elementId, direction) => {
+    setVisualElements(elements => {
+      const elementIndex = elements.findIndex(el => el.id === elementId)
+      if (elementIndex === -1) return elements
+
+      let newZIndex
+      if (direction === 'front') {
+        newZIndex = Math.max(...elements.map(el => el.zIndex)) + 1
+      } else {
+        newZIndex = Math.min(...elements.map(el => el.zIndex)) - 1
+      }
+
+      return elements.map(el =>
+        el.id === elementId ? { ...el, zIndex: newZIndex } : el
+      )
+    })
+    toast.success(`Moved to ${direction}!`)
+  }, [])
+
+  const handleImageUpload = useCallback(async (event) => {
+    const file = event.target.files[0]
+    if (!file) return
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size should be less than 5MB')
+      return
+    }
+
+    // Show loading state
+    toast.info('Uploading image...')
+
+    try {
+      const formData = new FormData()
+      formData.append('image', file)
+
+      const response = await fetch(`${API_BASE}/api/admin/newsletter/upload-image`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        },
+        body: formData
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const result = await response.json()
+      console.log('Upload response:', result) // Debug log
+
+      if (result.success) {
+        const serverImageUrl = result.full_url || result.url || `${API_BASE}/uploads/newsletter/${result.filename}`
+
+        if (!serverImageUrl) {
+          console.error('No valid image URL in response:', result)
+          toast.error('Invalid server response - no image URL')
+          return
+        }
+
+        setUploadedImages([...uploadedImages, {
+          id: Date.now(),
+          url: serverImageUrl,
+          name: file.name,
+          serverUrl: serverImageUrl
+        }])
+        setCurrentImageUrl(serverImageUrl)
+        console.log('Inserting image with URL:', serverImageUrl)
+        insertImage(serverImageUrl)
+        toast.success('Image uploaded successfully!')
+      } else {
+        console.error('Upload failed:', result)
+        toast.error(result.error || 'Upload failed')
+      }
+    } catch (error) {
+      console.error('Image upload error:', error)
+      toast.error('Failed to upload image')
+    }
+  }, [uploadedImages, insertImage])
+
+  const generateVisualHTML = useCallback(() => {
+    const sortedElements = [...visualElements].sort((a, b) => a.zIndex - b.zIndex)
+
+    let html = '<div style="position: relative; width: 100%; min-height: 400px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; overflow: hidden;">'
+
+    sortedElements.forEach(element => {
+      const baseStyle = `position: absolute; left: ${element.x}px; top: ${element.y}px; z-index: ${element.zIndex}; opacity: ${element.opacity || 1}; transform: rotate(${element.rotation || 0}deg);`
+
+      switch (element.type) {
+        case 'image':
+          html += `<img src="${element.src}" style="${baseStyle} width: ${element.width}px; height: ${element.height}px; object-fit: cover; border-radius: 4px;" alt="Newsletter Image" />`
+          break
+        case 'shape':
+          const shapeStyle = `${baseStyle} width: ${element.width}px; height: ${element.height}px; background-color: ${element.color}; border: ${element.strokeWidth}px solid ${element.color}; opacity: ${element.opacity};`
+          if (element.shape === 'rectangle') {
+            html += `<div style="${shapeStyle}"></div>`
+          } else if (element.shape === 'circle') {
+            html += `<div style="${shapeStyle} border-radius: 50%;"></div>`
+          } else if (element.shape === 'triangle') {
+            html += `<div style="${baseStyle} width: 0; height: 0; border-left: ${element.width/2}px solid transparent; border-right: ${element.width/2}px solid transparent; border-bottom: ${element.height}px solid ${element.color}; opacity: ${element.opacity};"></div>`
+          }
+          break
+        case 'link':
+          const linkStyle = element.style === 'button'
+            ? `${baseStyle} display: inline-block; padding: 8px 16px; background-color: ${element.backgroundColor}; color: ${element.textColor}; text-decoration: none; border-radius: 4px; font-size: ${element.fontSize}px; border: none;`
+            : `${baseStyle} color: ${element.textColor}; text-decoration: underline; font-size: ${element.fontSize}px;`
+          html += `<a href="${element.url}" style="${linkStyle}" target="_blank">${element.text}</a>`
+          break
+        case 'text':
+          const textStyle = `${baseStyle} width: ${element.width}px; height: ${element.height}px; font-size: ${element.fontSize}px; font-weight: ${element.fontWeight}; font-style: ${element.fontStyle}; text-align: ${element.textAlign}; color: ${element.textColor}; background-color: ${element.backgroundColor}; padding: 4px 8px; display: flex; align-items: center;`
+          html += `<div style="${textStyle}">${element.text}</div>`
+          break
+      }
+    })
+
+    html += '</div>'
+    return html
+  }, [visualElements])
+
+  const generatePreviewContent = useCallback(() => {
+    const existingContent = currentCampaign.content || ''
+
+    // Return just the existing content - visual elements are handled separately
+    return existingContent || '<div style="text-align: center; color: #666; padding: 40px;"><h2>Start creating your newsletter</h2><p>Add content in the editor or use the Visual Editor to create stunning designs!</p></div>'
+  }, [currentCampaign.content])
+
+  const syncVisualToContent = useCallback(() => {
+    if (visualElements.length === 0) {
+      toast.error('No visual elements to sync! Add some images, shapes, or text first.')
+      return
+    }
+
+    const visualHTML = generateVisualHTML()
+    const existingContent = currentCampaign.content || ''
+
+    // Replace or append visual content
+    const updatedContent = existingContent.includes('<!-- VISUAL_EDITOR_CONTENT -->')
+      ? existingContent.replace(/<!-- VISUAL_EDITOR_CONTENT -->[\s\S]*?<!-- \/VISUAL_EDITOR_CONTENT -->/, `<!-- VISUAL_EDITOR_CONTENT -->\n${visualHTML}\n<!-- /VISUAL_EDITOR_CONTENT -->`)
+      : existingContent + `\n\n<!-- VISUAL_EDITOR_CONTENT -->\n${visualHTML}\n<!-- /VISUAL_EDITOR_CONTENT -->`
+
+    setCurrentCampaign({ ...currentCampaign, content: updatedContent })
+
+    toast.success(`🎉 ${visualElements.length} visual elements synced to newsletter! The preview now shows your visual design.`)
+  }, [generateVisualHTML, currentCampaign, visualElements])
 
   if (previewMode) {
     return (
@@ -436,22 +855,56 @@ const NewsletterEditor = () => {
 
                 {/* Email Content */}
                 <div className="p-6 bg-white text-gray-900 min-h-96">
+                  {/* Visual Elements Section */}
+                  {visualElements.length > 0 && (
+                    <div className="mb-6">
+                      <div className="text-sm text-gray-600 mb-3 font-semibold border-b pb-2">
+                        ✨ Visual Elements ({visualElements.length})
+                      </div>
+                      <div
+                        dangerouslySetInnerHTML={{
+                          __html: generateVisualHTML()
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  {/* Regular Content */}
                   <div
                     className="prose max-w-none"
                     style={{ color: '#1f2937' }}
                     dangerouslySetInnerHTML={{
-                      __html: sanitizeHTML(currentCampaign.content || '<h1>Welcome to our Professional Newsletter</h1><p>Your content will appear here...</p>')
+                      __html: sanitizeHTML(generatePreviewContent() || '<h1>Welcome to our Professional Newsletter</h1><p>Your content will appear here...</p>')
                     }}
                   />
                 </div>
 
                 {/* Email Footer */}
-                <div className="bg-gray-100 border-t p-4 text-center text-sm text-gray-600">
-                  <p>Professional Newsletter • Sabiteck Limited • Bo, Sierra Leone</p>
-                  <p className="mt-2">
-                    <a href="#" className="text-blue-600 hover:underline">Unsubscribe</a> |
-                    <a href="#" className="text-blue-600 hover:underline ml-2">Manage Preferences</a>
-                  </p>
+                <div className="mt-10 p-8 bg-gray-50 border-t-4 border-blue-500 text-center">
+                  <div className="mb-5">
+                    <h3 className="text-gray-800 text-lg font-semibold mb-2">Sabiteck Limited</h3>
+                    <p className="text-gray-600 text-sm">Professional Newsletter • Bo, Sierra Leone</p>
+                  </div>
+
+                  <div className="inline-block bg-white p-4 rounded-lg shadow-sm mb-5">
+                    <p className="text-gray-700 text-sm">
+                      <strong>📧 Stay Connected:</strong><br />
+                      Visit our website: <a href="https://sabiteck.com" className="text-blue-600 hover:underline no-underline">sabiteck.com</a><br />
+                      Contact us: info@sabiteck.com
+                    </p>
+                  </div>
+
+                  <div className="border-t border-gray-300 pt-5">
+                    <p className="text-gray-500 text-xs mb-3">
+                      <a href="#" className="text-blue-600 hover:underline mx-2">Unsubscribe</a> |
+                      <a href="#" className="text-blue-600 hover:underline mx-2">Manage Preferences</a> |
+                      <a href="#" className="text-blue-600 hover:underline mx-2">View Online</a>
+                    </p>
+                    <p className="text-gray-400 text-xs">
+                      © {new Date().getFullYear()} Sabiteck Limited. All rights reserved.<br />
+                      You received this email because you subscribed to our newsletter.
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -622,25 +1075,46 @@ const NewsletterEditor = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-200 mb-2">Send Schedule</label>
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => setScheduledSend(false)}
-                          className={`px-4 py-3 rounded-xl font-semibold transition-all ${!scheduledSend
-                            ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white'
-                            : 'bg-black/50 border border-white/20 text-gray-300'
-                          }`}
-                        >
-                          Send Now
-                        </button>
-                        <button
-                          onClick={() => setScheduledSend(true)}
-                          className={`px-4 py-3 rounded-xl font-semibold transition-all ${scheduledSend
-                            ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white'
-                            : 'bg-black/50 border border-white/20 text-gray-300'
-                          }`}
-                        >
-                          Schedule
-                        </button>
+                      <div className="space-y-3">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => setScheduledSend(false)}
+                            className={`px-4 py-3 rounded-xl font-semibold transition-all ${!scheduledSend
+                              ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white'
+                              : 'bg-black/50 border border-white/20 text-gray-300'
+                            }`}
+                          >
+                            Send Now
+                          </button>
+                          <button
+                            onClick={() => setScheduledSend(true)}
+                            className={`px-4 py-3 rounded-xl font-semibold transition-all ${scheduledSend
+                              ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white'
+                              : 'bg-black/50 border border-white/20 text-gray-300'
+                            }`}
+                          >
+                            Schedule
+                          </button>
+                        </div>
+
+                        {/* DateTime Picker when scheduling is enabled */}
+                        {scheduledSend && (
+                          <div className="space-y-2">
+                            <label className="block text-xs font-semibold text-gray-300">Schedule Date & Time</label>
+                            <input
+                              type="datetime-local"
+                              value={scheduledDateTime}
+                              onChange={(e) => setScheduledDateTime(e.target.value)}
+                              min={new Date().toISOString().slice(0, 16)}
+                              className="w-full px-4 py-3 bg-black/50 border border-white/20 text-white rounded-xl focus:border-blue-400 transition-all"
+                            />
+                            {scheduledDateTime && (
+                              <div className="text-xs text-blue-300 bg-blue-500/10 px-3 py-2 rounded-lg">
+                                📅 Scheduled for: {new Date(scheduledDateTime).toLocaleString()}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -660,12 +1134,22 @@ const NewsletterEditor = () => {
                           }`}
                         >
                           <Type className="w-4 h-4 mr-2 inline" />
-                          Visual
+                          Rich Text
+                        </button>
+                        <button
+                          onClick={() => setEditorMode('enhanced')}
+                          className={`px-4 py-2 rounded-lg font-semibold transition-all ${editorMode === 'enhanced'
+                            ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white'
+                            : 'text-gray-300 hover:text-white'
+                          }`}
+                        >
+                          <Paintbrush className="w-4 h-4 mr-2 inline" />
+                          Visual Editor
                         </button>
                         <button
                           onClick={() => setEditorMode('code')}
                           className={`px-4 py-2 rounded-lg font-semibold transition-all ${editorMode === 'code'
-                            ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                            ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white'
                             : 'text-gray-300 hover:text-white'
                           }`}
                         >
@@ -788,8 +1272,8 @@ const NewsletterEditor = () => {
                             <div className="flex items-center space-x-1">
                               <span className="text-xs text-gray-400 px-2">Elements</span>
                               {[
-                                { icon: Image, label: 'Insert Image', color: 'from-pink-500/20 to-rose-500/20', action: () => insertPlaceholder('IMAGE_URL') },
-                                { icon: Link, label: 'Insert Link', color: 'from-blue-500/20 to-cyan-500/20', action: () => insertPlaceholder('LINK_URL') },
+                                { icon: Image, label: 'Insert Image', color: 'from-pink-500/20 to-rose-500/20', action: editorMode === 'enhanced' ? () => setShowImageUploader(true) : () => insertPlaceholder('IMAGE_URL') },
+                                { icon: Link, label: 'Insert Link', color: 'from-blue-500/20 to-cyan-500/20', action: editorMode === 'enhanced' ? () => setShowLinkEditor(true) : () => insertPlaceholder('LINK_URL') },
                                 { icon: List, label: 'Insert List', color: 'from-orange-500/20 to-red-500/20' },
                                 { icon: Hash, label: 'Insert Variable', color: 'from-purple-500/20 to-violet-500/20', action: () => insertPlaceholder('SUBSCRIBER_NAME') }
                               ].map((tool, index) => (
@@ -814,11 +1298,12 @@ const NewsletterEditor = () => {
                             <div className="flex items-center space-x-1">
                               <span className="text-xs text-gray-400 px-2">Pro</span>
                               {[
-                                { icon: Palette, label: 'Color Schemes', color: 'from-indigo-500/20 to-purple-500/20' },
-                                { icon: Settings, label: 'Advanced Settings', color: 'from-gray-500/20 to-slate-500/20' }
+                                { icon: Palette, label: 'Color Schemes', color: 'from-indigo-500/20 to-purple-500/20', action: () => setShowColorSchemes(true) },
+                                { icon: Settings, label: 'Advanced Settings', color: 'from-gray-500/20 to-slate-500/20', action: () => setShowAdvancedSettings(true) }
                               ].map((tool, index) => (
                                 <div key={index} className="relative group">
                                   <button
+                                    onClick={tool.action}
                                     className={`p-2.5 text-gray-300 hover:text-white hover:bg-gradient-to-r hover:${tool.color} rounded-lg transition-all transform hover:scale-105`}
                                     title={tool.label}
                                   >
@@ -863,6 +1348,307 @@ const NewsletterEditor = () => {
                     </div>
                   </div>
 
+                  {/* Enhanced Visual Editing Toolbar */}
+                  {editorMode === 'enhanced' && (
+                    <div className="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 backdrop-blur-lg rounded-2xl border border-cyan-400/30 p-6 shadow-2xl">
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="p-2 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg">
+                              <Paintbrush className="w-4 h-4 text-white" />
+                            </div>
+                            <div>
+                              <h4 className="text-white font-bold">Visual Editing Suite</h4>
+                              <p className="text-gray-300 text-xs">Drag, drop, and design with precision</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <span className="px-3 py-1 bg-gradient-to-r from-cyan-400 to-blue-400 text-black rounded-full text-xs font-black">
+                              ENHANCED
+                            </span>
+                            <button
+                              onClick={syncVisualToContent}
+                              className="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg text-xs font-semibold hover:from-green-600 hover:to-emerald-600 transition-all"
+                            >
+                              Sync to Newsletter
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between flex-wrap gap-4">
+                          {/* Visual Edit Mode */}
+                          <div className="bg-black/50 rounded-xl border border-cyan-400/30 p-2">
+                            <div className="flex items-center space-x-1">
+                              <span className="text-xs text-cyan-300 px-2">Mode</span>
+                              {[
+                                { id: 'select', icon: MousePointer, label: 'Select' },
+                                { id: 'draw', icon: PenTool, label: 'Draw Shapes' },
+                                { id: 'image', icon: Image, label: 'Add Images' },
+                                { id: 'text', icon: Type, label: 'Add Text' }
+                              ].map((mode) => (
+                                <button
+                                  key={mode.id}
+                                  onClick={() => setVisualEditMode(mode.id)}
+                                  className={`p-2 rounded-lg transition-all ${visualEditMode === mode.id
+                                    ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white'
+                                    : 'text-gray-300 hover:text-white hover:bg-white/10'
+                                  }`}
+                                  title={mode.label}
+                                >
+                                  <mode.icon className="w-4 h-4" />
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Shape Tools */}
+                          {visualEditMode === 'draw' && (
+                            <div className="bg-black/50 rounded-xl border border-cyan-400/30 p-2">
+                              <div className="flex items-center space-x-1">
+                                <span className="text-xs text-cyan-300 px-2">Shapes</span>
+                                {[
+                                  { shape: 'rectangle', icon: Square, label: 'Rectangle' },
+                                  { shape: 'circle', icon: Circle, label: 'Circle' },
+                                  { shape: 'triangle', icon: Triangle, label: 'Triangle' }
+                                ].map((shape) => (
+                                  <button
+                                    key={shape.shape}
+                                    onClick={() => insertShape(shape.shape)}
+                                    className="p-2 text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-cyan-500/20 hover:to-blue-500/20 rounded-lg transition-all"
+                                    title={shape.label}
+                                  >
+                                    <shape.icon className="w-4 h-4" />
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Text Formatting Controls */}
+                          {selectedElement && selectedElement.type === 'text' && (
+                            <div className="bg-black/50 rounded-xl border border-green-400/30 p-2">
+                              <div className="flex items-center space-x-1">
+                                <span className="text-xs text-green-300 px-2">Text</span>
+                                <button
+                                  onClick={() => {
+                                    setEditingTextId(selectedElement.id)
+                                    setEditingText(selectedElement.text)
+                                  }}
+                                  className="p-2 text-gray-300 hover:text-white hover:bg-green-500/20 rounded-lg transition-all"
+                                  title="Edit Text"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => updateElement(selectedElement.id, {
+                                    fontWeight: selectedElement.fontWeight === 'bold' ? 'normal' : 'bold'
+                                  })}
+                                  className={`p-2 rounded-lg transition-all ${
+                                    selectedElement.fontWeight === 'bold'
+                                      ? 'bg-green-500 text-white'
+                                      : 'text-gray-300 hover:text-white hover:bg-green-500/20'
+                                  }`}
+                                  title="Bold"
+                                >
+                                  <Bold className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => updateElement(selectedElement.id, {
+                                    fontStyle: selectedElement.fontStyle === 'italic' ? 'normal' : 'italic'
+                                  })}
+                                  className={`p-2 rounded-lg transition-all ${
+                                    selectedElement.fontStyle === 'italic'
+                                      ? 'bg-green-500 text-white'
+                                      : 'text-gray-300 hover:text-white hover:bg-green-500/20'
+                                  }`}
+                                  title="Italic"
+                                >
+                                  <Italic className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => updateElement(selectedElement.id, { textAlign: 'left' })}
+                                  className={`p-2 rounded-lg transition-all ${
+                                    selectedElement.textAlign === 'left'
+                                      ? 'bg-green-500 text-white'
+                                      : 'text-gray-300 hover:text-white hover:bg-green-500/20'
+                                  }`}
+                                  title="Align Left"
+                                >
+                                  <AlignLeft className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => updateElement(selectedElement.id, { textAlign: 'center' })}
+                                  className={`p-2 rounded-lg transition-all ${
+                                    selectedElement.textAlign === 'center'
+                                      ? 'bg-green-500 text-white'
+                                      : 'text-gray-300 hover:text-white hover:bg-green-500/20'
+                                  }`}
+                                  title="Align Center"
+                                >
+                                  <AlignCenter className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => updateElement(selectedElement.id, { textAlign: 'right' })}
+                                  className={`p-2 rounded-lg transition-all ${
+                                    selectedElement.textAlign === 'right'
+                                      ? 'bg-green-500 text-white'
+                                      : 'text-gray-300 hover:text-white hover:bg-green-500/20'
+                                  }`}
+                                  title="Align Right"
+                                >
+                                  <AlignRight className="w-4 h-4" />
+                                </button>
+                                <input
+                                  type="color"
+                                  value={selectedElement.textColor}
+                                  onChange={(e) => updateElement(selectedElement.id, { textColor: e.target.value })}
+                                  className="w-8 h-8 rounded border border-white/20 cursor-pointer"
+                                  title="Text Color"
+                                />
+                                <select
+                                  value={selectedElement.fontSize}
+                                  onChange={(e) => updateElement(selectedElement.id, { fontSize: parseInt(e.target.value) })}
+                                  className="px-2 py-1 bg-black/50 border border-white/20 text-white text-xs rounded cursor-pointer"
+                                  title="Font Size"
+                                >
+                                  <option value="12">12px</option>
+                                  <option value="14">14px</option>
+                                  <option value="16">16px</option>
+                                  <option value="18">18px</option>
+                                  <option value="20">20px</option>
+                                  <option value="24">24px</option>
+                                  <option value="28">28px</option>
+                                  <option value="32">32px</option>
+                                  <option value="36">36px</option>
+                                  <option value="48">48px</option>
+                                </select>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Layer Controls */}
+                          {selectedElement && (
+                            <div className="bg-black/50 rounded-xl border border-cyan-400/30 p-2">
+                              <div className="flex items-center space-x-1">
+                                <span className="text-xs text-cyan-300 px-2">Layer</span>
+                                <button
+                                  onClick={() => changeLayer(selectedElement.id, 'front')}
+                                  className="p-2 text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-green-500/20 hover:to-emerald-500/20 rounded-lg transition-all"
+                                  title="Bring to Front"
+                                >
+                                  <ChevronUp className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => changeLayer(selectedElement.id, 'back')}
+                                  className="p-2 text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-orange-500/20 hover:to-red-500/20 rounded-lg transition-all"
+                                  title="Send to Back"
+                                >
+                                  <ChevronDown className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => deleteElement(selectedElement.id)}
+                                  className="p-2 text-gray-300 hover:text-red-400 hover:bg-red-500/20 rounded-lg transition-all"
+                                  title="Delete Element"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Position Controls */}
+                          {selectedElement && (
+                            <div className="bg-black/50 rounded-xl border border-cyan-400/30 p-2">
+                              <div className="flex items-center space-x-1">
+                                <span className="text-xs text-cyan-300 px-2">Move</span>
+                                <div className="grid grid-cols-3 gap-1">
+                                  <div></div>
+                                  <button
+                                    onClick={() => moveElement(selectedElement.id, 'up')}
+                                    className="p-1 text-gray-300 hover:text-white hover:bg-white/10 rounded transition-all"
+                                    title="Move Up"
+                                  >
+                                    <ChevronUp className="w-3 h-3" />
+                                  </button>
+                                  <div></div>
+                                  <button
+                                    onClick={() => moveElement(selectedElement.id, 'left')}
+                                    className="p-1 text-gray-300 hover:text-white hover:bg-white/10 rounded transition-all"
+                                    title="Move Left"
+                                  >
+                                    <ChevronLeft className="w-3 h-3" />
+                                  </button>
+                                  <div className="w-5 h-5 bg-cyan-500/30 rounded"></div>
+                                  <button
+                                    onClick={() => moveElement(selectedElement.id, 'right')}
+                                    className="p-1 text-gray-300 hover:text-white hover:bg-white/10 rounded transition-all"
+                                    title="Move Right"
+                                  >
+                                    <ChevronRight className="w-3 h-3" />
+                                  </button>
+                                  <div></div>
+                                  <button
+                                    onClick={() => moveElement(selectedElement.id, 'down')}
+                                    className="p-1 text-gray-300 hover:text-white hover:bg-white/10 rounded transition-all"
+                                    title="Move Down"
+                                  >
+                                    <ChevronDown className="w-3 h-3" />
+                                  </button>
+                                  <div></div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Quick Actions */}
+                          <div className="bg-black/50 rounded-xl border border-cyan-400/30 p-2">
+                            <div className="flex items-center space-x-1">
+                              <span className="text-xs text-cyan-300 px-2">Quick</span>
+                              <button
+                                onClick={() => setShowImageUploader(true)}
+                                className="p-2 text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-pink-500/20 hover:to-rose-500/20 rounded-lg transition-all"
+                                title="Add Image"
+                              >
+                                <ImagePlus className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => setShowLinkEditor(true)}
+                                className="p-2 text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-blue-500/20 hover:to-indigo-500/20 rounded-lg transition-all"
+                                title="Add Link"
+                              >
+                                <Link className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => insertText('Your text here')}
+                                className="p-2 text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-green-500/20 hover:to-emerald-500/20 rounded-lg transition-all"
+                                title="Add Text"
+                              >
+                                <Type className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => setVisualElements([])}
+                                className="p-2 text-gray-300 hover:text-red-400 hover:bg-red-500/20 rounded-lg transition-all"
+                                title="Clear All"
+                              >
+                                <Eraser className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Element Count */}
+                        <div className="flex items-center justify-between text-xs text-gray-400">
+                          <span>{visualElements.length} visual elements</span>
+                          {selectedElement && (
+                            <span className="text-cyan-300">
+                              Selected: {selectedElement.type} #{selectedElement.id}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Elite Content Editor */}
                   <div className="bg-black/40 backdrop-blur-lg rounded-2xl border border-white/10 overflow-hidden shadow-2xl">
                     {/* Editor Header */}
@@ -890,34 +1676,394 @@ const NewsletterEditor = () => {
                     </div>
 
                     {/* Split View Container */}
-                    <div className="flex h-96">
+                    <div className="flex" style={{height: 'calc(100vh - 350px)', minHeight: '600px'}}>
                       {/* Content Input Area */}
                       <div className="flex-1 relative">
-                        {/* Editor Background Pattern */}
-                        <div className="absolute inset-0 opacity-5">
-                          <div className="w-full h-full bg-repeat bg-[length:20px_20px]"
-                               style={{
-                                 backgroundImage: `radial-gradient(circle at 10px 10px, white 1px, transparent 1px)`
-                               }}>
-                          </div>
-                        </div>
-
-                        {/* Line Numbers */}
-                        <div className="absolute left-0 top-0 bottom-0 w-16 bg-black/30 border-r border-white/10 flex flex-col text-gray-500 text-xs font-mono">
-                          {Array.from({ length: 20 }, (_, i) => (
-                            <div key={i + 1} className="h-6 flex items-center justify-center">
-                              {i + 1}
+                        {editorMode === 'enhanced' ? (
+                          /* Enhanced Visual Canvas */
+                          <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 relative overflow-auto">
+                            {/* Canvas Grid Background */}
+                            <div className="absolute inset-0 opacity-10">
+                              <div className="w-full h-full bg-repeat bg-[length:20px_20px]"
+                                   style={{
+                                     backgroundImage: `radial-gradient(circle at 10px 10px, cyan 1px, transparent 1px)`
+                                   }}>
+                              </div>
                             </div>
-                          ))}
-                        </div>
 
-                        {/* Main Editor */}
-                        <textarea
-                          value={currentCampaign.content}
-                          onChange={(e) => setCurrentCampaign({...currentCampaign, content: e.target.value})}
-                          className="w-full h-full pl-20 pr-6 py-6 bg-transparent text-white placeholder-gray-400 resize-none focus:outline-none font-mono leading-6 relative z-10"
-                          placeholder={editorMode === 'visual'
-                            ? `✨ Start crafting your professional newsletter...
+                            {/* Visual Elements Canvas */}
+                            <div className="relative p-4" style={{width: '1200px', height: '800px', minWidth: '100%'}} ref={canvasRef}>
+                              {/* Canvas Info */}
+                              <div className="absolute top-2 left-2 text-xs text-cyan-300 bg-black/50 px-2 py-1 rounded">
+                                Canvas: {canvasSize.width} × {canvasSize.height}
+                              </div>
+
+                              {/* Render Visual Elements */}
+                              {visualElements.map((element) => (
+                                <div
+                                  key={element.id}
+                                  className={`absolute cursor-pointer transition-all hover:ring-2 hover:ring-cyan-400 ${
+                                    selectedElement?.id === element.id ? 'ring-2 ring-cyan-400' : ''
+                                  }`}
+                                  style={{
+                                    left: element.x,
+                                    top: element.y,
+                                    width: element.width,
+                                    height: element.height,
+                                    zIndex: element.zIndex,
+                                    opacity: element.opacity || 1,
+                                    transform: `rotate(${element.rotation || 0}deg)`
+                                  }}
+                                  onClick={() => setSelectedElement(element)}
+                                >
+                                  {element.type === 'image' && (
+                                    <img
+                                      src={element.src}
+                                      alt="Newsletter Element"
+                                      className="w-full h-full object-cover rounded border-2 border-transparent hover:border-cyan-400"
+                                      draggable={false}
+                                      onLoad={() => console.log('Image loaded successfully:', element.src)}
+                                      onError={(e) => {
+                                        console.error('Image failed to load:', element.src)
+                                        e.target.style.backgroundColor = '#ef4444'
+                                        e.target.style.color = 'white'
+                                        e.target.style.display = 'flex'
+                                        e.target.style.alignItems = 'center'
+                                        e.target.style.justifyContent = 'center'
+                                        e.target.innerHTML = '❌ Image failed to load'
+                                      }}
+                                    />
+                                  )}
+                                  {element.type === 'shape' && (
+                                    <div
+                                      className="w-full h-full border-2 border-transparent hover:border-cyan-400"
+                                      style={{
+                                        backgroundColor: element.color,
+                                        borderRadius: element.shape === 'circle' ? '50%' : element.shape === 'triangle' ? '0' : '4px',
+                                        opacity: element.opacity
+                                      }}
+                                    />
+                                  )}
+                                  {element.type === 'link' && (
+                                    <div
+                                      className={`w-full h-full flex items-center justify-center text-sm font-semibold rounded border-2 border-transparent hover:border-cyan-400 ${
+                                        element.style === 'button' ? 'px-4 py-2' : ''
+                                      }`}
+                                      style={{
+                                        backgroundColor: element.backgroundColor,
+                                        color: element.textColor,
+                                        fontSize: element.fontSize
+                                      }}
+                                    >
+                                      {element.text}
+                                    </div>
+                                  )}
+                                  {element.type === 'text' && (
+                                    <div
+                                      className={`w-full h-full flex items-center border-2 transition-all duration-300 group ${
+                                        editingTextId === element.id
+                                          ? 'border-cyan-400 bg-cyan-500/20 shadow-lg'
+                                          : selectedElement?.id === element.id
+                                          ? 'border-green-400 bg-green-500/10 shadow-md'
+                                          : 'border-transparent hover:border-cyan-300 hover:bg-cyan-500/5'
+                                      } cursor-text`}
+                                      style={{
+                                        fontSize: element.fontSize,
+                                        fontWeight: element.fontWeight,
+                                        fontStyle: element.fontStyle,
+                                        textAlign: element.textAlign,
+                                        color: element.textColor,
+                                        backgroundColor: editingTextId === element.id ? 'rgba(6, 182, 212, 0.1)' : element.backgroundColor,
+                                        padding: '8px 12px',
+                                        borderRadius: '6px',
+                                        minHeight: '32px'
+                                      }}
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        if (selectedElement?.id === element.id && editingTextId !== element.id) {
+                                          setEditingTextId(element.id)
+                                          setEditingText(element.text)
+                                        }
+                                      }}
+                                      onDoubleClick={(e) => {
+                                        e.stopPropagation()
+                                        setEditingTextId(element.id)
+                                        setEditingText(element.text)
+                                      }}
+                                    >
+                                      {/* Edit hint */}
+                                      {selectedElement?.id === element.id && editingTextId !== element.id && (
+                                        <div className="absolute -top-8 left-0 bg-cyan-500 text-white text-xs px-2 py-1 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                                          Click to edit text
+                                        </div>
+                                      )}
+
+                                      {editingTextId === element.id ? (
+                                        <>
+                                          {/* Floating Text Toolbar */}
+                                          <div className="absolute -top-12 left-0 bg-black/90 backdrop-blur-sm border border-cyan-400/30 rounded-lg p-2 flex items-center space-x-1 z-50 shadow-2xl">
+                                            <button
+                                              onClick={() => updateElement(element.id, {
+                                                fontWeight: element.fontWeight === 'bold' ? 'normal' : 'bold'
+                                              })}
+                                              className={`p-1 rounded transition-all ${
+                                                element.fontWeight === 'bold'
+                                                  ? 'bg-cyan-500 text-white'
+                                                  : 'text-gray-300 hover:text-white hover:bg-cyan-500/20'
+                                              }`}
+                                              title="Bold"
+                                            >
+                                              <Bold className="w-3 h-3" />
+                                            </button>
+                                            <button
+                                              onClick={() => updateElement(element.id, {
+                                                fontStyle: element.fontStyle === 'italic' ? 'normal' : 'italic'
+                                              })}
+                                              className={`p-1 rounded transition-all ${
+                                                element.fontStyle === 'italic'
+                                                  ? 'bg-cyan-500 text-white'
+                                                  : 'text-gray-300 hover:text-white hover:bg-cyan-500/20'
+                                              }`}
+                                              title="Italic"
+                                            >
+                                              <Italic className="w-3 h-3" />
+                                            </button>
+                                            <div className="w-px h-4 bg-gray-600 mx-1"></div>
+                                            {[
+                                              { align: 'left', icon: AlignLeft },
+                                              { align: 'center', icon: AlignCenter },
+                                              { align: 'right', icon: AlignRight }
+                                            ].map((alignment) => (
+                                              <button
+                                                key={alignment.align}
+                                                onClick={() => updateElement(element.id, {
+                                                  textAlign: alignment.align
+                                                })}
+                                                className={`p-1 rounded transition-all ${
+                                                  element.textAlign === alignment.align
+                                                    ? 'bg-cyan-500 text-white'
+                                                    : 'text-gray-300 hover:text-white hover:bg-cyan-500/20'
+                                                }`}
+                                                title={`Align ${alignment.align}`}
+                                              >
+                                                <alignment.icon className="w-3 h-3" />
+                                              </button>
+                                            ))}
+                                            <div className="w-px h-4 bg-gray-600 mx-1"></div>
+                                            <input
+                                              type="range"
+                                              min="12"
+                                              max="48"
+                                              value={element.fontSize || 16}
+                                              onChange={(e) => updateElement(element.id, {
+                                                fontSize: parseInt(e.target.value)
+                                              })}
+                                              className="w-16 h-1 bg-gray-700 rounded-full appearance-none cursor-pointer"
+                                              title="Font Size"
+                                            />
+                                            <span className="text-xs text-cyan-300 min-w-[24px]">{element.fontSize || 16}</span>
+                                          </div>
+
+                                          <textarea
+                                            value={editingText}
+                                            onChange={(e) => setEditingText(e.target.value)}
+                                            onBlur={(e) => {
+                                              // Add a small delay to allow toolbar interactions
+                                              setTimeout(() => {
+                                                updateElement(element.id, { text: editingText })
+                                                setEditingTextId(null)
+                                              }, 150)
+                                            }}
+                                            onKeyDown={(e) => {
+                                              if (e.key === 'Enter' && !e.shiftKey) {
+                                                e.preventDefault()
+                                                updateElement(element.id, { text: editingText })
+                                                setEditingTextId(null)
+                                              }
+                                              if (e.key === 'Escape') {
+                                                setEditingTextId(null)
+                                              }
+                                            }}
+                                            className="w-full bg-transparent border-none outline-none resize-none selection:bg-cyan-400/30"
+                                            style={{
+                                              fontSize: 'inherit',
+                                              fontWeight: 'inherit',
+                                              fontStyle: 'inherit',
+                                              textAlign: 'inherit',
+                                              color: element.textColor,
+                                              fontFamily: 'inherit',
+                                              lineHeight: 'inherit',
+                                              minHeight: '24px'
+                                            }}
+                                            autoFocus
+                                            rows={1}
+                                            onInput={(e) => {
+                                              e.target.style.height = 'auto'
+                                              e.target.style.height = e.target.scrollHeight + 'px'
+                                            }}
+                                            placeholder="Enter your text..."
+                                          />
+                                        </>
+                                      ) : (
+                                        <div className="w-full break-words">
+                                          {element.text || 'Click to edit text'}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+
+                                  {/* Enhanced Selection & Resize Handles */}
+                                  {selectedElement?.id === element.id && (
+                                    <>
+                                      {/* Corner Resize Handles */}
+                                      <div
+                                        className="absolute -top-1 -left-1 w-3 h-3 bg-cyan-400 rounded-full cursor-nw-resize hover:bg-cyan-300 transition-colors"
+                                        onMouseDown={(e) => {
+                                          e.stopPropagation()
+                                          setResizeMode(true)
+                                          setResizeHandle('nw')
+                                        }}
+                                      ></div>
+                                      <div
+                                        className="absolute -top-1 -right-1 w-3 h-3 bg-cyan-400 rounded-full cursor-ne-resize hover:bg-cyan-300 transition-colors"
+                                        onMouseDown={(e) => {
+                                          e.stopPropagation()
+                                          setResizeMode(true)
+                                          setResizeHandle('ne')
+                                        }}
+                                      ></div>
+                                      <div
+                                        className="absolute -bottom-1 -left-1 w-3 h-3 bg-cyan-400 rounded-full cursor-sw-resize hover:bg-cyan-300 transition-colors"
+                                        onMouseDown={(e) => {
+                                          e.stopPropagation()
+                                          setResizeMode(true)
+                                          setResizeHandle('sw')
+                                        }}
+                                      ></div>
+                                      <div
+                                        className="absolute -bottom-1 -right-1 w-3 h-3 bg-cyan-400 rounded-full cursor-se-resize hover:bg-cyan-300 transition-colors"
+                                        onMouseDown={(e) => {
+                                          e.stopPropagation()
+                                          setResizeMode(true)
+                                          setResizeHandle('se')
+                                        }}
+                                      ></div>
+
+                                      {/* Edge Resize Handles */}
+                                      <div
+                                        className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-3 h-2 bg-cyan-400 rounded cursor-n-resize hover:bg-cyan-300 transition-colors"
+                                        onMouseDown={(e) => {
+                                          e.stopPropagation()
+                                          setResizeMode(true)
+                                          setResizeHandle('n')
+                                        }}
+                                      ></div>
+                                      <div
+                                        className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-3 h-2 bg-cyan-400 rounded cursor-s-resize hover:bg-cyan-300 transition-colors"
+                                        onMouseDown={(e) => {
+                                          e.stopPropagation()
+                                          setResizeMode(true)
+                                          setResizeHandle('s')
+                                        }}
+                                      ></div>
+                                      <div
+                                        className="absolute -left-1 top-1/2 transform -translate-y-1/2 w-2 h-3 bg-cyan-400 rounded cursor-w-resize hover:bg-cyan-300 transition-colors"
+                                        onMouseDown={(e) => {
+                                          e.stopPropagation()
+                                          setResizeMode(true)
+                                          setResizeHandle('w')
+                                        }}
+                                      ></div>
+                                      <div
+                                        className="absolute -right-1 top-1/2 transform -translate-y-1/2 w-2 h-3 bg-cyan-400 rounded cursor-e-resize hover:bg-cyan-300 transition-colors"
+                                        onMouseDown={(e) => {
+                                          e.stopPropagation()
+                                          setResizeMode(true)
+                                          setResizeHandle('e')
+                                        }}
+                                      ></div>
+
+                                      {/* Element Info Display */}
+                                      <div className="absolute -top-8 left-0 bg-cyan-400 text-black text-xs px-2 py-1 rounded whitespace-nowrap">
+                                        {element.width}×{element.height}px
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
+                              ))}
+
+                              {/* Drop Zone Indicators */}
+                              {visualEditMode === 'image' && (
+                                <div className="absolute inset-4 border-2 border-dashed border-cyan-400/50 rounded-lg flex items-center justify-center bg-cyan-500/10">
+                                  <div className="text-center text-cyan-300">
+                                    <ImagePlus className="w-8 h-8 mx-auto mb-2" />
+                                    <p className="text-sm">Click to add image or use toolbar</p>
+                                  </div>
+                                </div>
+                              )}
+
+                              {visualEditMode === 'text' && (
+                                <div
+                                  className="absolute inset-4 border-2 border-dashed border-green-400/50 rounded-lg flex items-center justify-center bg-green-500/10 cursor-crosshair"
+                                  onClick={(e) => {
+                                    const rect = e.currentTarget.getBoundingClientRect()
+                                    const x = e.clientX - rect.left
+                                    const y = e.clientY - rect.top
+                                    insertText('Click to edit text', { x, y })
+                                  }}
+                                >
+                                  <div className="text-center text-green-300">
+                                    <Type className="w-8 h-8 mx-auto mb-2" />
+                                    <p className="text-sm">Click anywhere to add text</p>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Empty State */}
+                              {visualElements.length === 0 && visualEditMode === 'select' && (
+                                <div className="absolute inset-4 flex items-center justify-center">
+                                  <div className="text-center text-gray-400">
+                                    <Paintbrush className="w-12 h-12 mx-auto mb-4 text-cyan-400" />
+                                    <h3 className="text-lg font-semibold text-white mb-2">Visual Editor Canvas</h3>
+                                    <p className="text-sm mb-4">Use the toolbar above to add images, shapes, and links</p>
+                                    <div className="text-xs text-gray-500">
+                                      <p>• Switch to 'Draw Shapes' mode to add shapes</p>
+                                      <p>• Use 'Add Images' to insert pictures</p>
+                                      <p>• Click elements to select and move them</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          /* Regular Text Editor */
+                          <>
+                            {/* Editor Background Pattern */}
+                            <div className="absolute inset-0 opacity-5">
+                              <div className="w-full h-full bg-repeat bg-[length:20px_20px]"
+                                   style={{
+                                     backgroundImage: `radial-gradient(circle at 10px 10px, white 1px, transparent 1px)`
+                                   }}>
+                              </div>
+                            </div>
+
+                            {/* Line Numbers */}
+                            <div className="absolute left-0 top-0 bottom-0 w-16 bg-black/30 border-r border-white/10 flex flex-col text-gray-500 text-xs font-mono">
+                              {Array.from({ length: 20 }, (_, i) => (
+                                <div key={i + 1} className="h-6 flex items-center justify-center">
+                                  {i + 1}
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Main Editor */}
+                            <textarea
+                              value={currentCampaign.content}
+                              onChange={(e) => setCurrentCampaign({...currentCampaign, content: e.target.value})}
+                              className="w-full h-full pl-20 pr-6 py-6 bg-transparent text-white placeholder-gray-400 resize-none focus:outline-none font-mono leading-6 relative z-10"
+                              placeholder={editorMode === 'visual'
+                                ? `✨ Start crafting your professional newsletter...
 
 🎯 Pro Tips:
 • Use compelling headlines to grab attention
@@ -927,7 +2073,7 @@ const NewsletterEditor = () => {
 • Add value with exclusive content
 
 Type here to begin your elite newsletter...`
-                            : `<!-- Elite HTML Email Template -->
+                                : `<!-- Elite HTML Email Template -->
 <!DOCTYPE html>
 <html>
 <head>
@@ -940,20 +2086,22 @@ Type here to begin your elite newsletter...`
 
 </body>
 </html>`
-                          }
-                          style={{ fontSize: '14px', lineHeight: '24px' }}
-                        />
+                              }
+                              style={{ fontSize: '14px', lineHeight: '24px' }}
+                            />
 
-                        {/* Floating Action Button */}
-                        {aiAssistant && (
-                          <div className="absolute bottom-4 right-4">
-                            <button className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full shadow-2xl hover:scale-110 transition-transform group">
-                              <Sparkles className="w-5 h-5 text-white animate-pulse" />
-                              <div className="absolute bottom-full right-0 mb-2 px-3 py-1 bg-black/80 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                                AI Assist
+                            {/* Floating Action Button */}
+                            {aiAssistant && (
+                              <div className="absolute bottom-4 right-4">
+                                <button className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full shadow-2xl hover:scale-110 transition-transform group">
+                                  <Sparkles className="w-5 h-5 text-white animate-pulse" />
+                                  <div className="absolute bottom-full right-0 mb-2 px-3 py-1 bg-black/80 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                    AI Assist
+                                  </div>
+                                </button>
                               </div>
-                            </button>
-                          </div>
+                            )}
+                          </>
                         )}
                       </div>
 
@@ -977,18 +2125,62 @@ Type here to begin your elite newsletter...`
                             <div className="bg-white rounded-lg shadow-lg min-h-full">
                               {/* Email Preview Container */}
                               <div className="p-6">
-                                {currentCampaign.content ? (
-                                  <div
-                                    className="prose prose-sm max-w-none text-gray-800"
-                                    dangerouslySetInnerHTML={{
-                                      __html: sanitizeHTML(currentCampaign.content.replace(/\[SUBSCRIBER_NAME\]/g, 'John Doe'))
-                                    }}
-                                  />
+                                {currentCampaign.content || visualElements.length > 0 ? (
+                                  <div>
+                                    {/* Visual Elements Preview */}
+                                    {editorMode === 'enhanced' && visualElements.length > 0 && (
+                                      <div className="mb-6">
+                                        <div className="text-sm text-gray-600 mb-2 font-semibold">
+                                          ✨ Visual Elements ({visualElements.length})
+                                        </div>
+                                        <div
+                                          dangerouslySetInnerHTML={{
+                                            __html: generateVisualHTML()
+                                          }}
+                                        />
+                                      </div>
+                                    )}
+
+                                    {/* Regular Content Preview */}
+                                    <div
+                                      className="prose prose-sm max-w-none text-gray-800"
+                                      dangerouslySetInnerHTML={{
+                                        __html: sanitizeHTML(generatePreviewContent().replace(/\[SUBSCRIBER_NAME\]/g, 'John Doe'))
+                                      }}
+                                    />
+
+                                    {/* Newsletter Footer Preview */}
+                                    <div className="mt-8 p-6 bg-gray-50 border-t-4 border-blue-500 text-center text-sm">
+                                      <div className="mb-4">
+                                        <h4 className="text-gray-800 font-semibold mb-1">Sabiteck Limited</h4>
+                                        <p className="text-gray-600 text-xs">Professional Newsletter • Bo, Sierra Leone</p>
+                                      </div>
+
+                                      <div className="inline-block bg-white p-3 rounded shadow-sm mb-4">
+                                        <p className="text-gray-700 text-xs">
+                                          <strong>📧 Stay Connected:</strong><br />
+                                          Website: <a href="#" className="text-blue-600">sabiteck.com</a><br />
+                                          Email: info@sabiteck.com
+                                        </p>
+                                      </div>
+
+                                      <div className="border-t border-gray-300 pt-3">
+                                        <p className="text-gray-500 text-xs mb-2">
+                                          <a href="#" className="text-blue-600 mx-1">Unsubscribe</a> |
+                                          <a href="#" className="text-blue-600 mx-1">Preferences</a> |
+                                          <a href="#" className="text-blue-600 mx-1">Online</a>
+                                        </p>
+                                        <p className="text-gray-400" style={{fontSize: '10px'}}>
+                                          © 2025 Sabiteck Limited. All rights reserved.
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
                                 ) : (
                                   <div className="text-center py-12 text-gray-400">
                                     <Type className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                                    <p className="text-lg font-semibold">Start typing to see preview</p>
-                                    <p className="text-sm">Your content will appear here in real-time</p>
+                                    <p className="text-lg font-semibold">Start creating your newsletter</p>
+                                    <p className="text-sm">Add content in the editor or create visual elements!</p>
                                   </div>
                                 )}
                               </div>
@@ -2041,6 +3233,468 @@ Type here to begin your elite newsletter...`
                 <Button onClick={updateSubscriber} disabled={loading}>
                   {loading ? 'Updating...' : 'Update'}
                 </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Enhanced Image Upload Modal */}
+      {showImageUploader && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl border border-cyan-400/30 p-8 w-full max-w-2xl mx-4 shadow-2xl">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-gradient-to-r from-pink-500 to-rose-500 rounded-lg">
+                  <ImagePlus className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white">Add Images</h3>
+                  <p className="text-gray-300 text-sm">Upload or select images for your newsletter</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowImageUploader(false)}
+                className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              {/* Upload Section */}
+              <div className="border-2 border-dashed border-cyan-400/30 rounded-xl p-8 text-center bg-cyan-500/5">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  id="image-upload"
+                />
+                <label htmlFor="image-upload" className="cursor-pointer">
+                  <div className="space-y-4">
+                    <div className="p-4 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full w-16 h-16 mx-auto flex items-center justify-center">
+                      <Upload className="w-8 h-8 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-white font-semibold">Click to upload an image</p>
+                      <p className="text-gray-400 text-sm">PNG, JPG, GIF up to 5MB</p>
+                    </div>
+                  </div>
+                </label>
+              </div>
+
+              {/* Image Library */}
+              {uploadedImages.length > 0 && (
+                <div>
+                  <h4 className="text-white font-semibold mb-3">Your Images</h4>
+                  <div className="grid grid-cols-4 gap-3 max-h-48 overflow-y-auto">
+                    {uploadedImages.map((img) => (
+                      <div
+                        key={img.id}
+                        className="relative group cursor-pointer rounded-lg overflow-hidden border-2 border-transparent hover:border-cyan-400 transition-all"
+                        onClick={() => {
+                          insertImage(img.url)
+                          setShowImageUploader(false)
+                        }}
+                      >
+                        <img
+                          src={img.url}
+                          alt={img.name}
+                          className="w-full h-20 object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
+                          <span className="text-white text-xs font-semibold">Insert</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowImageUploader(false)}
+                  className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition-all"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Enhanced Link Editor Modal */}
+      {showLinkEditor && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl border border-blue-400/30 p-8 w-full max-w-lg mx-4 shadow-2xl">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg">
+                  <Link className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white">Add Link</h3>
+                  <p className="text-gray-300 text-sm">Create interactive links for your newsletter</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowLinkEditor(false)}
+                className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-200 mb-2">Link Text</label>
+                <input
+                  type="text"
+                  value={linkData.text}
+                  onChange={(e) => setLinkData({...linkData, text: e.target.value})}
+                  placeholder="Click here to learn more"
+                  className="w-full px-4 py-3 bg-black/50 border border-white/20 text-white placeholder-gray-400 rounded-xl focus:border-blue-400 transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-200 mb-2">URL</label>
+                <input
+                  type="url"
+                  value={linkData.url}
+                  onChange={(e) => setLinkData({...linkData, url: e.target.value})}
+                  placeholder="https://example.com"
+                  className="w-full px-4 py-3 bg-black/50 border border-white/20 text-white placeholder-gray-400 rounded-xl focus:border-blue-400 transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-200 mb-2">Style</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setLinkData({...linkData, style: 'button'})}
+                    className={`px-4 py-3 rounded-xl font-semibold transition-all ${linkData.style === 'button'
+                      ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white'
+                      : 'bg-black/50 border border-white/20 text-gray-300 hover:text-white'
+                    }`}
+                  >
+                    Button Style
+                  </button>
+                  <button
+                    onClick={() => setLinkData({...linkData, style: 'text'})}
+                    className={`px-4 py-3 rounded-xl font-semibold transition-all ${linkData.style === 'text'
+                      ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white'
+                      : 'bg-black/50 border border-white/20 text-gray-300 hover:text-white'
+                    }`}
+                  >
+                    Text Link
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-200 mb-2">Target</label>
+                <select
+                  value={linkData.target}
+                  onChange={(e) => setLinkData({...linkData, target: e.target.value})}
+                  className="w-full px-4 py-3 bg-black/50 border border-white/20 text-white rounded-xl focus:border-blue-400"
+                >
+                  <option value="_blank">New Tab (_blank)</option>
+                  <option value="_self">Same Tab (_self)</option>
+                </select>
+              </div>
+
+              {/* Link Preview */}
+              {linkData.text && linkData.url && (
+                <div className="border border-white/20 rounded-xl p-4 bg-black/30">
+                  <p className="text-gray-300 text-sm mb-2">Preview:</p>
+                  <div className="flex items-center justify-center">
+                    {linkData.style === 'button' ? (
+                      <div className="px-4 py-2 bg-blue-500 text-white rounded font-semibold">
+                        {linkData.text}
+                      </div>
+                    ) : (
+                      <span className="text-blue-400 underline">{linkData.text}</span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  onClick={() => setShowLinkEditor(false)}
+                  className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    if (linkData.text && linkData.url) {
+                      insertLink(linkData.text, linkData.url, linkData.style)
+                      setLinkData({ url: '', text: '', target: '_blank', style: 'button' })
+                    }
+                  }}
+                  disabled={!linkData.text || !linkData.url}
+                  className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 disabled:from-gray-500 disabled:to-gray-600 text-white rounded-lg font-semibold transition-all"
+                >
+                  Add Link
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Color Schemes Modal */}
+      {showColorSchemes && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl border border-purple-400/30 p-8 w-full max-w-3xl mx-4 shadow-2xl">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-lg">
+                  <Palette className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white">Color Schemes</h3>
+                  <p className="text-gray-300 text-sm">Choose a professional color palette for your newsletter</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowColorSchemes(false)}
+                className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[
+                  { name: 'Professional Blue', primary: '#1e40af', secondary: '#3b82f6', accent: '#60a5fa', id: 'blue' },
+                  { name: 'Corporate Gray', primary: '#374151', secondary: '#6b7280', accent: '#9ca3af', id: 'gray' },
+                  { name: 'Modern Purple', primary: '#7c3aed', secondary: '#a855f7', accent: '#c084fc', id: 'purple' },
+                  { name: 'Elegant Green', primary: '#059669', secondary: '#10b981', accent: '#34d399', id: 'green' },
+                  { name: 'Bold Orange', primary: '#ea580c', secondary: '#f97316', accent: '#fb923c', id: 'orange' },
+                  { name: 'Classic Red', primary: '#dc2626', secondary: '#ef4444', accent: '#f87171', id: 'red' }
+                ].map((scheme) => (
+                  <div
+                    key={scheme.id}
+                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                      colorScheme === scheme.id
+                        ? 'border-purple-400 bg-purple-500/20'
+                        : 'border-white/20 bg-black/30 hover:border-purple-400/50'
+                    }`}
+                    onClick={() => setColorScheme(scheme.id)}
+                  >
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div className="flex space-x-1">
+                        <div className="w-4 h-4 rounded" style={{ backgroundColor: scheme.primary }}></div>
+                        <div className="w-4 h-4 rounded" style={{ backgroundColor: scheme.secondary }}></div>
+                        <div className="w-4 h-4 rounded" style={{ backgroundColor: scheme.accent }}></div>
+                      </div>
+                      <span className="text-white font-semibold text-sm">{scheme.name}</span>
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      Primary: {scheme.primary}<br/>
+                      Secondary: {scheme.secondary}<br/>
+                      Accent: {scheme.accent}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Custom Color Picker */}
+              <div className="border border-white/20 rounded-xl p-4 bg-black/30">
+                <h4 className="text-white font-semibold mb-3">Custom Colors</h4>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm text-gray-300 mb-1">Primary</label>
+                    <input type="color" className="w-full h-10 rounded border border-white/20" defaultValue="#1e40af" />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-300 mb-1">Secondary</label>
+                    <input type="color" className="w-full h-10 rounded border border-white/20" defaultValue="#3b82f6" />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-300 mb-1">Accent</label>
+                    <input type="color" className="w-full h-10 rounded border border-white/20" defaultValue="#60a5fa" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowColorSchemes(false)}
+                  className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setShowColorSchemes(false)
+                    toast.success('Color scheme applied!')
+                  }}
+                  className="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white rounded-lg font-semibold transition-all"
+                >
+                  Apply Scheme
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Advanced Settings Modal */}
+      {showAdvancedSettings && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl border border-gray-400/30 p-8 w-full max-w-4xl mx-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-gradient-to-r from-gray-500 to-slate-500 rounded-lg">
+                  <Settings className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white">Advanced Settings</h3>
+                  <p className="text-gray-300 text-sm">Configure advanced newsletter features and preferences</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAdvancedSettings(false)}
+                className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-8">
+              {/* Email Settings */}
+              <div className="space-y-4">
+                <h4 className="text-lg font-semibold text-white flex items-center">
+                  <Mail className="w-5 h-5 mr-2 text-blue-400" />
+                  Email Configuration
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-200 mb-2">From Name</label>
+                    <input
+                      type="text"
+                      placeholder="Your Company Name"
+                      className="w-full px-4 py-3 bg-black/50 border border-white/20 text-white placeholder-gray-400 rounded-xl focus:border-blue-400 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-200 mb-2">Reply-To Email</label>
+                    <input
+                      type="email"
+                      placeholder="support@yourcompany.com"
+                      className="w-full px-4 py-3 bg-black/50 border border-white/20 text-white placeholder-gray-400 rounded-xl focus:border-blue-400 transition-all"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Visual Editor Settings */}
+              <div className="space-y-4">
+                <h4 className="text-lg font-semibold text-white flex items-center">
+                  <Paintbrush className="w-5 h-5 mr-2 text-cyan-400" />
+                  Visual Editor Preferences
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-200 mb-2">Canvas Size</label>
+                    <select className="w-full px-4 py-3 bg-black/50 border border-white/20 text-white rounded-xl focus:border-cyan-400">
+                      <option value="800x600">800×600 (Standard)</option>
+                      <option value="1024x768">1024×768 (Large)</option>
+                      <option value="600x800">600×800 (Mobile)</option>
+                      <option value="custom">Custom Size</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-200 mb-2">Grid Snap</label>
+                    <select className="w-full px-4 py-3 bg-black/50 border border-white/20 text-white rounded-xl focus:border-cyan-400">
+                      <option value="5">5px Grid</option>
+                      <option value="10">10px Grid</option>
+                      <option value="20">20px Grid</option>
+                      <option value="off">Grid Off</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Performance Settings */}
+              <div className="space-y-4">
+                <h4 className="text-lg font-semibold text-white flex items-center">
+                  <Zap className="w-5 h-5 mr-2 text-yellow-400" />
+                  Performance & Optimization
+                </h4>
+                <div className="space-y-3">
+                  <label className="flex items-center space-x-3">
+                    <input type="checkbox" className="w-5 h-5 text-blue-600" defaultChecked />
+                    <span className="text-gray-200">Auto-save every 30 seconds</span>
+                  </label>
+                  <label className="flex items-center space-x-3">
+                    <input type="checkbox" className="w-5 h-5 text-blue-600" defaultChecked />
+                    <span className="text-gray-200">Compress images automatically</span>
+                  </label>
+                  <label className="flex items-center space-x-3">
+                    <input type="checkbox" className="w-5 h-5 text-blue-600" />
+                    <span className="text-gray-200">Enable advanced animations</span>
+                  </label>
+                  <label className="flex items-center space-x-3">
+                    <input type="checkbox" className="w-5 h-5 text-blue-600" defaultChecked />
+                    <span className="text-gray-200">Real-time collaboration</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Export Settings */}
+              <div className="space-y-4">
+                <h4 className="text-lg font-semibold text-white flex items-center">
+                  <Upload className="w-5 h-5 mr-2 text-green-400" />
+                  Export & Integration
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-200 mb-2">Default Export Format</label>
+                    <select className="w-full px-4 py-3 bg-black/50 border border-white/20 text-white rounded-xl focus:border-green-400">
+                      <option value="html">HTML (Email Compatible)</option>
+                      <option value="pdf">PDF Document</option>
+                      <option value="image">PNG Image</option>
+                      <option value="template">Reusable Template</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-200 mb-2">Integration</label>
+                    <select className="w-full px-4 py-3 bg-black/50 border border-white/20 text-white rounded-xl focus:border-green-400">
+                      <option value="none">No Integration</option>
+                      <option value="mailchimp">Mailchimp</option>
+                      <option value="constant-contact">Constant Contact</option>
+                      <option value="sendgrid">SendGrid</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-4 border-t border-white/20">
+                <button
+                  onClick={() => setShowAdvancedSettings(false)}
+                  className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setShowAdvancedSettings(false)
+                    toast.success('Advanced settings saved!')
+                  }}
+                  className="px-6 py-3 bg-gradient-to-r from-gray-500 to-slate-500 hover:from-gray-600 hover:to-slate-600 text-white rounded-lg font-semibold transition-all"
+                >
+                  Save Settings
+                </button>
               </div>
             </div>
           </div>

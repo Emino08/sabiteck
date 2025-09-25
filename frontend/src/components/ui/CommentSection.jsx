@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 import { useAuth } from '../../contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
 
-const CommentSection = ({ contentId, initialCommentCount = 0, initialLikeCount = 0 }) => {
+const CommentSection = ({ contentId, initialCommentCount = 0, initialLikeCount = 0, onStatsUpdate }) => {
   const { user, isAuthenticated } = useAuth()
   const navigate = useNavigate()
 
@@ -242,6 +242,13 @@ const CommentSection = ({ contentId, initialCommentCount = 0, initialLikeCount =
       setIsLiked(response.liked)
       setLikeCount(response.like_count)
 
+      // Update parent component with real-time stats
+      if (onStatsUpdate) {
+        onStatsUpdate(contentId, {
+          like_count: response.like_count
+        })
+      }
+
       // Update local storage to match server state
       const likedPosts = JSON.parse(localStorage.getItem('liked_posts') || '[]')
       const contentIdStr = String(contentId)
@@ -306,6 +313,13 @@ const CommentSection = ({ contentId, initialCommentCount = 0, initialLikeCount =
 
       // Reload comments to get the real comment with proper ID
       await loadComments()
+
+      // Update parent component with new comment count after reload
+      if (onStatsUpdate) {
+        onStatsUpdate(contentId, {
+          comment_count: commentCount
+        })
+      }
     } catch (error) {
       // Revert optimistic update on error
       setComments(prev => prev.filter(comment => comment.id !== tempComment.id))

@@ -32,7 +32,7 @@ const UserRoleManagement = () => {
     const [inviteForm, setInviteForm] = useState({
         email: '',
         organization_id: '',
-        role: 'member',
+        role_id: 1, // Default to user role
         permissions: []
     });
 
@@ -42,7 +42,7 @@ const UserRoleManagement = () => {
         first_name: '',
         last_name: '',
         password: '',
-        role: 'user',
+        role_id: 1, // Default to user role
         organization_id: '',
         status: 'active',
         email_verified: true,
@@ -52,7 +52,7 @@ const UserRoleManagement = () => {
     const [roleForm, setRoleForm] = useState({
         user_id: '',
         organization_id: '',
-        role: 'member'
+        role_id: 1 // Default to user role
     });
 
     const [pagination, setPagination] = useState({
@@ -62,13 +62,7 @@ const UserRoleManagement = () => {
         pages: 0
     });
 
-    const userRoles = [
-        { id: 'super_admin', name: 'Super Admin', description: 'Full system access across all organizations' },
-        { id: 'admin', name: 'Admin', description: 'Full access within assigned organizations' },
-        { id: 'hr_manager', name: 'HR Manager', description: 'Manage jobs and applications within organization' },
-        { id: 'content_manager', name: 'Content Manager', description: 'Manage content and announcements' },
-        { id: 'user', name: 'Regular User', description: 'Basic user with application permissions' }
-    ];
+    // Roles will be loaded from database
 
     useEffect(() => {
         loadData();
@@ -86,13 +80,13 @@ const UserRoleManagement = () => {
                 organization: selectedOrg
             });
 
-            // Load users
+            // Load users with roles and organizations
             console.log('🚀 Loading users with params:', params.toString());
-            const usersResponse = await apiRequest(`/api/admin/users?${params.toString()}`);
+            const usersResponse = await apiRequest(`/api/admin/users-with-roles?${params.toString()}`);
             console.log('👥 Users API Response:', usersResponse);
 
             if (usersResponse.success) {
-                const usersArray = Array.isArray(usersResponse.users) ? usersResponse.users : [];
+                const usersArray = Array.isArray(usersResponse.data) ? usersResponse.data : [];
                 console.log('📋 Users array extracted:', usersArray);
                 console.log('📊 Users count:', usersArray.length);
                 setUsers(usersArray);
@@ -106,11 +100,19 @@ const UserRoleManagement = () => {
                 setUsers([]);
             }
 
+            // Load roles
+            const rolesResponse = await apiRequest('/api/admin/roles');
+            if (rolesResponse.success) {
+                const rolesArray = Array.isArray(rolesResponse.data) ? rolesResponse.data : [];
+                setRoles(rolesArray);
+            } else {
+                setRoles([]);
+            }
+
             // Load organizations
             const orgsResponse = await apiRequest('/api/admin/organizations');
             if (orgsResponse.success) {
-                const orgsArray = Array.isArray(orgsResponse.organizations) ? orgsResponse.organizations :
-                                 Array.isArray(orgsResponse.data) ? orgsResponse.data : [];
+                const orgsArray = Array.isArray(orgsResponse.data) ? orgsResponse.data : [];
                 setOrganizations(orgsArray);
             } else {
                 setOrganizations([]);
@@ -119,8 +121,7 @@ const UserRoleManagement = () => {
             // Load permissions
             const permsResponse = await apiRequest('/api/admin/permissions');
             if (permsResponse.success) {
-                const permsArray = Array.isArray(permsResponse.permissions) ? permsResponse.permissions :
-                                  Array.isArray(permsResponse.data) ? permsResponse.data : [];
+                const permsArray = Array.isArray(permsResponse.data) ? permsResponse.data : [];
                 setPermissions(permsArray);
             } else {
                 setPermissions([]);
@@ -249,7 +250,7 @@ const UserRoleManagement = () => {
                 },
                 body: JSON.stringify({
                     organization_id: orgId,
-                    role: newRole
+                    role_id: newRole
                 })
             });
 
@@ -292,31 +293,63 @@ const UserRoleManagement = () => {
     };
 
     const handleRemoveUser = async (userId, orgId) => {
-        if (!confirm('Are you sure you want to remove this user from the organization?')) {
-            return;
-        }
+        const user = users.find(u => u.id === userId);
+        const userName = user ? user.username : 'this user';
 
-        try {
-            const response = await apiRequest(`/api/admin/organizations/${orgId}/users/${userId}`, {
-                method: 'DELETE'
-            });
+        toast.custom((t) => (
+            <div className="bg-white rounded-lg shadow-lg border p-4 max-w-md">
+                <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                        <Trash2 className="w-5 h-5 text-red-600" />
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-gray-900">Delete User</h3>
+                        <p className="text-sm text-gray-600">Are you sure you want to delete <strong>{userName}</strong>?</p>
+                    </div>
+                </div>
+                <p className="text-sm text-gray-500 mb-4">This action cannot be undone.</p>
+                <div className="flex gap-2 justify-end">
+                    <button
+                        onClick={() => toast.dismiss(t)}
+                        className="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={async () => {
+                            toast.dismiss(t);
+                            try {
+                                const response = await apiRequest(`/api/admin/users/${userId}`, {
+                                    method: 'DELETE'
+                                });
 
-            if (response.success) {
-                toast.success('User removed from organization');
-                loadData();
-            } else {
-                toast.error(response.message || 'Failed to remove user');
-            }
-        } catch (error) {
-            toast.error('Failed to remove user');
-        }
+                                if (response.success) {
+                                    toast.success('User deleted successfully');
+                                    loadData();
+                                } else {
+                                    toast.error(response.message || 'Failed to delete user');
+                                }
+                            } catch (error) {
+                                toast.error('Failed to delete user');
+                            }
+                        }}
+                        className="px-3 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors"
+                    >
+                        Delete
+                    </button>
+                </div>
+            </div>
+        ), {
+            duration: Infinity,
+            position: 'top-center'
+        });
     };
 
     const resetForms = () => {
         setInviteForm({
             email: '',
             organization_id: '',
-            role: 'member',
+            role_id: 1, // Default to user role
             permissions: []
         });
         setAddUserForm({
@@ -325,7 +358,7 @@ const UserRoleManagement = () => {
             first_name: '',
             last_name: '',
             password: '',
-            role: 'user',
+            role_id: 1, // Default to user role
             organization_id: '',
             status: 'active',
             email_verified: true,
@@ -334,7 +367,7 @@ const UserRoleManagement = () => {
         setRoleForm({
             user_id: '',
             organization_id: '',
-            role: 'member'
+            role_id: 1 // Default to user role
         });
         setEditingUser(null);
     };
@@ -377,7 +410,7 @@ const UserRoleManagement = () => {
             first_name: user.first_name || '',
             last_name: user.last_name || '',
             password: '', // Don't populate password for security
-            role: user.role || 'user',
+            role_id: user.role_id || 1,
             organization_id: user.organization_id || '',
             status: user.status || 'active',
             email_verified: user.email_verified !== undefined ? user.email_verified : true,
@@ -388,8 +421,8 @@ const UserRoleManagement = () => {
         setShowModal(true);
     };
 
-    const getRoleColor = (role) => {
-        switch (role) {
+    const getRoleColor = (roleName) => {
+        switch (roleName) {
             case 'super_admin': return 'text-purple-600 bg-purple-100';
             case 'admin': return 'text-red-600 bg-red-100';
             case 'hr_manager': return 'text-blue-600 bg-blue-100';
@@ -514,7 +547,7 @@ const UserRoleManagement = () => {
                                     <td className="py-3 px-4">
                                         <div className="flex items-center space-x-3">
                                             <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                                {user.role === 'super_admin' ? (
+                                                {user.role_name === 'super_admin' ? (
                                                     <Crown className="w-4 h-4 text-purple-600" />
                                                 ) : (
                                                     <Users className="w-4 h-4 text-blue-600" />
@@ -530,22 +563,19 @@ const UserRoleManagement = () => {
                                         </div>
                                     </td>
                                     <td className="py-3 px-4">
-                                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getRoleColor(user.role)}`}>
-                                            {userRoles.find(r => r.id === user.role)?.name || user.role}
+                                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getRoleColor(user.role_name)}`}>
+                                            {user.role_display_name || user.role_name || 'Unknown Role'}
                                         </span>
                                     </td>
                                     <td className="py-3 px-4">
                                         <div className="space-y-1">
-                                            {Array.isArray(user?.organizations) && user.organizations.length > 0 ? user.organizations.map(org => (
-                                                <div key={org?.id || 'unknown'} className="flex items-center space-x-2">
+                                            {user.organization_name ? (
+                                                <div className="flex items-center space-x-2">
                                                     <Building2 className="w-3 h-3 text-gray-400" />
-                                                    <span className="text-sm text-gray-600">{org?.name || 'Unknown Organization'}</span>
-                                                    <span className={`px-1 py-0.5 text-xs rounded ${getRoleColor(org?.role || 'user')}`}>
-                                                        {org?.role || 'user'}
-                                                    </span>
+                                                    <span className="text-sm text-gray-600">{user.organization_name}</span>
                                                 </div>
-                                            )) : (
-                                                <span className="text-sm text-gray-400">No organizations</span>
+                                            ) : (
+                                                <span className="text-sm text-gray-400">No organization</span>
                                             )}
                                         </div>
                                     </td>
@@ -574,11 +604,11 @@ const UserRoleManagement = () => {
                                             >
                                                 <Edit className="w-4 h-4" />
                                             </button>
-                                            {user.role !== 'super_admin' && (
+                                            {user.role_name !== 'super_admin' && (
                                                 <button
-                                                    onClick={() => handleRemoveUser(user.id)}
+                                                    onClick={() => handleRemoveUser(user.id, user.organization_id)}
                                                     className="text-red-600 hover:text-red-800"
-                                                    title="Remove User"
+                                                    title="Delete User"
                                                 >
                                                     <Trash2 className="w-4 h-4" />
                                                 </button>
@@ -706,15 +736,15 @@ const UserRoleManagement = () => {
                                         </label>
                                         <select
                                             required
-                                            value={inviteForm.role}
-                                            onChange={(e) => setInviteForm(prev => ({ ...prev, role: e.target.value }))}
+                                            value={inviteForm.role_id}
+                                            onChange={(e) => setInviteForm(prev => ({ ...prev, role_id: parseInt(e.target.value) }))}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         >
-                                            {userRoles.filter(role => role.id !== 'super_admin').map(role => (
+                                            {Array.isArray(roles) ? roles.filter(role => role.name !== 'super_admin').map(role => (
                                                 <option key={role.id} value={role.id}>
-                                                    {role.name} - {role.description}
+                                                    {role.display_name || role.name} - {role.description}
                                                 </option>
-                                            ))}
+                                            )) : []}
                                         </select>
                                     </div>
 
@@ -815,15 +845,15 @@ const UserRoleManagement = () => {
                                             </label>
                                             <select
                                                 required
-                                                value={addUserForm.role}
-                                                onChange={(e) => setAddUserForm(prev => ({ ...prev, role: e.target.value }))}
+                                                value={addUserForm.role_id}
+                                                onChange={(e) => setAddUserForm(prev => ({ ...prev, role_id: parseInt(e.target.value) }))}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                             >
-                                                {userRoles.map(role => (
+                                                {Array.isArray(roles) ? roles.map(role => (
                                                     <option key={role.id} value={role.id}>
-                                                        {role.name}
+                                                        {role.display_name || role.name}
                                                     </option>
-                                                ))}
+                                                )) : []}
                                             </select>
                                         </div>
                                         <div>
@@ -1038,15 +1068,15 @@ const UserRoleManagement = () => {
                                             </label>
                                             <select
                                                 required
-                                                value={addUserForm.role}
-                                                onChange={(e) => setAddUserForm(prev => ({ ...prev, role: e.target.value }))}
+                                                value={addUserForm.role_id}
+                                                onChange={(e) => setAddUserForm(prev => ({ ...prev, role_id: parseInt(e.target.value) }))}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                             >
-                                                {userRoles.map(role => (
+                                                {Array.isArray(roles) ? roles.map(role => (
                                                     <option key={role.id} value={role.id}>
-                                                        {role.name}
+                                                        {role.display_name || role.name}
                                                     </option>
-                                                ))}
+                                                )) : []}
                                             </select>
                                         </div>
                                         <div>

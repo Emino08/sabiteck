@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRouteSettings } from '../../contexts/RouteSettingsContext';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -22,6 +23,7 @@ import {
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8002';
 
 const RouteSettingsManager = () => {
+  const { fetchRouteSettings: refreshGlobalRoutes } = useRouteSettings();
   const [routes, setRoutes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -60,7 +62,8 @@ const RouteSettingsManager = () => {
 
       const response = await fetch(`${API_BASE_URL}/api/admin/routes/all`, {
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         }
       });
 
@@ -116,6 +119,9 @@ const RouteSettingsManager = () => {
         ));
         setSuccess('Route visibility updated successfully');
         setTimeout(() => setSuccess(null), 3000);
+
+        // Refresh the global route settings context
+        refreshGlobalRoutes();
       } else {
         setError('Failed to update route visibility');
         // For demo purposes, update local state
@@ -124,6 +130,9 @@ const RouteSettingsManager = () => {
             ? { ...route, is_visible: !currentVisibility }
             : route
         ));
+
+        // Refresh to ensure consistency with database
+        refreshGlobalRoutes();
       }
     } catch (err) {
       console.error('Error updating route visibility:', err);

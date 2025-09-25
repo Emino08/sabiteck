@@ -2,7 +2,11 @@ import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
-import { BarChart3, Users, Eye, Globe, Monitor, Smartphone, Download, FileText, Settings, Activity } from 'lucide-react'
+import {
+  BarChart3, Users, Eye, Globe, Monitor, Smartphone, Download, FileText, Settings, Activity,
+  TrendingUp, Clock, MapPin, ChevronRight, AlertTriangle, CheckCircle2, Loader2,
+  Calendar, ArrowUp, ArrowDown, Zap, Star, Target
+} from 'lucide-react'
 import { apiRequest } from '../../utils/api'
 import { secureLog } from '../../utils/security'
 
@@ -20,8 +24,10 @@ const AnalyticsManager = () => {
     }
   })
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [period, setPeriod] = useState('30d')
   const [activeView, setActiveView] = useState('overview')
+  const [connectionStatus, setConnectionStatus] = useState('checking') // checking, connected, error
 
   const periods = [
     { value: '1d', label: '24 Hours' },
@@ -54,25 +60,51 @@ const AnalyticsManager = () => {
 
   const loadAnalyticsData = async () => {
     setLoading(true)
+    setError(null)
+    setConnectionStatus('checking')
+
     try {
       const [statsRes, pagesRes, referrersRes, devicesRes, geoRes] = await Promise.all([
-        apiRequest(`/api/admin/analytics/dashboard?period=${period}`),
-        apiRequest(`/api/admin/analytics/pages?period=${period}&limit=10`),
-        apiRequest(`/api/admin/analytics/referrers?period=${period}&limit=10`),
-        apiRequest(`/api/admin/analytics/devices?period=${period}`),
-        apiRequest(`/api/admin/analytics/geography?period=${period}&limit=10`)
+        apiRequest(`/api/analytics/test/dashboard?period=${period}`),
+        apiRequest(`/api/analytics/test/pages?period=${period}&limit=10`),
+        apiRequest(`/api/analytics/test/referrers?period=${period}&limit=10`),
+        apiRequest(`/api/analytics/test/devices?period=${period}`),
+        apiRequest(`/api/analytics/test/geography?period=${period}&limit=10`)
       ])
 
       setAnalyticsData({
-        stats: statsRes?.data || {},
-        popularPages: pagesRes?.data || [],
-        referrers: referrersRes?.data || [],
-        devices: devicesRes?.data || {},
-        geography: geoRes?.data || []
+        stats: statsRes || {},
+        popularPages: pagesRes || [],
+        referrers: referrersRes || [],
+        devices: devicesRes || [],
+        geography: geoRes || []
       })
+      setConnectionStatus('connected')
+      toast.success('📊 Analytics data loaded successfully!')
     } catch (error) {
+      console.error('Analytics loading error:', error)
+      setError(error.message || 'Failed to load analytics data')
+      setConnectionStatus('error')
       secureLog('error', 'Failed to load analytics data', { error: error.message })
-      toast.error('Failed to load analytics data')
+
+      // Set fallback data for better UX
+      setAnalyticsData({
+        stats: {
+          pageViews: 0,
+          uniqueVisitors: 0,
+          bounceRate: '0%',
+          visitors: { total: 0, growth: 0 },
+          pageviews: { total: 0, growth: 0 },
+          bounce_rate: { rate: 0, growth: 0 },
+          session_duration: { average: 0, growth: 0 }
+        },
+        popularPages: [],
+        referrers: [],
+        devices: {},
+        geography: []
+      })
+
+      toast.error(`❌ ${error.message || 'Failed to load analytics data'}`)
     } finally {
       setLoading(false)
     }
@@ -139,63 +171,125 @@ const AnalyticsManager = () => {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Analytics</h2>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
+        <div className="max-w-7xl mx-auto">
+          {/* Loading Header */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-4xl font-bold text-gray-900 mb-2">📊 Analytics Dashboard</h1>
+                <p className="text-gray-600">Loading your business insights...</p>
+              </div>
+              <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-full shadow-md">
+                <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+                <span className="text-sm text-gray-600">Connecting...</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Loading Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {[1, 2, 3, 4].map((i) => (
+              <Card key={i} className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+                <CardContent className="p-6">
+                  <div className="animate-pulse">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-8 h-8 bg-gray-200 rounded-lg"></div>
+                      <div className="w-4 h-4 bg-gray-200 rounded"></div>
+                    </div>
+                    <div className="w-20 h-8 bg-gray-200 rounded mb-2"></div>
+                    <div className="w-16 h-4 bg-gray-200 rounded"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Loading Chart */}
+          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+            <CardContent className="p-6">
+              <div className="animate-pulse">
+                <div className="w-32 h-6 bg-gray-200 rounded mb-4"></div>
+                <div className="h-64 bg-gray-200 rounded"></div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-center py-8">Loading analytics data...</div>
-          </CardContent>
-        </Card>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Analytics</h2>
-        <div className="flex items-center gap-4">
-          {/* Period Selector */}
-          <div className="flex rounded-lg border">
-            {periods.map((p) => (
-              <button
-                key={p.value}
-                onClick={() => setPeriod(p.value)}
-                className={`px-3 py-1 text-sm ${
-                  period === p.value
-                    ? 'bg-primary text-primary-foreground'
-                    : 'hover:bg-muted'
-                } ${p.value === periods[0].value ? 'rounded-l-lg' : ''} ${
-                  p.value === periods[periods.length - 1].value ? 'rounded-r-lg' : ''
-                }`}
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Enhanced Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">📊 Analytics Dashboard</h1>
+              <p className="text-gray-600">Track your website performance and user insights</p>
+            </div>
 
-          {/* Export Buttons */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => exportReport('csv')}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            CSV
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => exportReport('pdf')}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            PDF
+            {/* Connection Status & Controls */}
+            <div className="flex items-center space-x-4">
+              {/* Connection Status Indicator */}
+              <div className={`flex items-center space-x-2 px-4 py-2 rounded-full shadow-md ${
+                connectionStatus === 'connected' ? 'bg-green-100 text-green-800' :
+                connectionStatus === 'error' ? 'bg-red-100 text-red-800' :
+                'bg-yellow-100 text-yellow-800'
+              }`}>
+                {connectionStatus === 'connected' ? <CheckCircle2 className="w-4 h-4" /> :
+                 connectionStatus === 'error' ? <AlertTriangle className="w-4 h-4" /> :
+                 <Loader2 className="w-4 h-4 animate-spin" />}
+                <span className="text-sm font-medium">
+                  {connectionStatus === 'connected' ? 'Connected' :
+                   connectionStatus === 'error' ? 'Disconnected' :
+                   'Connecting...'}
+                </span>
+              </div>
+
+              {/* Period Selector */}
+              <div className="flex bg-white rounded-xl shadow-md overflow-hidden">
+                {periods.map((p, index) => (
+                  <button
+                    key={p.value}
+                    onClick={() => setPeriod(p.value)}
+                    className={`px-4 py-2 text-sm font-medium transition-all ${
+                      period === p.value
+                        ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-md'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <Calendar className="w-4 h-4 mr-2 inline" />
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => loadAnalyticsData()}
+                  className="bg-white shadow-md hover:shadow-lg transition-shadow"
+                >
+                  <Activity className="h-4 w-4 mr-2" />
+                  Refresh
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => exportReport('csv')}
+                  className="bg-white shadow-md hover:shadow-lg transition-shadow"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Export
           </Button>
         </div>
       </div>
+    </div>
+  </div>
 
       {/* Navigation */}
       <div className="flex space-x-1 rounded-lg bg-muted p-1">
@@ -221,119 +315,257 @@ const AnalyticsManager = () => {
       {/* Overview */}
       {activeView === 'overview' && (
         <div className="space-y-6">
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card>
+          {/* Enhanced Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {/* Unique Visitors Card */}
+            <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 border-0 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
               <CardContent className="p-6">
-                <div className="flex items-center">
-                  <Users className="h-8 w-8 text-blue-600" />
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-muted-foreground">Unique Visitors</p>
-                    <p className="text-2xl font-bold">{formatNumber(analyticsData.stats.visitors?.total)}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {analyticsData.stats.visitors?.growth > 0 ? '+' : ''}{analyticsData.stats.visitors?.growth}% from last period
-                    </p>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-3 rounded-xl shadow-lg">
+                    <Users className="h-6 w-6 text-white" />
                   </div>
+                  <div className={`flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-medium ${
+                    (analyticsData.stats.visitors?.growth || 0) >= 0
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-red-100 text-red-700'
+                  }`}>
+                    {(analyticsData.stats.visitors?.growth || 0) >= 0 ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
+                    {Math.abs(analyticsData.stats.visitors?.growth || 0)}%
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Unique Visitors</p>
+                  <p className="text-3xl font-bold text-gray-900 mb-1">
+                    {formatNumber(analyticsData.stats.visitors?.total || 0)}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    vs last {period === '1d' ? 'day' : period === '7d' ? 'week' : period === '30d' ? 'month' : 'quarter'}
+                  </p>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
+            {/* Page Views Card */}
+            <Card className="bg-gradient-to-br from-emerald-50 to-green-100 border-0 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
               <CardContent className="p-6">
-                <div className="flex items-center">
-                  <Eye className="h-8 w-8 text-green-600" />
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-muted-foreground">Page Views</p>
-                    <p className="text-2xl font-bold">{formatNumber(analyticsData.stats.pageviews?.total)}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {analyticsData.stats.pageviews?.growth > 0 ? '+' : ''}{analyticsData.stats.pageviews?.growth}% from last period
-                    </p>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="bg-gradient-to-br from-emerald-500 to-green-600 p-3 rounded-xl shadow-lg">
+                    <Eye className="h-6 w-6 text-white" />
                   </div>
+                  <div className={`flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-medium ${
+                    (analyticsData.stats.pageviews?.growth || 0) >= 0
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-red-100 text-red-700'
+                  }`}>
+                    {(analyticsData.stats.pageviews?.growth || 0) >= 0 ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
+                    {Math.abs(analyticsData.stats.pageviews?.growth || 0)}%
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Page Views</p>
+                  <p className="text-3xl font-bold text-gray-900 mb-1">
+                    {formatNumber(analyticsData.stats.pageviews?.total || 0)}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {formatNumber((analyticsData.stats.pageviews?.total || 0) / (analyticsData.stats.visitors?.total || 1))} avg per visitor
+                  </p>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
+            {/* Bounce Rate Card */}
+            <Card className="bg-gradient-to-br from-orange-50 to-amber-100 border-0 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
               <CardContent className="p-6">
-                <div className="flex items-center">
-                  <BarChart3 className="h-8 w-8 text-purple-600" />
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-muted-foreground">Bounce Rate</p>
-                    <p className="text-2xl font-bold">{analyticsData.stats.bounce_rate?.rate}%</p>
-                    <p className="text-xs text-muted-foreground">
-                      {analyticsData.stats.bounce_rate?.growth > 0 ? '+' : ''}{analyticsData.stats.bounce_rate?.growth}% from last period
-                    </p>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="bg-gradient-to-br from-orange-500 to-amber-600 p-3 rounded-xl shadow-lg">
+                    <Target className="h-6 w-6 text-white" />
                   </div>
+                  <div className={`flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-medium ${
+                    (analyticsData.stats.bounce_rate?.growth || 0) <= 0
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-red-100 text-red-700'
+                  }`}>
+                    {(analyticsData.stats.bounce_rate?.growth || 0) <= 0 ? <ArrowDown className="w-3 h-3" /> : <ArrowUp className="w-3 h-3" />}
+                    {Math.abs(analyticsData.stats.bounce_rate?.growth || 0)}%
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Bounce Rate</p>
+                  <p className="text-3xl font-bold text-gray-900 mb-1">
+                    {analyticsData.stats.bounce_rate?.rate || 0}%
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {(analyticsData.stats.bounce_rate?.rate || 0) < 40 ? 'Excellent engagement' :
+                     (analyticsData.stats.bounce_rate?.rate || 0) < 60 ? 'Good engagement' : 'Needs improvement'}
+                  </p>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
+            {/* Session Duration Card */}
+            <Card className="bg-gradient-to-br from-purple-50 to-violet-100 border-0 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
               <CardContent className="p-6">
-                <div className="flex items-center">
-                  <Activity className="h-8 w-8 text-red-600" />
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-muted-foreground">Avg Session Duration</p>
-                    <p className="text-2xl font-bold">{formatDuration(analyticsData.stats.session_duration?.average)}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {analyticsData.stats.session_duration?.growth > 0 ? '+' : ''}{analyticsData.stats.session_duration?.growth}% from last period
-                    </p>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="bg-gradient-to-br from-purple-500 to-violet-600 p-3 rounded-xl shadow-lg">
+                    <Clock className="h-6 w-6 text-white" />
                   </div>
+                  <div className={`flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-medium ${
+                    (analyticsData.stats.session_duration?.growth || 0) >= 0
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-red-100 text-red-700'
+                  }`}>
+                    {(analyticsData.stats.session_duration?.growth || 0) >= 0 ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
+                    {Math.abs(analyticsData.stats.session_duration?.growth || 0)}%
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Avg Session Duration</p>
+                  <p className="text-3xl font-bold text-gray-900 mb-1">
+                    {formatDuration(analyticsData.stats.session_duration?.average || 0)}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {(analyticsData.stats.session_duration?.average || 0) > 180 ? 'High engagement' :
+                     (analyticsData.stats.session_duration?.average || 0) > 60 ? 'Average engagement' : 'Low engagement'}
+                  </p>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Top Pages & Traffic Sources */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Top Pages</CardTitle>
+          {/* Enhanced Top Pages & Traffic Sources */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Top Pages Card */}
+            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
+              <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 pb-4">
+                <CardTitle className="flex items-center text-xl font-bold text-gray-800">
+                  <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-2 rounded-lg mr-3 shadow-md">
+                    <FileText className="h-5 w-5 text-white" />
+                  </div>
+                  Top Performing Pages
+                  <span className="ml-auto bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
+                    {Array.isArray(analyticsData.popularPages) ? analyticsData.popularPages.length : 0} pages
+                  </span>
+                </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {analyticsData.popularPages.slice(0, 5).map((page, index) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{page.page}</p>
-                        <p className="text-xs text-muted-foreground truncate">{page.bounce_rate}% bounce rate</p>
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  {(Array.isArray(analyticsData.popularPages) ? analyticsData.popularPages : []).slice(0, 5).map((page, index) => (
+                    <div key={index} className="group relative p-4 rounded-xl bg-gradient-to-r from-gray-50 to-blue-50 hover:from-blue-50 hover:to-indigo-100 transition-all duration-300 hover:shadow-md border border-gray-100">
+                      {/* Ranking Badge */}
+                      <div className="absolute -left-2 -top-2 w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
+                        <span className="text-white font-bold text-sm">#{index + 1}</span>
                       </div>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span>{formatNumber(page.views)} views</span>
-                        <span>{formatNumber(page.unique_views)} unique</span>
+
+                      <div className="flex items-center justify-between ml-4">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-gray-800 truncate group-hover:text-blue-700 transition-colors">
+                            {page.page || '/'}
+                          </p>
+                          <div className="flex items-center space-x-4 mt-1">
+                            <span className="text-xs text-gray-500 bg-orange-100 text-orange-700 px-2 py-1 rounded-full">
+                              {page.bounce_rate || 0}% bounce
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {formatDuration(page.avg_session_duration || 120)} avg time
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end space-y-1 text-sm">
+                          <div className="flex items-center space-x-3">
+                            <div className="text-center">
+                              <p className="font-bold text-blue-600">{formatNumber(page.views || 0)}</p>
+                              <p className="text-xs text-gray-500">views</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="font-bold text-green-600">{formatNumber(page.unique_views || 0)}</p>
+                              <p className="text-xs text-gray-500">unique</p>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))}
-                  {analyticsData.popularPages.length === 0 && (
-                    <p className="text-center text-muted-foreground py-4">No page data available</p>
+                  {(!Array.isArray(analyticsData.popularPages) || analyticsData.popularPages.length === 0) && (
+                    <div className="text-center py-12">
+                      <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                      <p className="text-gray-500 font-medium">No page data available</p>
+                      <p className="text-gray-400 text-sm">Data will appear as visitors browse your site</p>
+                    </div>
                   )}
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Traffic Sources</CardTitle>
+            {/* Traffic Sources Card */}
+            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
+              <CardHeader className="bg-gradient-to-r from-emerald-50 to-green-50 pb-4">
+                <CardTitle className="flex items-center text-xl font-bold text-gray-800">
+                  <div className="bg-gradient-to-br from-emerald-500 to-green-600 p-2 rounded-lg mr-3 shadow-md">
+                    <Globe className="h-5 w-5 text-white" />
+                  </div>
+                  Traffic Sources
+                  <span className="ml-auto bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-sm font-medium">
+                    {Array.isArray(analyticsData.referrers) ? analyticsData.referrers.length : 0} sources
+                  </span>
+                </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {analyticsData.referrers.slice(0, 5).map((referrer, index) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
-                          {referrer.source}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {referrer.percentage}% of traffic
-                        </p>
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  {(Array.isArray(analyticsData.referrers) ? analyticsData.referrers : []).slice(0, 5).map((referrer, index) => {
+                    const getSourceIcon = (source) => {
+                      if (source.includes('google')) return '🔍'
+                      if (source.includes('facebook') || source.includes('fb')) return '📘'
+                      if (source.includes('twitter') || source.includes('x.com')) return '🐦'
+                      if (source.includes('linkedin')) return '💼'
+                      if (source.includes('direct')) return '🔗'
+                      if (source.includes('email')) return '✉️'
+                      return '🌐'
+                    }
+
+                    return (
+                      <div key={index} className="group relative p-4 rounded-xl bg-gradient-to-r from-gray-50 to-emerald-50 hover:from-emerald-50 hover:to-green-100 transition-all duration-300 hover:shadow-md border border-gray-100">
+                        {/* Ranking Badge */}
+                        <div className="absolute -left-2 -top-2 w-8 h-8 bg-gradient-to-br from-emerald-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
+                          <span className="text-white font-bold text-sm">#{index + 1}</span>
+                        </div>
+
+                        <div className="flex items-center justify-between ml-4">
+                          <div className="flex items-center flex-1 min-w-0">
+                            <span className="text-2xl mr-3">{getSourceIcon(referrer.source || '')}</span>
+                            <div className="flex-1">
+                              <p className="text-sm font-semibold text-gray-800 truncate group-hover:text-emerald-700 transition-colors">
+                                {referrer.source || 'Direct'}
+                              </p>
+                              <div className="flex items-center space-x-2 mt-1">
+                                <div className="bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full text-xs font-medium">
+                                  {referrer.percentage || 0}% share
+                                </div>
+                                {/* Progress Bar */}
+                                <div className="flex-1 max-w-20">
+                                  <div className="w-full bg-gray-200 rounded-full h-2">
+                                    <div
+                                      className="bg-gradient-to-r from-emerald-500 to-green-600 h-2 rounded-full transition-all duration-500"
+                                      style={{ width: `${Math.min(referrer.percentage || 0, 100)}%` }}
+                                    ></div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-center ml-4">
+                            <p className="font-bold text-emerald-600 text-lg">{formatNumber(referrer.visits || 0)}</p>
+                            <p className="text-xs text-gray-500">visits</p>
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        {formatNumber(referrer.visits)} visits
-                      </div>
+                    )
+                  })}
+                  {(!Array.isArray(analyticsData.referrers) || analyticsData.referrers.length === 0) && (
+                    <div className="text-center py-12">
+                      <Globe className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                      <p className="text-gray-500 font-medium">No traffic source data available</p>
+                      <p className="text-gray-400 text-sm">Traffic sources will appear as visitors arrive</p>
                     </div>
-                  ))}
-                  {analyticsData.referrers.length === 0 && (
-                    <p className="text-center text-muted-foreground py-4">No referrer data available</p>
                   )}
                 </div>
               </CardContent>
@@ -351,7 +583,7 @@ const AnalyticsManager = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {analyticsData.popularPages.map((page, index) => (
+                {(Array.isArray(analyticsData.popularPages) ? analyticsData.popularPages : []).map((page, index) => (
                   <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{page.page}</p>
@@ -369,7 +601,7 @@ const AnalyticsManager = () => {
                     </div>
                   </div>
                 ))}
-                {analyticsData.popularPages.length === 0 && (
+                {(!Array.isArray(analyticsData.popularPages) || analyticsData.popularPages.length === 0) && (
                   <p className="text-center text-muted-foreground py-8">No page data available</p>
                 )}
               </div>
@@ -387,7 +619,7 @@ const AnalyticsManager = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {analyticsData.referrers.map((referrer, index) => (
+                {(Array.isArray(analyticsData.referrers) ? analyticsData.referrers : []).map((referrer, index) => (
                   <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{referrer.source}</p>
@@ -398,7 +630,7 @@ const AnalyticsManager = () => {
                     </div>
                   </div>
                 ))}
-                {analyticsData.referrers.length === 0 && (
+                {(!Array.isArray(analyticsData.referrers) || analyticsData.referrers.length === 0) && (
                   <p className="text-center text-muted-foreground py-8">No referrer data available</p>
                 )}
               </div>
@@ -440,7 +672,7 @@ const AnalyticsManager = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {analyticsData.geography.map((country, index) => (
+                {(Array.isArray(analyticsData.geography) ? analyticsData.geography : []).map((country, index) => (
                   <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{country.country}</p>
@@ -451,7 +683,7 @@ const AnalyticsManager = () => {
                     </div>
                   </div>
                 ))}
-                {analyticsData.geography.length === 0 && (
+                {(!Array.isArray(analyticsData.geography) || analyticsData.geography.length === 0) && (
                   <p className="text-center text-muted-foreground py-8">No geographic data available</p>
                 )}
               </div>
@@ -486,7 +718,7 @@ const AnalyticsManager = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-{analyticsData.realtimeData?.active_pages?.slice(0, 10).map((page, index) => (
+{(Array.isArray(analyticsData.realtimeData?.active_pages) ? analyticsData.realtimeData.active_pages : []).slice(0, 10).map((page, index) => (
                   <div key={index} className="flex items-center justify-between">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{page.page_url}</p>
@@ -528,6 +760,7 @@ const AnalyticsManager = () => {
           </CardContent>
         </Card>
       )}
+      </div>
     </div>
   )
 }

@@ -303,6 +303,120 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
         setFormData(prev => ({ ...prev, content }));
     };
 
+    // Rich text editor functions
+    const saveSelection = () => {
+        if (window.getSelection && editorRef.current) {
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                return selection.getRangeAt(0);
+            }
+        }
+        return null;
+    };
+
+    const restoreSelection = (range) => {
+        if (range && window.getSelection && editorRef.current) {
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
+    };
+
+    const execCommand = (command, value = null) => {
+        if (editorRef.current) {
+            editorRef.current.focus();
+
+            // Handle list commands specially since they can be problematic
+            if (command === 'insertUnorderedList') {
+                insertList('ul');
+                return;
+            }
+
+            if (command === 'insertOrderedList') {
+                insertList('ol');
+                return;
+            }
+
+            document.execCommand(command, false, value);
+            // Update content after command
+            const content = editorRef.current.innerHTML;
+            setFormData(prev => ({ ...prev, content }));
+        }
+    };
+
+    const insertList = (listType) => {
+        if (!editorRef.current) return;
+
+        try {
+            editorRef.current.focus();
+
+            // Try the standard approach first
+            const command = listType === 'ul' ? 'insertUnorderedList' : 'insertOrderedList';
+            const success = document.execCommand(command, false, null);
+
+            if (!success) {
+                // Fallback: manual list creation
+                const selection = window.getSelection();
+                if (selection.rangeCount === 0) return;
+
+                const range = selection.getRangeAt(0);
+                const list = document.createElement(listType);
+                const listItem = document.createElement('li');
+
+                if (range.collapsed) {
+                    listItem.textContent = 'List item';
+                    list.appendChild(listItem);
+                    range.insertNode(list);
+
+                    // Position cursor in the list item
+                    const textNode = listItem.firstChild;
+                    const newRange = document.createRange();
+                    newRange.setStart(textNode, textNode.textContent.length);
+                    newRange.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(newRange);
+                } else {
+                    const contents = range.extractContents();
+                    listItem.appendChild(contents);
+                    list.appendChild(listItem);
+                    range.insertNode(list);
+                }
+            }
+
+            // Update content
+            const content = editorRef.current.innerHTML;
+            setFormData(prev => ({ ...prev, content }));
+
+        } catch (error) {
+            console.error('List creation error:', error);
+        }
+    };
+
+    const handleEditorInput = (e) => {
+        const content = e.target.innerHTML;
+        handleContentChange(content);
+    };
+
+    // Handle editor content initialization
+    useEffect(() => {
+        if (editorRef.current) {
+            // Only set content if editor is empty or different
+            const currentContent = editorRef.current.innerHTML;
+            const sanitizedContent = sanitizeHTML(formData.content || '');
+
+            if (currentContent !== sanitizedContent) {
+                // Save current cursor position
+                const selection = saveSelection();
+                editorRef.current.innerHTML = sanitizedContent;
+
+                // Restore cursor position if content was already present
+                if (selection && currentContent) {
+                    setTimeout(() => restoreSelection(selection), 0);
+                }
+            }
+        }
+    }, [scholarship]); // Only run when scholarship changes, not on every content change
+
     const validateForm = () => {
         const errors = [];
         
@@ -421,10 +535,14 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
 
                         <button
                             onClick={() => setPreviewMode(!previewMode)}
-                            className="inline-flex items-center px-6 py-3 bg-black/30 backdrop-blur-lg border border-white/20 text-white hover:bg-white/10 font-semibold rounded-2xl transition-all duration-300 hover:scale-105"
+                            className={`inline-flex items-center px-6 py-3 backdrop-blur-lg border text-white font-semibold rounded-2xl transition-all duration-300 hover:scale-105 ${
+                                previewMode
+                                    ? 'bg-cyan-500/30 border-cyan-400/50 hover:bg-cyan-500/40'
+                                    : 'bg-black/30 border-white/20 hover:bg-white/10'
+                            }`}
                         >
                             <Eye className="w-5 h-5 mr-2" />
-                            Elite Preview
+                            {previewMode ? 'Exit Preview' : 'Elite Preview'}
                         </button>
 
                         <button
@@ -471,6 +589,98 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
 
             {/* Elite Form */}
             <div className="max-w-7xl mx-auto px-6 py-8 relative z-10">
+                {previewMode ? (
+                    /* Elite Preview Mode */
+                    <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl">
+                        <div className="flex items-center justify-between mb-8">
+                            <div className="flex items-center">
+                                <div className="p-3 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-2xl mr-4">
+                                    <Eye className="w-6 h-6 text-white" />
+                                </div>
+                                <div>
+                                    <h2 className="text-2xl font-black text-white mb-2">Elite Preview Mode</h2>
+                                    <p className="text-gray-300">Preview how your scholarship will appear to students</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setPreviewMode(false)}
+                                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all duration-300"
+                            >
+                                Back to Edit
+                            </button>
+                        </div>
+
+                        {/* Preview Content */}
+                        <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10">
+                            <div className="space-y-6">
+                                {/* Title */}
+                                <div>
+                                    <h1 className="text-4xl font-black text-white mb-4">
+                                        {formData.title || 'Scholarship Title'}
+                                    </h1>
+                                    {formData.featured && (
+                                        <span className="inline-flex items-center px-3 py-1 bg-yellow-500/20 text-yellow-300 rounded-full text-sm font-semibold">
+                                            <Star className="w-4 h-4 mr-1 fill-current" />
+                                            Featured
+                                        </span>
+                                    )}
+                                </div>
+
+                                {/* Provider */}
+                                {formData.provider && (
+                                    <div className="flex items-center text-gray-300">
+                                        <Building className="w-5 h-5 mr-2" />
+                                        <span className="text-lg">Provided by {formData.provider}</span>
+                                    </div>
+                                )}
+
+                                {/* Description */}
+                                {formData.short_description && (
+                                    <div className="text-xl text-gray-200 leading-relaxed">
+                                        {formData.short_description}
+                                    </div>
+                                )}
+
+                                {/* Content */}
+                                {formData.content && (
+                                    <div className="prose prose-invert max-w-none">
+                                        <div
+                                            className="text-white leading-relaxed"
+                                            dangerouslySetInnerHTML={{ __html: sanitizeHTML(formData.content) }}
+                                        />
+                                    </div>
+                                )}
+
+                                {/* Key Info Grid */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                                    {formData.funding_amount && (
+                                        <div className="bg-black/30 rounded-xl p-4">
+                                            <h3 className="text-sm font-bold text-gray-300 mb-2">FUNDING AMOUNT</h3>
+                                            <p className="text-2xl font-black text-white">{formData.funding_amount}</p>
+                                        </div>
+                                    )}
+
+                                    {formData.application_deadline && (
+                                        <div className="bg-black/30 rounded-xl p-4">
+                                            <h3 className="text-sm font-bold text-gray-300 mb-2">APPLICATION DEADLINE</h3>
+                                            <p className="text-xl font-bold text-white">{new Date(formData.application_deadline).toLocaleDateString()}</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Application Button */}
+                                <div className="mt-8">
+                                    <button
+                                        className="px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-2xl hover:scale-105 transition-all duration-300"
+                                        disabled
+                                    >
+                                        Apply Now (Preview Mode)
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Elite Main Content */}
                     <div className="lg:col-span-2 space-y-8">
@@ -497,7 +707,7 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                         Elite Scholarship Title *
                                     </label>
                                     <div className="relative">
-                                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2 pointer-events-none z-10">
                                             <GraduationCap className="w-5 h-5 text-purple-400" />
                                             <Crown className="w-4 h-4 text-yellow-400 animate-pulse" />
                                         </div>
@@ -506,7 +716,7 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                             name="title"
                                             value={formData.title}
                                             onChange={handleInputChange}
-                                            className="w-full pl-16 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-400 text-white placeholder-gray-400 text-lg transition-all duration-300"
+                                            className="w-full pl-16 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-400 text-white placeholder-gray-400 text-lg transition-all duration-300 relative z-20"
                                             placeholder="e.g., Elite Rhodes Scholarship for Academic Excellence"
                                         />
                                     </div>
@@ -517,7 +727,7 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                         Elite URL Slug *
                                     </label>
                                     <div className="relative">
-                                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2 pointer-events-none z-10">
                                             <Zap className="w-5 h-5 text-purple-400" />
                                             <Sparkles className="w-4 h-4 text-pink-400 animate-pulse" />
                                         </div>
@@ -526,7 +736,7 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                             name="slug"
                                             value={formData.slug}
                                             onChange={handleInputChange}
-                                            className="w-full pl-16 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-400 text-white placeholder-gray-400 transition-all duration-300"
+                                            className="w-full pl-16 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-400 text-white placeholder-gray-400 transition-all duration-300 relative z-20"
                                             placeholder="elite-academic-opportunity"
                                         />
                                     </div>
@@ -544,7 +754,7 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                         value={formData.short_description}
                                         onChange={handleInputChange}
                                         rows={3}
-                                        className="w-full px-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-400 text-white placeholder-gray-400 resize-none transition-all duration-300"
+                                        className="w-full px-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-400 text-white placeholder-gray-400 resize-none transition-all duration-300 relative z-20"
                                         placeholder="Compelling elite overview that captures the essence of this premium academic opportunity..."
                                     />
                                 </div>
@@ -558,7 +768,7 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                         value={formData.full_description}
                                         onChange={handleInputChange}
                                         rows={4}
-                                        className="w-full px-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-400 text-white placeholder-gray-400 resize-none transition-all duration-300"
+                                        className="w-full px-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-400 text-white placeholder-gray-400 resize-none transition-all duration-300 relative z-20"
                                         placeholder="Detailed elite description showcasing the exceptional nature of this academic opportunity..."
                                     />
                                     <div className="flex justify-between items-center mt-3">
@@ -588,11 +798,15 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                 </div>
                             </div>
                             
+                            <label className="block text-sm font-bold text-white mb-3">
+                                Elite Requirements & Content *
+                            </label>
+
                             {/* Elite Rich Text Toolbar */}
                             <div className="bg-black/40 backdrop-blur-lg border border-white/20 rounded-t-2xl px-6 py-4 flex flex-wrap gap-3">
                                 <button
                                     type="button"
-                                    onClick={() => document.execCommand('bold')}
+                                    onClick={() => execCommand('bold')}
                                     className="px-4 py-2 text-sm bg-black/50 border border-white/20 rounded-xl text-white hover:bg-white/10 font-bold transition-all duration-300 hover:scale-105"
                                     title="Elite Bold"
                                 >
@@ -603,7 +817,7 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => document.execCommand('italic')}
+                                    onClick={() => execCommand('italic')}
                                     className="px-4 py-2 text-sm bg-black/50 border border-white/20 rounded-xl text-white hover:bg-white/10 italic transition-all duration-300 hover:scale-105"
                                     title="Elite Italic"
                                 >
@@ -614,7 +828,10 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => document.execCommand('insertUnorderedList')}
+                                    onClick={() => {
+                                        console.log('Bullet list clicked');
+                                        insertList('ul');
+                                    }}
                                     className="px-4 py-2 text-sm bg-black/50 border border-white/20 rounded-xl text-white hover:bg-white/10 transition-all duration-300 hover:scale-105"
                                     title="Elite Bullet List"
                                 >
@@ -625,7 +842,10 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => document.execCommand('insertOrderedList')}
+                                    onClick={() => {
+                                        console.log('Numbered list clicked');
+                                        insertList('ol');
+                                    }}
                                     className="px-4 py-2 text-sm bg-black/50 border border-white/20 rounded-xl text-white hover:bg-white/10 transition-all duration-300 hover:scale-105"
                                     title="Elite Numbered List"
                                 >
@@ -653,11 +873,80 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                             <div
                                 ref={editorRef}
                                 contentEditable
-                                className="w-full min-h-64 px-6 py-4 bg-black/50 border border-white/20 border-t-0 rounded-b-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400 resize-none overflow-auto text-white transition-all duration-300"
-                                style={{ minHeight: '20rem', color: 'white' }}
-                                onInput={(e) => handleContentChange(e.target.innerHTML)}
-                                dangerouslySetInnerHTML={{ __html: sanitizeHTML(formData.content) }}
-                                placeholder="Start writing your elite scholarship content here..."
+                                className="w-full min-h-64 px-6 py-4 bg-black/50 border border-white/20 border-t-0 rounded-b-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400 resize-none overflow-auto text-white transition-all duration-300 relative z-20 [&_ul]:list-disc [&_ul]:list-inside [&_ol]:list-decimal [&_ol]:list-inside [&_li]:ml-4 [&_li]:mb-1"
+                                style={{
+                                    minHeight: '20rem',
+                                    color: 'white',
+                                    ...(!formData.content && {
+                                        '::before': {
+                                            content: '"Start writing your elite scholarship content here..."',
+                                            color: '#9ca3af',
+                                            pointerEvents: 'none'
+                                        }
+                                    })
+                                }}
+                                onInput={handleEditorInput}
+                                onKeyDown={(e) => {
+                                    // Handle Enter key in lists
+                                    if (e.key === 'Enter') {
+                                        const selection = window.getSelection();
+                                        if (selection.rangeCount > 0) {
+                                            const range = selection.getRangeAt(0);
+                                            let listItem = range.startContainer;
+
+                                            // Find if we're in a list item
+                                            while (listItem && listItem !== e.target) {
+                                                if (listItem.tagName === 'LI') {
+                                                    e.preventDefault();
+
+                                                    // Check if current list item is empty
+                                                    if (listItem.textContent.trim() === '') {
+                                                        // Exit list
+                                                        const list = listItem.parentNode;
+                                                        const newDiv = document.createElement('div');
+                                                        newDiv.innerHTML = '<br>';
+                                                        list.parentNode.insertBefore(newDiv, list.nextSibling);
+                                                        listItem.remove();
+
+                                                        // Move cursor to new div
+                                                        const newRange = document.createRange();
+                                                        newRange.setStart(newDiv, 0);
+                                                        newRange.collapse(true);
+                                                        selection.removeAllRanges();
+                                                        selection.addRange(newRange);
+                                                    } else {
+                                                        // Create new list item
+                                                        const newLi = document.createElement('li');
+                                                        newLi.innerHTML = '<br>';
+                                                        listItem.parentNode.insertBefore(newLi, listItem.nextSibling);
+
+                                                        // Move cursor to new list item
+                                                        const newRange = document.createRange();
+                                                        newRange.setStart(newLi, 0);
+                                                        newRange.collapse(true);
+                                                        selection.removeAllRanges();
+                                                        selection.addRange(newRange);
+                                                    }
+
+                                                    // Update content
+                                                    const content = e.target.innerHTML;
+                                                    setFormData(prev => ({ ...prev, content }));
+                                                    return;
+                                                }
+                                                listItem = listItem.parentNode;
+                                            }
+                                        }
+                                    }
+                                }}
+                                onFocus={(e) => {
+                                    if (!formData.content) {
+                                        e.target.classList.add('focused');
+                                    }
+                                }}
+                                onBlur={(e) => {
+                                    e.target.classList.remove('focused');
+                                }}
+                                suppressContentEditableWarning={true}
                             />
                             
                             <div className="flex justify-between items-center mt-4">
@@ -694,7 +983,7 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                         Elite Provider Name *
                                     </label>
                                     <div className="relative">
-                                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2 pointer-events-none z-10">
                                             <Building className="w-5 h-5 text-emerald-400" />
                                             <Award className="w-4 h-4 text-yellow-400 animate-pulse" />
                                         </div>
@@ -703,7 +992,7 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                             name="provider"
                                             value={formData.provider}
                                             onChange={handleInputChange}
-                                            className="w-full pl-16 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-400 text-white placeholder-gray-400 transition-all duration-300"
+                                            className="w-full pl-16 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-400 text-white placeholder-gray-400 transition-all duration-300 relative z-20"
                                             placeholder="e.g., Elite Gates Foundation, Oxford University"
                                         />
                                     </div>
@@ -714,7 +1003,7 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                         Elite Provider Logo URL
                                     </label>
                                     <div className="relative">
-                                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2 pointer-events-none z-10">
                                             <Upload className="w-5 h-5 text-emerald-400" />
                                             <Sparkles className="w-4 h-4 text-teal-400 animate-pulse" />
                                         </div>
@@ -723,7 +1012,7 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                             name="provider_logo"
                                             value={formData.provider_logo}
                                             onChange={handleInputChange}
-                                            className="w-full pl-16 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-400 text-white placeholder-gray-400 transition-all duration-300"
+                                            className="w-full pl-16 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-400 text-white placeholder-gray-400 transition-all duration-300 relative z-20"
                                             placeholder="https://elite-provider.com/premium-logo.png"
                                         />
                                     </div>
@@ -734,7 +1023,7 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                         Elite Website URL
                                     </label>
                                     <div className="relative">
-                                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2 pointer-events-none z-10">
                                             <Globe className="w-5 h-5 text-emerald-400" />
                                             <Crown className="w-4 h-4 text-yellow-400 animate-pulse" />
                                         </div>
@@ -743,7 +1032,7 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                             name="website_url"
                                             value={formData.website_url}
                                             onChange={handleInputChange}
-                                            className="w-full pl-16 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-400 text-white placeholder-gray-400 transition-all duration-300"
+                                            className="w-full pl-16 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-400 text-white placeholder-gray-400 transition-all duration-300 relative z-20"
                                             placeholder="https://elite-provider-website.com"
                                         />
                                     </div>
@@ -754,7 +1043,7 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                         Elite Application Portal *
                                     </label>
                                     <div className="relative">
-                                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2 pointer-events-none z-10">
                                             <Rocket className="w-5 h-5 text-emerald-400" />
                                             <Target className="w-4 h-4 text-teal-400 animate-pulse" />
                                         </div>
@@ -763,7 +1052,7 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                             name="application_url"
                                             value={formData.application_url}
                                             onChange={handleInputChange}
-                                            className="w-full pl-16 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-400 text-white placeholder-gray-400 transition-all duration-300"
+                                            className="w-full pl-16 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-400 text-white placeholder-gray-400 transition-all duration-300 relative z-20"
                                             placeholder="https://elite-application-portal.com"
                                         />
                                     </div>
@@ -772,67 +1061,80 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                         </div>
 
                         {/* Dates */}
-                        <div className="bg-white rounded-lg shadow-sm border p-6">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4">Important Dates</h2>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl">
+                            <div className="flex items-center mb-8">
+                                <div className="p-3 bg-gradient-to-r from-pink-500 to-rose-500 rounded-2xl mr-4">
+                                    <Calendar className="w-6 h-6 text-white" />
+                                </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Application Deadline
+                                    <h2 className="text-2xl font-black text-white mb-2">Elite Timeline Hub</h2>
+                                    <p className="text-gray-300">Critical dates and deadlines for scholarship success</p>
+                                </div>
+                                <div className="ml-auto">
+                                    <span className="px-3 py-1 bg-gradient-to-r from-pink-400 to-rose-400 text-black rounded-full text-xs font-black">
+                                        TIMELINE
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label className="block text-sm font-bold text-white mb-3">
+                                        Elite Application Deadline
                                     </label>
                                     <input
                                         type="date"
                                         name="application_deadline"
                                         value={formData.application_deadline}
                                         onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="w-full px-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-400 text-white transition-all duration-300 relative z-20"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Program Start Date
+                                    <label className="block text-sm font-bold text-white mb-3">
+                                        Elite Program Start Date
                                     </label>
                                     <input
                                         type="date"
                                         name="program_start_date"
                                         value={formData.program_start_date}
                                         onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="w-full px-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-400 text-white transition-all duration-300 relative z-20"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Program End Date
+                                    <label className="block text-sm font-bold text-white mb-3">
+                                        Elite Program End Date
                                     </label>
                                     <input
                                         type="date"
                                         name="program_end_date"
                                         value={formData.program_end_date}
                                         onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="w-full px-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-400 text-white transition-all duration-300 relative z-20"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Notification Date
+                                    <label className="block text-sm font-bold text-white mb-3">
+                                        Elite Notification Date
                                     </label>
                                     <input
                                         type="date"
                                         name="notification_date"
                                         value={formData.notification_date}
                                         onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="w-full px-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-400 text-white transition-all duration-300 relative z-20"
                                     />
                                 </div>
                             </div>
                         </div>
 
                         {/* Study Fields */}
-                        <div className="bg-white rounded-lg shadow-sm border p-6">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4">Study Fields</h2>
+                        <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl">
+                            <h2 className="text-2xl font-black text-white mb-6">Study Fields</h2>
                             
                             {formData.study_fields.map((field, index) => (
                                 <div key={index} className="flex items-center space-x-2 mb-3">
@@ -840,7 +1142,7 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                         type="text"
                                         value={field}
                                         onChange={(e) => handleArrayChange('study_fields', index, e.target.value)}
-                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="flex-1 px-4 py-3 bg-black/50 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400 text-white placeholder-gray-400 transition-all duration-300 relative z-20"
                                         placeholder="e.g., Computer Science, Medicine, Engineering"
                                     />
                                     {formData.study_fields.length > 1 && (
@@ -866,13 +1168,13 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                         </div>
 
                         {/* Requirements */}
-                        <div className="bg-white rounded-lg shadow-sm border p-6">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4">Requirements</h2>
+                        <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl">
+                            <h2 className="text-2xl font-black text-white mb-6">Requirements</h2>
                             
                             <div className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm font-bold text-white mb-3">
                                             Min Age
                                         </label>
                                         <input
@@ -880,13 +1182,13 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                             name="age_limit_min"
                                             value={formData.age_limit_min}
                                             onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            className="w-full px-4 py-3 bg-black/50 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400 text-white placeholder-gray-400 transition-all duration-300 relative z-20"
                                             placeholder="18"
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm font-bold text-white mb-3">
                                             Max Age
                                         </label>
                                         <input
@@ -894,13 +1196,13 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                             name="age_limit_max"
                                             value={formData.age_limit_max}
                                             onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            className="w-full px-4 py-3 bg-black/50 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400 text-white placeholder-gray-400 transition-all duration-300 relative z-20"
                                             placeholder="35"
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm font-bold text-white mb-3">
                                             GPA Requirement
                                         </label>
                                         <input
@@ -911,14 +1213,14 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                             name="gpa_requirement"
                                             value={formData.gpa_requirement}
                                             onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            className="w-full px-4 py-3 bg-black/50 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400 text-white placeholder-gray-400 transition-all duration-300 relative z-20"
                                             placeholder="3.5"
                                         />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label className="block text-sm font-bold text-white mb-3">
                                         Language Requirements
                                     </label>
                                     <textarea
@@ -926,13 +1228,13 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                         value={formData.language_requirements}
                                         onChange={handleInputChange}
                                         rows={2}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="w-full px-4 py-3 bg-black/50 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400 text-white placeholder-gray-400 transition-all duration-300 relative z-20"
                                         placeholder="e.g., IELTS 7.0, TOEFL 100+"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label className="block text-sm font-bold text-white mb-3">
                                         Other Requirements
                                     </label>
                                     <textarea
@@ -940,7 +1242,7 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                         value={formData.other_requirements}
                                         onChange={handleInputChange}
                                         rows={3}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="w-full px-4 py-3 bg-black/50 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400 text-white placeholder-gray-400 transition-all duration-300 relative z-20"
                                         placeholder="Additional requirements, restrictions, or qualifications"
                                     />
                                 </div>
@@ -948,8 +1250,8 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                         </div>
 
                         {/* Tags */}
-                        <div className="bg-white rounded-lg shadow-sm border p-6">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4">Tags</h2>
+                        <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl">
+                            <h2 className="text-2xl font-black text-white mb-6">Tags</h2>
                             
                             {formData.tags.map((tag, index) => (
                                 <div key={index} className="flex items-center space-x-2 mb-3">
@@ -957,7 +1259,7 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                         type="text"
                                         value={tag}
                                         onChange={(e) => handleArrayChange('tags', index, e.target.value)}
-                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="flex-1 px-4 py-3 bg-black/50 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400 text-white placeholder-gray-400 transition-all duration-300 relative z-20"
                                         placeholder="e.g., undergraduate, stem, international"
                                     />
                                     {formData.tags.length > 1 && (
@@ -983,12 +1285,12 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                         </div>
 
                         {/* SEO */}
-                        <div className="bg-white rounded-lg shadow-sm border p-6">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4">SEO & Meta Data</h2>
+                        <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl">
+                            <h2 className="text-2xl font-black text-white mb-6">SEO & Meta Data</h2>
                             
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label className="block text-sm font-bold text-white mb-3">
                                         Meta Title
                                     </label>
                                     <input
@@ -996,7 +1298,7 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                         name="meta_title"
                                         value={formData.meta_title}
                                         onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="w-full px-4 py-3 bg-black/50 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400 text-white placeholder-gray-400 transition-all duration-300 relative z-20"
                                         placeholder="SEO title for search engines"
                                     />
                                     <p className="text-xs text-gray-500 mt-1">
@@ -1005,7 +1307,7 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label className="block text-sm font-bold text-white mb-3">
                                         Meta Description
                                     </label>
                                     <textarea
@@ -1013,7 +1315,7 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                         value={formData.meta_description}
                                         onChange={handleInputChange}
                                         rows={3}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="w-full px-4 py-3 bg-black/50 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400 text-white placeholder-gray-400 transition-all duration-300 relative z-20"
                                         placeholder="Brief description for search engine results"
                                     />
                                     <p className="text-xs text-gray-500 mt-1">
@@ -1044,14 +1346,14 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                         Elite Status
                                     </label>
                                     <div className="relative">
-                                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
+                                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 pointer-events-none z-10">
                                             <CheckCircle2 className="w-5 h-5 text-orange-400" />
                                         </div>
                                         <select
                                             name="status"
                                             value={formData.status}
                                             onChange={handleInputChange}
-                                            className="w-full pl-12 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-400 text-white transition-all duration-300"
+                                            className="w-full pl-12 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-400 text-white transition-all duration-300 relative z-20"
                                         >
                                             <option value="draft">🚧 Elite Draft</option>
                                             <option value="active">🚀 Active & Live</option>
@@ -1123,14 +1425,14 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                         Elite Category *
                                     </label>
                                     <div className="relative">
-                                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
+                                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 pointer-events-none z-10">
                                             <Target className="w-5 h-5 text-blue-400" />
                                         </div>
                                         <select
                                             name="category_id"
                                             value={formData.category_id}
                                             onChange={handleInputChange}
-                                            className="w-full pl-12 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-400 text-white transition-all duration-300"
+                                            className="w-full pl-12 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-400 text-white transition-all duration-300 relative z-20"
                                         >
                                             <option value="">Select Elite Category</option>
                                             {Array.isArray(categories) && categories.map((category, index) => (
@@ -1147,14 +1449,14 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                         Elite Education Level *
                                     </label>
                                     <div className="relative">
-                                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
+                                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 pointer-events-none z-10">
                                             <GraduationCap className="w-5 h-5 text-blue-400" />
                                         </div>
                                         <select
                                             name="education_level_id"
                                             value={formData.education_level_id}
                                             onChange={handleInputChange}
-                                            className="w-full pl-12 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-400 text-white transition-all duration-300"
+                                            className="w-full pl-12 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-400 text-white transition-all duration-300 relative z-20"
                                         >
                                             <option value="">Select Elite Level</option>
                                             {educationLevels.map((level, index) => (
@@ -1169,12 +1471,12 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                         </div>
 
                         {/* Funding Information */}
-                        <div className="bg-white rounded-lg shadow-sm border p-6">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Funding</h3>
+                        <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl">
+                            <h3 className="text-2xl font-black text-white mb-6">Funding</h3>
                             
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label className="block text-sm font-bold text-white mb-3">
                                         Funding Amount
                                     </label>
                                     <input
@@ -1182,20 +1484,20 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                         name="funding_amount"
                                         value={formData.funding_amount}
                                         onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="w-full px-4 py-3 bg-black/50 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400 text-white placeholder-gray-400 transition-all duration-300 relative z-20"
                                         placeholder="e.g., $50,000, Full funding, Up to €25,000"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label className="block text-sm font-bold text-white mb-3">
                                         Currency
                                     </label>
                                     <select
                                         name="currency"
                                         value={formData.currency}
                                         onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="w-full px-4 py-3 bg-black/50 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400 text-white placeholder-gray-400 transition-all duration-300 relative z-20"
                                     >
                                         <option value="USD">USD</option>
                                         <option value="EUR">EUR</option>
@@ -1206,14 +1508,14 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label className="block text-sm font-bold text-white mb-3">
                                         Funding Type *
                                     </label>
                                     <select
                                         name="funding_type_id"
                                         value={formData.funding_type_id}
                                         onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="w-full px-4 py-3 bg-black/50 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400 text-white placeholder-gray-400 transition-all duration-300 relative z-20"
                                     >
                                         <option value="">Select Type</option>
                                         {fundingTypes.map((type) => (
@@ -1225,7 +1527,7 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                 </div>
 
                                 <div className="space-y-3">
-                                    <h4 className="text-sm font-medium text-gray-700">Coverage</h4>
+                                    <h4 className="text-sm font-bold text-white mb-3">Coverage</h4>
                                     
                                     <div className="flex items-center space-x-3">
                                         <input
@@ -1236,7 +1538,7 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                             onChange={handleInputChange}
                                             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                                         />
-                                        <label htmlFor="covers_tuition" className="text-sm text-gray-700">
+                                        <label htmlFor="covers_tuition" className="text-sm font-semibold text-white">
                                             Covers Tuition
                                         </label>
                                     </div>
@@ -1250,7 +1552,7 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                             onChange={handleInputChange}
                                             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                                         />
-                                        <label htmlFor="covers_living" className="text-sm text-gray-700">
+                                        <label htmlFor="covers_living" className="text-sm font-semibold text-white">
                                             Covers Living Expenses
                                         </label>
                                     </div>
@@ -1264,7 +1566,7 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                             onChange={handleInputChange}
                                             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                                         />
-                                        <label htmlFor="covers_travel" className="text-sm text-gray-700">
+                                        <label htmlFor="covers_travel" className="text-sm font-semibold text-white">
                                             Covers Travel
                                         </label>
                                     </div>
@@ -1273,8 +1575,8 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                         </div>
 
                         {/* Eligible Regions */}
-                        <div className="bg-white rounded-lg shadow-sm border p-6">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Eligible Regions *</h3>
+                        <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl">
+                            <h3 className="text-2xl font-black text-white mb-6">Eligible Regions *</h3>
                             
                             <div className="space-y-2 max-h-64 overflow-y-auto">
                                 {regions.map((region, index) => (
@@ -1298,6 +1600,7 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                         </div>
                     </div>
                 </div>
+                )}
             </div>
         </div>
     );

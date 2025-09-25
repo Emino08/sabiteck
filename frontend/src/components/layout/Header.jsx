@@ -24,13 +24,16 @@ const Header = () => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Get navigation routes directly from the database
-  const navigation = getAllRoutes().map(route => ({
-    name: route.display_name,
-    href: route.href,
-    routeName: route.route_name,
-    description: route.description
-  }))
+  // Get only visible navigation routes from the database
+  const navigation = getAllRoutes()
+    .filter(route => route.is_visible) // Only show visible routes
+    .sort((a, b) => a.display_order - b.display_order) // Sort by display order
+    .map(route => ({
+      name: route.display_name,
+      href: route.route_name === 'home' ? '/' : `/${route.route_name}`,
+      routeName: route.route_name,
+      description: route.description
+    }))
 
   return (
     <header

@@ -15,29 +15,43 @@ export const apiRequest = async (endpoint, options = {}) => {
 
     // Add auth token if available - check multiple storage keys
     const token = localStorage.getItem('auth_token') || localStorage.getItem('admin_token') || localStorage.getItem('token');
-    secureLog('info', 'Checking tokens', {
-      auth_token: localStorage.getItem('auth_token') ? 'EXISTS' : 'NULL',
-      admin_token: localStorage.getItem('admin_token') ? 'EXISTS' : 'NULL',
-      token: localStorage.getItem('token') ? 'EXISTS' : 'NULL',
-      final_token: token ? 'EXISTS' : 'NONE'
+
+    // Enhanced debugging for token issues
+    console.log('🔍 API Request Token Debug:', {
+      endpoint,
+      auth_token: localStorage.getItem('auth_token'),
+      admin_token: localStorage.getItem('admin_token'),
+      token: localStorage.getItem('token'),
+      final_token: token,
+      token_length: token ? token.length : 0
     });
 
     if (token) {
       defaultHeaders.Authorization = `Bearer ${token}`;
+      console.log('✅ Added Authorization header:', `Bearer ${token.substring(0, 20)}...`);
+    } else {
+      console.log('❌ No token found in localStorage!');
     }
+
+    // Ensure headers are properly merged and not overridden
+    const mergedHeaders = {
+      ...defaultHeaders,
+      ...(options.headers || {})
+    };
 
     const config = {
       method: 'GET',
-      headers: {
-        ...defaultHeaders,
-        ...(options.headers || {})
-      },
-      ...options
+      ...options,
+      headers: mergedHeaders
     };
 
-    secureLog('info', 'Making API request', {
+    console.log('🚀 Making API request:', {
       url: url,
-      hasAuth: token ? 'Bearer ***' : 'No token'
+      method: config.method,
+      headers: config.headers,
+      hasAuth: token ? 'Bearer ***' : 'No token',
+      hasAuthHeader: !!config.headers.Authorization,
+      authHeaderValue: config.headers.Authorization ? config.headers.Authorization.substring(0, 20) + '...' : 'MISSING'
     });
 
     const response = await fetch(url, config);

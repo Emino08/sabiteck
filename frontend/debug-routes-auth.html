@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Routes Auth Debug</title>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        .step { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        button { margin: 5px; padding: 10px; }
+        #log { white-space: pre-wrap; background: #f5f5f5; padding: 10px; max-height: 400px; overflow-y: auto; }
+        .success { background: #e7f5e7; }
+        .error { background: #ffeaea; }
+    </style>
+</head>
+<body>
+    <h1>Routes Authorization Debug Tool</h1>
+
+    <div class="step">
+        <h3>Step 1: Check Current Authentication</h3>
+        <button onclick="checkAuth()">Check Auth Status</button>
+        <button onclick="loginAdmin()">Login as Admin</button>
+    </div>
+
+    <div class="step">
+        <h3>Step 2: Test Routes Endpoint</h3>
+        <button onclick="testRoutesAll()">Test /api/admin/routes/all</button>
+        <button onclick="testRoutesSimple()">Test /api/admin/routes</button>
+        <button onclick="testRoutesPublic()">Test /api/routes (public)</button>
+    </div>
+
+    <div class="step">
+        <h3>Step 3: Debug Headers</h3>
+        <button onclick="testHeaders()">Debug Headers</button>
+        <button onclick="simulateReactCall()">Simulate React API Call</button>
+    </div>
+
+    <div class="step">
+        <h3>Utils</h3>
+        <button onclick="clearLog()">Clear Log</button>
+        <button onclick="clearStorage()">Clear Storage</button>
+    </div>
+
+    <div id="log"></div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8002';
+        let currentToken = null;
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toISOString();
+            const logDiv = document.getElementById('log');
+            logDiv.textContent += `[${timestamp}] ${type.toUpperCase()}: ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(`[${type}]`, message);
+        }
+
+        function clearLog() {
+            document.getElementById('log').textContent = '';
+        }
+
+        function clearStorage() {
+            localStorage.clear();
+            currentToken = null;
+            log('Storage cleared');
+        }
+
+        function checkAuth() {
+            log('=== CHECKING AUTHENTICATION STATUS ===');
+
+            const authToken = localStorage.getItem('auth_token');
+            const adminToken = localStorage.getItem('admin_token');
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+
+            log(`auth_token: ${authToken ? authToken.substring(0, 20) + '...' : 'NOT FOUND'}`);
+            log(`admin_token: ${adminToken ? adminToken.substring(0, 20) + '...' : 'NOT FOUND'}`);
+            log(`token: ${token ? token.substring(0, 20) + '...' : 'NOT FOUND'}`);
+            log(`user: ${user ? JSON.parse(user).username || 'Invalid user data' : 'NOT FOUND'}`);
+
+            // This mimics api.js logic
+            const finalToken = authToken || adminToken || token;
+            currentToken = finalToken;
+
+            if (finalToken) {
+                log(`✅ Token available: ${finalToken.substring(0, 20)}...`);
+                return true;
+            } else {
+                log('❌ No valid token found!');
+                return false;
+            }
+        }
+
+        async function loginAdmin() {
+            log('=== PERFORMING ADMIN LOGIN ===');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/admin/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: 'admin', password: 'admin123' })
+                });
+
+                const data = await response.json();
+                log(`Login response: ${JSON.stringify(data)}`);
+
+                if (data.success && data.data && data.data.token) {
+                    currentToken = data.data.token;
+                    localStorage.setItem('auth_token', currentToken);
+                    localStorage.setItem('user', JSON.stringify(data.data.user));
+                    log(`✅ LOGIN SUCCESS! Token stored: ${currentToken.substring(0, 20)}...`);
+                } else {
+                    log(`❌ LOGIN FAILED: ${data.error || 'Unknown error'}`);
+                }
+            } catch (error) {
+                log(`❌ LOGIN ERROR: ${error.message}`);
+            }
+        }
+
+        async function testRoutesAll() {
+            log('=== TESTING /api/admin/routes/all ===');
+            await testEndpoint('/api/admin/routes/all', true);
+        }
+
+        async function testRoutesSimple() {
+            log('=== TESTING /api/admin/routes ===');
+            await testEndpoint('/api/admin/routes', true);
+        }
+
+        async function testRoutesPublic() {
+            log('=== TESTING /api/routes (PUBLIC) ===');
+            await testEndpoint('/api/routes', false);
+        }
+
+        async function testEndpoint(endpoint, requiresAuth) {
+            if (requiresAuth && !checkAuth()) {
+                log('❌ No authentication available. Please login first.');
+                return;
+            }
+
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+
+                if (requiresAuth && currentToken) {
+                    headers.Authorization = `Bearer ${currentToken}`;
+                    log(`Using token: ${currentToken.substring(0, 20)}...`);
+                }
+
+                log(`Headers: ${JSON.stringify(headers)}`);
+
+                const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                    method: 'GET',
+                    headers: headers
+                });
+
+                log(`Response status: ${response.status}`);
+                log(`Response content-type: ${response.headers.get('content-type')}`);
+
+                const responseText = await response.text();
+                log(`Raw response: ${responseText.substring(0, 200)}...`);
+
+                try {
+                    const data = JSON.parse(responseText);
+                    if (data.success) {
+                        log(`✅ SUCCESS: ${endpoint} returned ${data.routes ? data.routes.length : 0} routes`);
+                    } else {
+                        log(`❌ FAILED: ${data.error}`);
+                    }
+                } catch (parseError) {
+                    log(`❌ Response not valid JSON: ${parseError.message}`);
+                }
+
+            } catch (error) {
+                log(`❌ REQUEST ERROR: ${error.message}`);
+            }
+        }
+
+        async function testHeaders() {
+            log('=== TESTING HEADER DEBUGGING ===');
+
+            if (!checkAuth()) {
+                log('❌ No authentication available. Please login first.');
+                return;
+            }
+
+            try {
+                const headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${currentToken}`
+                };
+
+                const response = await fetch(`${API_BASE_URL}/api/debug/headers`, {
+                    method: 'GET',
+                    headers: headers
+                });
+
+                const data = await response.json();
+                log(`Backend received: ${JSON.stringify(data, null, 2)}`);
+
+                if (data.auth_debug && data.auth_debug.HTTP_AUTHORIZATION) {
+                    log('✅ Backend received Authorization header correctly');
+                } else {
+                    log('❌ Backend did NOT receive Authorization header');
+                }
+
+            } catch (error) {
+                log(`❌ HEADERS TEST ERROR: ${error.message}`);
+            }
+        }
+
+        async function simulateReactCall() {
+            log('=== SIMULATING REACT API CALL ===');
+
+            if (!checkAuth()) {
+                log('❌ No authentication available. Please login first.');
+                return;
+            }
+
+            // This simulates exactly what the React app does
+            const token = localStorage.getItem('auth_token') ||
+                         localStorage.getItem('admin_token') ||
+                         localStorage.getItem('token');
+
+            log(`Token from localStorage: ${token ? token.substring(0, 20) + '...' : 'NONE'}`);
+
+            const defaultHeaders = {
+                'Content-Type': 'application/json',
+            };
+
+            if (token) {
+                defaultHeaders.Authorization = `Bearer ${token}`;
+                log('✅ Added Authorization header to defaultHeaders');
+            } else {
+                log('❌ No token - Authorization header NOT added');
+            }
+
+            // Simulate the fixed api.js logic
+            const options = { method: 'GET', headers: {} };
+
+            const mergedHeaders = {
+                ...defaultHeaders,
+                ...(options.headers || {})
+            };
+
+            const config = {
+                method: 'GET',
+                ...options,
+                headers: mergedHeaders
+            };
+
+            log(`Final config headers: ${JSON.stringify(config.headers)}`);
+            log(`hasAuthHeader: ${!!config.headers.Authorization}`);
+
+            if (config.headers.Authorization) {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/admin/routes/all`, config);
+                    const data = await response.json();
+
+                    if (data.success) {
+                        log(`✅ REACT SIMULATION SUCCESS: Got ${data.routes.length} routes`);
+                    } else {
+                        log(`❌ REACT SIMULATION FAILED: ${data.error}`);
+                    }
+                } catch (error) {
+                    log(`❌ REACT SIMULATION ERROR: ${error.message}`);
+                }
+            } else {
+                log('❌ REACT SIMULATION: No Authorization header - would fail');
+            }
+        }
+
+        // Initialize
+        log('Routes Authorization Debug Tool Ready');
+        log('Step 1: Check auth status or login');
+        log('Step 2: Test the routes endpoints');
+        log('Step 3: Check what headers are being sent');
+    </script>
+</body>
+</html>
