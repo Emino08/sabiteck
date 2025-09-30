@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend Integration Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .logs {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        input {
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Frontend Integration Test</h1>
+        <p>Testing the fixed scholarship generator with JSON parsing improvements</p>
+
+        <!-- Authentication Test -->
+        <div class="test-section">
+            <h3>🔐 Authentication Test</h3>
+            <input type="text" id="username" placeholder="Username" value="admin">
+            <input type="password" id="password" placeholder="Password" value="">
+            <button onclick="testLogin()">Login</button>
+            <div id="auth-status"></div>
+        </div>
+
+        <!-- API Communication Test -->
+        <div class="test-section">
+            <h3>🌐 API Communication Test</h3>
+            <button onclick="testApiUtils()">Test API Utils</button>
+            <button onclick="testServicesApi()">Test Services API</button>
+            <div id="api-status"></div>
+        </div>
+
+        <!-- Scholarship Generator Test -->
+        <div class="test-section">
+            <h3>📚 Scholarship Generator Integration Test</h3>
+            <button onclick="testScholarshipLoad()">Load Scholarships</button>
+            <button onclick="testGeneratePDF()">Generate Test PDF</button>
+            <button onclick="testGenerateImage()">Generate Test Image</button>
+            <div id="generator-status"></div>
+        </div>
+
+        <!-- JSON Parsing Test -->
+        <div class="test-section">
+            <h3>🔍 JSON Parsing Test</h3>
+            <button onclick="testJsonParsing()">Test Various Endpoints</button>
+            <div id="json-status"></div>
+        </div>
+
+        <!-- Logs -->
+        <div class="test-section">
+            <h3>📝 Test Logs</h3>
+            <button onclick="clearLogs()">Clear Logs</button>
+            <div id="logs" class="logs"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8002';
+        let authToken = '';
+
+        function log(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            logs.innerHTML += `<div>[${timestamp}] [${type.toUpperCase()}] ${message}</div>`;
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        function showStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function clearLogs() {
+            document.getElementById('logs').innerHTML = '';
+        }
+
+        // Import the fixed API utilities (simulate import)
+        const apiRequest = async (endpoint, options = {}) => {
+            try {
+                const url = `${API_URL}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+
+                const defaultHeaders = {
+                    'Content-Type': 'application/json',
+                };
+
+                if (authToken) {
+                    defaultHeaders.Authorization = `Bearer ${authToken}`;
+                }
+
+                const mergedHeaders = {
+                    ...defaultHeaders,
+                    ...(options.headers || {})
+                };
+
+                const config = {
+                    method: 'GET',
+                    ...options,
+                    headers: mergedHeaders
+                };
+
+                log(`Making API request to: ${url}`);
+                const response = await fetch(url, config);
+
+                // Check if response is JSON by checking content-type header
+                const contentType = response.headers.get('content-type');
+                const isJsonResponse = contentType && contentType.includes('application/json');
+
+                if (!response.ok) {
+                    let errorMessage = 'Unknown error';
+
+                    if (isJsonResponse) {
+                        const errorData = await response.json().catch(() => ({}));
+                        errorMessage = errorData.error || errorData.message || 'Unknown error';
+                    } else {
+                        errorMessage = `Server returned non-JSON response (status ${response.status})`;
+                    }
+
+                    throw new Error(`API Error ${response.status}: ${errorMessage}`);
+                }
+
+                if (!isJsonResponse) {
+                    throw new Error(`Server returned non-JSON response: ${contentType || 'unknown content type'}`);
+                }
+
+                const data = await response.json();
+                log(`API request successful: ${JSON.stringify(data).substring(0, 100)}...`);
+                return data;
+
+            } catch (error) {
+                log(`API Request Error: ${error.message}`, 'error');
+                throw error;
+            }
+        };
+
+        async function testLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const data = await apiRequest('/api/auth/admin-login', {
+                    method: 'POST',
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (data.success) {
+                    authToken = data.data.token;
+                    showStatus('auth-status', `✅ Login successful! User: ${data.data.user.username}`, 'success');
+                    log(`Login successful for user: ${data.data.user.username}`);
+                } else {
+                    showStatus('auth-status', `❌ Login failed: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showStatus('auth-status', `❌ Login error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testApiUtils() {
+            if (!authToken) {
+                showStatus('api-status', '❌ Please login first', 'error');
+                return;
+            }
+
+            try {
+                // Test the utils/api.js functionality
+                const testData = await apiRequest('/api/test');
+                showStatus('api-status', `✅ API Utils test passed: ${testData.database}`, 'success');
+                log(`API Utils test successful: Connected to ${testData.database}`);
+            } catch (error) {
+                showStatus('api-status', `❌ API Utils test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testServicesApi() {
+            try {
+                // Test the services/api.js functionality
+                const services = await apiRequest('/api/services');
+                showStatus('api-status', `✅ Services API test passed: ${services.length || 'No count'} services`, 'success');
+                log(`Services API test successful`);
+            } catch (error) {
+                showStatus('api-status', `❌ Services API test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testScholarshipLoad() {
+            if (!authToken) {
+                showStatus('generator-status', '❌ Please login first', 'error');
+                return;
+            }
+
+            try {
+                const scholarships = await apiRequest('/api/admin/scholarships/active');
+                if (scholarships.success) {
+                    showStatus('generator-status', `✅ Loaded ${scholarships.data.length} active scholarships`, 'success');
+                    log(`Scholarship load successful: ${scholarships.data.length} scholarships`);
+                } else {
+                    showStatus('generator-status', `❌ Failed to load scholarships: ${scholarships.error}`, 'error');
+                }
+            } catch (error) {
+                showStatus('generator-status', `❌ Scholarship load error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testGeneratePDF() {
+            if (!authToken) {
+                showStatus('generator-status', '❌ Please login first', 'error');
+                return;
+            }
+
+            try {
+                // First get scholarships
+                const scholarshipResponse = await apiRequest('/api/admin/scholarships/active');
+                if (!scholarshipResponse.success) {
+                    throw new Error('Failed to fetch scholarships');
+                }
+
+                const scholarships = scholarshipResponse.data.slice(0, 18); // Take first 18
+
+                log(`Generating PDF with ${scholarships.length} scholarships...`);
+
+                // Generate PDF using raw fetch since we need blob response
+                const response = await fetch(`${API_URL}/api/admin/scholarships/generate`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        scholarships: scholarships,
+                        format: 'pdf',
+                        orientation: 'landscape',
+                        includeLinks: false,
+                        template: 'table'
+                    })
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `frontend_test_${new Date().toISOString().split('T')[0]}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+
+                    showStatus('generator-status', `✅ PDF generated and downloaded successfully!`, 'success');
+                    log(`PDF generation successful: ${scholarships.length} scholarships`);
+                } else {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+            } catch (error) {
+                showStatus('generator-status', `❌ PDF generation error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testGenerateImage() {
+            if (!authToken) {
+                showStatus('generator-status', '❌ Please login first', 'error');
+                return;
+            }
+
+            try {
+                // Test image generation (similar to PDF but with format: 'image')
+                const scholarshipResponse = await apiRequest('/api/admin/scholarships/active');
+                if (!scholarshipResponse.success) {
+                    throw new Error('Failed to fetch scholarships');
+                }
+
+                const scholarships = scholarshipResponse.data.slice(0, 6); // Take first 6 for image
+
+                log(`Generating image with ${scholarships.length} scholarships...`);
+
+                const response = await fetch(`${API_URL}/api/admin/scholarships/generate`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        scholarships: scholarships,
+                        format: 'image',
+                        orientation: 'landscape',
+                        includeLinks: false,
+                        template: 'table'
+                    })
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `frontend_test_image_${new Date().toISOString().split('T')[0]}.png`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+
+                    showStatus('generator-status', `✅ Image generated and downloaded successfully!`, 'success');
+                    log(`Image generation successful: ${scholarships.length} scholarships`);
+                } else {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+            } catch (error) {
+                showStatus('generator-status', `❌ Image generation error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testJsonParsing() {
+            const endpoints = [
+                '/api/test',
+                '/api/services',
+                '/api/portfolio/categories',
+                '/api/settings/routes'
+            ];
+
+            let successCount = 0;
+            let totalCount = endpoints.length;
+
+            for (const endpoint of endpoints) {
+                try {
+                    log(`Testing JSON parsing for: ${endpoint}`);
+                    const data = await apiRequest(endpoint);
+                    log(`✅ ${endpoint}: JSON parsed successfully`);
+                    successCount++;
+                } catch (error) {
+                    log(`❌ ${endpoint}: ${error.message}`, 'error');
+                }
+            }
+
+            if (successCount === totalCount) {
+                showStatus('json-status', `✅ All ${totalCount} endpoints passed JSON parsing tests`, 'success');
+            } else {
+                showStatus('json-status', `⚠️ ${successCount}/${totalCount} endpoints passed JSON parsing tests`, 'error');
+            }
+        }
+
+        // Initialize
+        window.onload = function() {
+            log('Frontend integration test initialized');
+            log('Ready to test the scholarship generator with fixed JSON parsing');
+        };
+    </script>
+</body>
+</html>

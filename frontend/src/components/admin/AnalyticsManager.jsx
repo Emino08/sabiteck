@@ -12,7 +12,19 @@ import { secureLog } from '../../utils/security'
 
 const AnalyticsManager = () => {
   const [analyticsData, setAnalyticsData] = useState({
-    stats: {},
+    stats: {
+      unique_visitors: 0,
+      sessions: 0,
+      page_views: 0,
+      avg_session_duration: 0,
+      avg_pages_per_session: 0,
+      bounce_rate: 0,
+      active_users: 0,
+      visitors: { total: 0, growth: 0 },
+      pageviews: { total: 0, growth: 0 },
+      bounce_rate: { rate: 0, growth: 0 },
+      session_duration: { average: 0, growth: 0 }
+    },
     popularPages: [],
     referrers: [],
     devices: [],
@@ -65,11 +77,11 @@ const AnalyticsManager = () => {
 
     try {
       const [statsRes, pagesRes, referrersRes, devicesRes, geoRes] = await Promise.all([
-        apiRequest(`/api/analytics/test/dashboard?period=${period}`),
-        apiRequest(`/api/analytics/test/pages?period=${period}&limit=10`),
-        apiRequest(`/api/analytics/test/referrers?period=${period}&limit=10`),
-        apiRequest(`/api/analytics/test/devices?period=${period}`),
-        apiRequest(`/api/analytics/test/geography?period=${period}&limit=10`)
+        apiRequest(`/api/admin/analytics/dashboard?period=${period}`),
+        apiRequest(`/api/admin/analytics/pages?period=${period}&limit=10`),
+        apiRequest(`/api/admin/analytics/referrers?period=${period}&limit=10`),
+        apiRequest(`/api/admin/analytics/devices?period=${period}`),
+        apiRequest(`/api/admin/analytics/geography?period=${period}&limit=10`)
       ])
 
       setAnalyticsData({
@@ -87,12 +99,16 @@ const AnalyticsManager = () => {
       setConnectionStatus('error')
       secureLog('error', 'Failed to load analytics data', { error: error.message })
 
-      // Set fallback data for better UX
+      // Set empty data state for fresh analytics
       setAnalyticsData({
         stats: {
-          pageViews: 0,
-          uniqueVisitors: 0,
-          bounceRate: '0%',
+          unique_visitors: 0,
+          sessions: 0,
+          page_views: 0,
+          avg_session_duration: 0,
+          avg_pages_per_session: 0,
+          bounce_rate: 0,
+          active_users: 0,
           visitors: { total: 0, growth: 0 },
           pageviews: { total: 0, growth: 0 },
           bounce_rate: { rate: 0, growth: 0 },
@@ -100,8 +116,12 @@ const AnalyticsManager = () => {
         },
         popularPages: [],
         referrers: [],
-        devices: {},
-        geography: []
+        devices: [],
+        geography: [],
+        realtimeData: {
+          total_active_users: 0,
+          active_pages: []
+        }
       })
 
       toast.error(`❌ ${error.message || 'Failed to load analytics data'}`)
@@ -154,19 +174,28 @@ const AnalyticsManager = () => {
   }
 
   const formatNumber = (num) => {
-    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'K'
-    return num?.toString() || '0'
+    if (num === undefined || num === null || isNaN(num)) return '0'
+    const number = Number(num)
+    if (!isFinite(number)) return '0'
+    if (number >= 1000000) return (number / 1000000).toFixed(1) + 'M'
+    if (number >= 1000) return (number / 1000).toFixed(1) + 'K'
+    return Math.round(number).toString()
   }
 
   const formatDuration = (seconds) => {
-    if (seconds < 60) return Math.round(seconds) + 's'
-    if (seconds < 3600) return Math.floor(seconds / 60) + 'm ' + Math.round(seconds % 60) + 's'
-    return Math.floor(seconds / 3600) + 'h ' + Math.floor((seconds % 3600) / 60) + 'm'
+    if (seconds === undefined || seconds === null || isNaN(seconds)) return '0s'
+    const duration = Number(seconds)
+    if (!isFinite(duration) || duration < 0) return '0s'
+    if (duration < 60) return Math.round(duration) + 's'
+    if (duration < 3600) return Math.floor(duration / 60) + 'm ' + Math.round(duration % 60) + 's'
+    return Math.floor(duration / 3600) + 'h ' + Math.floor((duration % 3600) / 60) + 'm'
   }
 
   const formatPercentage = (value) => {
-    return Math.round(value || 0) + '%'
+    if (value === undefined || value === null || isNaN(value)) return '0%'
+    const percentage = Number(value)
+    if (!isFinite(percentage)) return '0%'
+    return Math.round(percentage) + '%'
   }
 
   if (loading) {
@@ -336,7 +365,7 @@ const AnalyticsManager = () => {
                 <div>
                   <p className="text-sm font-medium text-gray-600 mb-1">Unique Visitors</p>
                   <p className="text-3xl font-bold text-gray-900 mb-1">
-                    {formatNumber(analyticsData.stats.visitors?.total || 0)}
+                    {formatNumber(analyticsData.stats.unique_visitors || analyticsData.stats.visitors?.total || 0)}
                   </p>
                   <p className="text-xs text-gray-500">
                     vs last {period === '1d' ? 'day' : period === '7d' ? 'week' : period === '30d' ? 'month' : 'quarter'}
@@ -364,10 +393,13 @@ const AnalyticsManager = () => {
                 <div>
                   <p className="text-sm font-medium text-gray-600 mb-1">Page Views</p>
                   <p className="text-3xl font-bold text-gray-900 mb-1">
-                    {formatNumber(analyticsData.stats.pageviews?.total || 0)}
+                    {formatNumber(analyticsData.stats.page_views || analyticsData.stats.pageviews?.total || 0)}
                   </p>
                   <p className="text-xs text-gray-500">
-                    {formatNumber((analyticsData.stats.pageviews?.total || 0) / (analyticsData.stats.visitors?.total || 1))} avg per visitor
+                    {analyticsData.stats.avg_pages_per_session ?
+                      formatNumber(analyticsData.stats.avg_pages_per_session) + ' avg per session' :
+                      formatNumber((analyticsData.stats.page_views || analyticsData.stats.pageviews?.total || 0) / (analyticsData.stats.unique_visitors || analyticsData.stats.visitors?.total || 1)) + ' avg per visitor'
+                    }
                   </p>
                 </div>
               </CardContent>
@@ -392,11 +424,12 @@ const AnalyticsManager = () => {
                 <div>
                   <p className="text-sm font-medium text-gray-600 mb-1">Bounce Rate</p>
                   <p className="text-3xl font-bold text-gray-900 mb-1">
-                    {analyticsData.stats.bounce_rate?.rate || 0}%
+                    {formatPercentage(analyticsData.stats.bounce_rate || analyticsData.stats.bounce_rate?.rate || 0)}
                   </p>
                   <p className="text-xs text-gray-500">
-                    {(analyticsData.stats.bounce_rate?.rate || 0) < 40 ? 'Excellent engagement' :
-                     (analyticsData.stats.bounce_rate?.rate || 0) < 60 ? 'Good engagement' : 'Needs improvement'}
+                    {(analyticsData.stats.bounce_rate || analyticsData.stats.bounce_rate?.rate || 0) === 0 ? 'No data yet' :
+                     (analyticsData.stats.bounce_rate || analyticsData.stats.bounce_rate?.rate || 0) < 40 ? 'Excellent engagement' :
+                     (analyticsData.stats.bounce_rate || analyticsData.stats.bounce_rate?.rate || 0) < 60 ? 'Good engagement' : 'Needs improvement'}
                   </p>
                 </div>
               </CardContent>
@@ -421,19 +454,118 @@ const AnalyticsManager = () => {
                 <div>
                   <p className="text-sm font-medium text-gray-600 mb-1">Avg Session Duration</p>
                   <p className="text-3xl font-bold text-gray-900 mb-1">
-                    {formatDuration(analyticsData.stats.session_duration?.average || 0)}
+                    {formatDuration(analyticsData.stats.avg_session_duration || analyticsData.stats.session_duration?.average || 0)}
                   </p>
                   <p className="text-xs text-gray-500">
-                    {(analyticsData.stats.session_duration?.average || 0) > 180 ? 'High engagement' :
-                     (analyticsData.stats.session_duration?.average || 0) > 60 ? 'Average engagement' : 'Low engagement'}
+                    {(analyticsData.stats.avg_session_duration || analyticsData.stats.session_duration?.average || 0) === 0 ? 'No sessions yet' :
+                     (analyticsData.stats.avg_session_duration || analyticsData.stats.session_duration?.average || 0) > 180 ? 'High engagement' :
+                     (analyticsData.stats.avg_session_duration || analyticsData.stats.session_duration?.average || 0) > 60 ? 'Average engagement' : 'Low engagement'}
                   </p>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Enhanced Top Pages & Traffic Sources */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Getting Started Notice for Empty Analytics */}
+        {(analyticsData.stats.unique_visitors === 0 && analyticsData.stats.page_views === 0) && (
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 mb-8">
+            <div className="flex items-start space-x-4">
+              <div className="bg-blue-100 p-3 rounded-lg">
+                <BarChart3 className="w-6 h-6 text-blue-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-blue-900 mb-2">Analytics Tracking Started</h3>
+                <p className="text-blue-700 mb-3">
+                  Your analytics system is now active and ready to collect visitor data. The dashboard will start showing
+                  real-time insights as visitors interact with your website.
+                </p>
+                <div className="bg-white rounded-lg p-4 border border-blue-200">
+                  <h4 className="font-medium text-blue-900 mb-2">What you'll see once data arrives:</h4>
+                  <ul className="text-sm text-blue-700 space-y-1">
+                    <li>• Visitor counts and geographic distribution</li>
+                    <li>• Device types (mobile, tablet, desktop)</li>
+                    <li>• Popular pages and user behavior</li>
+                    <li>• Traffic sources and referrers</li>
+                    <li>• Real-time active users</li>
+                    <li>• Session duration and engagement metrics</li>
+                  </ul>
+                </div>
+                <div className="mt-4 flex items-center space-x-2 text-sm text-blue-600">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span>Analytics tracking is active and GDPR compliant</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Additional Analytics Metrics */}
+        {(analyticsData.stats.unique_visitors > 0 || analyticsData.stats.page_views > 0) && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {/* Sessions */}
+            <Card className="bg-gradient-to-br from-cyan-50 to-blue-100 border-0 shadow-lg">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="bg-gradient-to-br from-cyan-500 to-blue-600 p-3 rounded-xl shadow-lg">
+                    <Activity className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Sessions</p>
+                  <p className="text-3xl font-bold text-gray-900 mb-1">
+                    {formatNumber(analyticsData.stats.sessions || 0)}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {analyticsData.stats.sessions === 0 ? 'No sessions yet' : 'Total user sessions'}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* New vs Returning */}
+            <Card className="bg-gradient-to-br from-pink-50 to-rose-100 border-0 shadow-lg">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="bg-gradient-to-br from-pink-500 to-rose-600 p-3 rounded-xl shadow-lg">
+                    <Users className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Visitor Types</p>
+                  <p className="text-3xl font-bold text-gray-900 mb-1">
+                    {analyticsData.stats.unique_visitors > 0 ? 'Mixed' : '0'}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {analyticsData.stats.unique_visitors === 0 ? 'No visitors yet' : 'New and returning visitors'}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Conversion Rate */}
+            <Card className="bg-gradient-to-br from-yellow-50 to-amber-100 border-0 shadow-lg">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="bg-gradient-to-br from-yellow-500 to-amber-600 p-3 rounded-xl shadow-lg">
+                    <TrendingUp className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Engagement Score</p>
+                  <p className="text-3xl font-bold text-gray-900 mb-1">
+                    {formatPercentage(analyticsData.stats.bounce_rate === 0 ? 0 : Math.max(0, 100 - (analyticsData.stats.bounce_rate || 0)))}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {analyticsData.stats.bounce_rate === 0 ? 'No data yet' : 'User engagement level'}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Enhanced Top Pages & Traffic Sources */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Top Pages Card */}
             <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
               <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 pb-4">
@@ -463,7 +595,7 @@ const AnalyticsManager = () => {
                           </p>
                           <div className="flex items-center space-x-4 mt-1">
                             <span className="text-xs text-gray-500 bg-orange-100 text-orange-700 px-2 py-1 rounded-full">
-                              {page.bounce_rate || 0}% bounce
+                              {formatPercentage(page.bounce_rate || 0)} bounce
                             </span>
                             <span className="text-xs text-gray-500">
                               {formatDuration(page.avg_session_duration || 120)} avg time
@@ -587,7 +719,7 @@ const AnalyticsManager = () => {
                   <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{page.page}</p>
-                      <p className="text-xs text-muted-foreground">{page.bounce_rate}% bounce rate</p>
+                      <p className="text-xs text-muted-foreground">{formatPercentage(page.bounce_rate || 0)} bounce rate</p>
                     </div>
                     <div className="flex items-center gap-6 text-sm">
                       <div className="text-center">
@@ -643,25 +775,30 @@ const AnalyticsManager = () => {
       {activeView === 'devices' && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {Object.entries(analyticsData.devices || {}).map(([deviceType, data]) => (
-              <Card key={deviceType}>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    {deviceType === 'desktop' && <Monitor className="h-8 w-8 text-blue-600" />}
-                    {deviceType === 'mobile' && <Smartphone className="h-8 w-8 text-green-600" />}
-                    {deviceType === 'tablet' && <Monitor className="h-8 w-8 text-purple-600" />}
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-muted-foreground capitalize">{deviceType}</p>
-                      <p className="text-2xl font-bold">{formatNumber(data?.visits)}</p>
-                      <p className="text-xs text-muted-foreground">{data?.percentage}% of visits</p>
+            {Array.isArray(analyticsData.devices) && analyticsData.devices.length > 0 ? (
+              analyticsData.devices.map((device, index) => (
+                <Card key={index}>
+                  <CardContent className="p-6">
+                    <div className="flex items-center">
+                      {device.device_type === 'desktop' && <Monitor className="h-8 w-8 text-blue-600" />}
+                      {device.device_type === 'mobile' && <Smartphone className="h-8 w-8 text-green-600" />}
+                      {device.device_type === 'tablet' && <Monitor className="h-8 w-8 text-purple-600" />}
+                      <div className="ml-4">
+                        <p className="text-sm font-medium text-muted-foreground capitalize">{device.device_type}</p>
+                        <p className="text-2xl font-bold">{formatNumber(device.visitors || 0)}</p>
+                        <p className="text-xs text-muted-foreground">{Math.round(device.percentage || 0)}% of visits</p>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-            {Object.keys(analyticsData.devices || {}).length === 0 && (
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
               <div className="col-span-3">
-                <p className="text-center text-muted-foreground py-8">No device data available</p>
+                <div className="text-center py-12">
+                  <Monitor className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 font-medium">No device data available yet</p>
+                  <p className="text-gray-400 text-sm">Device statistics will appear as visitors browse your site</p>
+                </div>
               </div>
             )}
           </div>
@@ -674,17 +811,24 @@ const AnalyticsManager = () => {
               <div className="space-y-3">
                 {(Array.isArray(analyticsData.geography) ? analyticsData.geography : []).map((country, index) => (
                   <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{country.country}</p>
-                      <p className="text-xs text-muted-foreground">{country.percentage}% of visitors</p>
+                    <div className="flex items-center flex-1 min-w-0">
+                      <span className="text-2xl mr-3">{country.country_code ? `${country.country_code}` : '🌍'}</span>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium truncate">{country.country || 'Unknown'}</p>
+                        <p className="text-xs text-muted-foreground">{Math.round(country.percentage || 0)}% of visitors</p>
+                      </div>
                     </div>
                     <div className="text-sm font-medium">
-                      {formatNumber(country.visits)} visits
+                      {formatNumber(country.visitors || 0)} visitors
                     </div>
                   </div>
                 ))}
                 {(!Array.isArray(analyticsData.geography) || analyticsData.geography.length === 0) && (
-                  <p className="text-center text-muted-foreground py-8">No geographic data available</p>
+                  <div className="text-center py-12">
+                    <MapPin className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500 font-medium">No geographic data available yet</p>
+                    <p className="text-gray-400 text-sm">Visitor locations will appear as people visit your site</p>
+                  </div>
                 )}
               </div>
             </CardContent>

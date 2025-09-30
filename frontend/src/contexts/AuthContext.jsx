@@ -33,7 +33,6 @@ export const AuthProvider = ({ children }) => {
                     setUser(userData);
                     setLoading(false);
                 } catch (parseError) {
-                    console.error('Error parsing stored user data:', parseError);
                     logout();
                     setLoading(false);
                 }
@@ -43,7 +42,6 @@ export const AuthProvider = ({ children }) => {
                 setLoading(false);
             }
         } catch (error) {
-            console.error('Auth check error:', error);
             logout();
             setLoading(false);
         }

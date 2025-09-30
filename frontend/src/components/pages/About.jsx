@@ -201,7 +201,7 @@ const About = () => {
         keywords="about Sabiteck, Sierra Leone tech company, software development team, technology solutions Bo, Emmanuel Koroma CEO"
       />
 
-      <div className="min-h-screen pt-20 bg-white">
+      <div className="min-h-screen pt-24 bg-white">
         {/* Ultra-Modern Hero Section */}
         <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900">
           {/* Enhanced Background Pattern */}

@@ -1,50 +1,188 @@
 import React, { useState, useEffect } from 'react';
-import { Calculator, BookOpen, TrendingUp, Wrench, ChevronRight, FileText, RefreshCw, Sparkles, Zap, Star } from 'lucide-react';
+import { Calculator, BookOpen, TrendingUp, Wrench, ChevronRight, FileText, RefreshCw, Sparkles, Zap, Star, Link } from 'lucide-react';
 import GPACalculator from '../tools/GPACalculator';
 import FileConverter from '../tools/FileConverter';
+import CurriculumViewer from '../tools/CurriculumViewer';
+import ImportantLinks from '../tools/ImportantLinks';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const Tools = () => {
     const [activeTab, setActiveTab] = useState('gpa');
     const [isLoaded, setIsLoaded] = useState(false);
+    const [tools, setTools] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    // Component mapping
+    const componentMap = {
+        'GPACalculator': GPACalculator,
+        'FileConverter': FileConverter,
+        'CurriculumViewer': CurriculumViewer,
+        'ImportantLinks': ImportantLinks
+    };
+
+    // Icon mapping
+    const iconMap = {
+        'Calculator': Calculator,
+        'RefreshCw': RefreshCw,
+        'BookOpen': BookOpen,
+        'Wrench': Wrench,
+        'FileText': FileText,
+        'Star': Star,
+        'Zap': Zap,
+        'Sparkles': Sparkles,
+        'Link': Link
+    };
 
     useEffect(() => {
-        setIsLoaded(true);
+        fetchTools();
+        setTimeout(() => setIsLoaded(true), 300);
     }, []);
 
-    const tools = [
-        {
-            id: 'gpa',
-            name: 'GPA Calculator',
-            description: 'Calculate your Grade Point Average for Njala University, FBC, and Every Nation College',
-            icon: Calculator,
-            component: GPACalculator,
-            featured: true,
-            gradient: 'from-violet-500 via-purple-500 to-pink-500',
-            color: 'violet'
-        },
-        {
-            id: 'file-converter',
-            name: 'File Converter',
-            description: 'Convert and resize documents and images - PDF to Word, Image OCR, File compression and more',
-            icon: RefreshCw,
-            component: FileConverter,
-            featured: true,
-            gradient: 'from-cyan-500 via-blue-500 to-indigo-500',
-            color: 'cyan'
-        },
-        {
-            id: 'upcoming',
-            name: 'More Tools Coming Soon',
-            description: 'We\'re working on additional academic tools to help you succeed',
-            icon: Wrench,
-            component: null,
-            featured: false,
-            gradient: 'from-gray-500 via-gray-400 to-gray-300',
-            color: 'gray'
+    const fetchTools = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/tools/config`);
+            const data = await response.json();
+
+            if (data.success) {
+                // Filter only visible tools and map components
+                let visibleTools = data.data
+                    .filter(tool => tool.visible)
+                    .map(tool => ({
+                        ...tool,
+                        id: tool.name.toLowerCase().replace(/\s+/g, '-'),
+                        icon: iconMap[tool.icon] || Wrench,
+                        component: componentMap[tool.component] || null
+                    }));
+
+                // Important Links is now in database, no need for auto-injection
+
+                // Sort by display_order
+                visibleTools.sort((a, b) => (a.display_order || 99) - (b.display_order || 99));
+
+                setTools(visibleTools);
+
+                // Set default active tab to first visible tool
+                if (visibleTools.length > 0) {
+                    setActiveTab(visibleTools[0].id);
+                }
+            } else {
+                // Fallback to default tools if API fails
+                setTools([
+                    {
+                        id: 'gpa',
+                        name: 'GPA Calculator',
+                        description: 'Calculate your Grade Point Average for Njala University, FBC, and Every Nation College',
+                        icon: Calculator,
+                        component: GPACalculator,
+                        featured: true,
+                        gradient: 'from-violet-500 via-purple-500 to-pink-500',
+                        color: 'violet',
+                        visible: true
+                    },
+                    {
+                        id: 'file-converter',
+                        name: 'File Converter',
+                        description: 'Convert and resize documents and images - PDF to Word, Image OCR, File compression and more',
+                        icon: RefreshCw,
+                        component: FileConverter,
+                        featured: true,
+                        gradient: 'from-cyan-500 via-blue-500 to-indigo-500',
+                        color: 'cyan',
+                        visible: true
+                    },
+                    {
+                        id: 'curriculum',
+                        name: 'Curriculum',
+                        description: 'Access comprehensive curriculum materials for various academic programs',
+                        icon: BookOpen,
+                        component: CurriculumViewer,
+                        featured: false,
+                        gradient: 'from-emerald-500 via-teal-500 to-cyan-500',
+                        color: 'emerald',
+                        visible: true
+                    },
+                    {
+                        id: 'important-links',
+                        name: 'Important Links',
+                        description: 'Access curated collection of important links and downloadable resources organized by categories',
+                        icon: Link,
+                        component: ImportantLinks,
+                        featured: false,
+                        gradient: 'from-indigo-500 via-purple-500 to-pink-500',
+                        color: 'indigo',
+                        visible: true
+                    }
+                ]);
+                setActiveTab('gpa');
+            }
+        } catch (error) {
+            console.error('Error fetching tools:', error);
+            // Fallback tools
+            setTools([
+                {
+                    id: 'gpa',
+                    name: 'GPA Calculator',
+                    description: 'Calculate your Grade Point Average for Njala University, FBC, and Every Nation College',
+                    icon: Calculator,
+                    component: GPACalculator,
+                    featured: true,
+                    gradient: 'from-violet-500 via-purple-500 to-pink-500',
+                    color: 'violet',
+                    visible: true
+                },
+                {
+                    id: 'file-converter',
+                    name: 'File Converter',
+                    description: 'Convert and resize documents and images - PDF to Word, Image OCR, File compression and more',
+                    icon: RefreshCw,
+                    component: FileConverter,
+                    featured: true,
+                    gradient: 'from-cyan-500 via-blue-500 to-indigo-500',
+                    color: 'cyan',
+                    visible: true
+                },
+                {
+                    id: 'curriculum',
+                    name: 'Curriculum',
+                    description: 'Access comprehensive curriculum materials for various academic programs',
+                    icon: BookOpen,
+                    component: CurriculumViewer,
+                    featured: false,
+                    gradient: 'from-emerald-500 via-teal-500 to-cyan-500',
+                    color: 'emerald',
+                    visible: true
+                },
+                {
+                    id: 'important-links',
+                    name: 'Important Links',
+                    description: 'Access curated collection of important links and downloadable resources organized by categories',
+                    icon: Link,
+                    component: ImportantLinks,
+                    featured: false,
+                    gradient: 'from-indigo-500 via-purple-500 to-pink-500',
+                    color: 'indigo',
+                    visible: true
+                }
+            ]);
+            setActiveTab('gpa');
+        } finally {
+            setLoading(false);
         }
-    ];
+    };
 
     const featuredTool = tools.find(tool => tool.id === activeTab);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 pt-24 relative overflow-hidden flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-400 mx-auto mb-4"></div>
+                    <p className="text-white text-xl">Loading Elite Tools...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 pt-24 relative overflow-hidden">

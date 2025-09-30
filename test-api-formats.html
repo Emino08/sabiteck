@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Format Testing</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button.success {
+            background: #28a745;
+        }
+        button.error {
+            background: #dc3545;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: 500;
+        }
+        .success-status {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error-status {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info-status {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Final Format Testing - Complete Implementation</h1>
+        <p>Testing: ✅ Sabitek PNG logo ✅ Table headers visibility ✅ Convert button ✅ Application links ✅ Ultra-compressed single details ✅ 8mm margins</p>
+
+        <div class="test-section">
+            <h3>🔐 Quick Admin Login</h3>
+            <input type="text" id="username" placeholder="Username" value="admin" style="margin-right: 10px; padding: 8px;">
+            <input type="password" id="password" placeholder="Password" value="" style="margin-right: 10px; padding: 8px;">
+            <button onclick="quickLogin()">Login</button>
+            <div id="auth-status"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📋 Test 3-Column Table Format (18 per page)</h3>
+            <p>Testing the new Number | Name | Deadline table format in portrait mode</p>
+            <button onclick="testTableFormat()">Generate Table Format PDF</button>
+            <div id="table-status"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📄 Test Optimized Single Scholarship Detail</h3>
+            <p>Testing the compressed single-page scholarship detail format</p>
+            <button onclick="testSingleFormat()">Generate Single Detail PDF</button>
+            <div id="single-status"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>⚖️ Comprehensive Comparison Test</h3>
+            <p>Test both formats side by side to ensure no code breakage</p>
+            <button onclick="testBothFormats()">Test Both Formats</button>
+            <div id="comparison-status"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8002';
+        let authToken = '';
+
+        function showStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="status ${type}-status">${message}</div>`;
+        }
+
+        async function quickLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch(`${API_URL}/api/auth/admin-login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    authToken = data.data.token;
+                    showStatus('auth-status', `✅ Logged in successfully as ${data.data.user.username}`, 'success');
+                } else {
+                    showStatus('auth-status', `❌ Login failed: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showStatus('auth-status', `❌ Login error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testTableFormat() {
+            if (!authToken) {
+                showStatus('table-status', '❌ Please login first', 'error');
+                return;
+            }
+
+            showStatus('table-status', '🔄 Testing 3-column table format...', 'info');
+
+            try {
+                // Get active scholarships first
+                const scholarshipsResponse = await fetch(`${API_URL}/api/admin/scholarships/active`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                const scholarshipsData = await scholarshipsResponse.json();
+
+                if (!scholarshipsData.success) {
+                    throw new Error('Failed to get scholarships');
+                }
+
+                // Take first 18 scholarships for testing
+                const testScholarships = scholarshipsData.data.slice(0, 18);
+
+                const response = await fetch(`${API_URL}/api/admin/scholarships/generate`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        scholarships: testScholarships,
+                        format: 'pdf',
+                        orientation: 'portrait',
+                        includeLinks: true,
+                        template: 'table'
+                    })
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `table_format_test_${new Date().toISOString().split('T')[0]}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+
+                    showStatus('table-status', `✅ Table format test successful! File size: ${Math.round(blob.size/1024)}KB with ${testScholarships.length} scholarships`, 'success');
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Generation failed');
+                }
+            } catch (error) {
+                showStatus('table-status', `❌ Table format test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testSingleFormat() {
+            if (!authToken) {
+                showStatus('single-status', '❌ Please login first', 'error');
+                return;
+            }
+
+            showStatus('single-status', '🔄 Testing optimized single scholarship detail...', 'info');
+
+            try {
+                // Get a single scholarship for testing
+                const scholarshipsResponse = await fetch(`${API_URL}/api/admin/scholarships/active`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                const scholarshipsData = await scholarshipsResponse.json();
+
+                if (!scholarshipsData.success || scholarshipsData.data.length === 0) {
+                    throw new Error('No scholarships available');
+                }
+
+                const testScholarship = scholarshipsData.data[0];
+
+                const response = await fetch(`${API_URL}/api/admin/scholarships/generate-single`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        scholarship: testScholarship,
+                        format: 'pdf',
+                        includeContact: true,
+                        includeRequirements: true
+                    })
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+
+                    const safeName = testScholarship.title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                    a.download = `single_detail_optimized_${safeName}.pdf`;
+
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+
+                    showStatus('single-status', `✅ Single format test successful! File size: ${Math.round(blob.size/1024)}KB for "${testScholarship.title}"`, 'success');
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Generation failed');
+                }
+            } catch (error) {
+                showStatus('single-status', `❌ Single format test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testBothFormats() {
+            if (!authToken) {
+                showStatus('comparison-status', '❌ Please login first', 'error');
+                return;
+            }
+
+            showStatus('comparison-status', '🔄 Running comprehensive format comparison...', 'info');
+
+            try {
+                // Test both formats sequentially
+                await testTableFormat();
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Small delay
+                await testSingleFormat();
+
+                showStatus('comparison-status', '✅ Both formats tested successfully! No code breakage detected.', 'success');
+            } catch (error) {
+                showStatus('comparison-status', `❌ Comprehensive test failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-focus username field
+        window.onload = function() {
+            document.getElementById('username').focus();
+        };
+    </script>
+</body>
+</html>

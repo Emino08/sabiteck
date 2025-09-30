@@ -14,10 +14,10 @@ class Database
         try {
             // MySQL configuration
             $host = $_ENV['DB_HOST'] ?? 'localhost';
-            $port = $_ENV['DB_PORT'] ?? '3306';
+            $port = $_ENV['DB_PORT'] ?? '4306';
             $dbname = $_ENV['DB_NAME'] ?? 'devco_db';
             $username = $_ENV['DB_USER'] ?? 'root';
-            $password = $_ENV['DB_PASS'] ?? '';
+            $password = $_ENV['DB_PASS'] ?? '1212';
             
             $this->connection = new PDO(
                 "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4",
@@ -30,7 +30,21 @@ class Database
                 ]
             );
         } catch (PDOException $e) {
-            throw new \Exception("Database connection failed: " . $e->getMessage());
+            $errorDetails = [
+                'message' => $e->getMessage(),
+                'code' => $e->getCode(),
+                'connection_string' => "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4",
+                'host' => $host,
+                'port' => $port,
+                'database' => $dbname,
+                'username' => $username,
+                'timestamp' => date('Y-m-d H:i:s')
+            ];
+            error_log("Database connection failed: " . json_encode($errorDetails));
+
+            $exception = new \Exception("Database connection failed");
+            $exception->errorDetails = $errorDetails;
+            throw $exception;
         }
     }
     

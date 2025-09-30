@@ -203,5 +203,32 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+
+    <!-- Sabiteck Analytics - Privacy-compliant tracking -->
+    <script>
+      // Initialize analytics with privacy-first approach
+      (function() {
+        const script = document.createElement('script');
+        script.src = '/analytics.js';
+        script.async = true;
+        script.onload = function() {
+          if (window.SabiteckAnalytics) {
+            window.SabiteckAnalytics.init({
+              apiUrl: window.location.origin + '/api',
+              trackPageViews: true,
+              trackEvents: true,
+              trackOutboundLinks: true,
+              trackDownloads: true,
+              trackScrollDepth: true,
+              gdprCompliant: true,
+              sessionTimeout: 30,
+              heartbeatInterval: 15,
+              debug: false
+            });
+          }
+        };
+        document.head.appendChild(script);
+      })();
+    </script>
   </body>
 </html>

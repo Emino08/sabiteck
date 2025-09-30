@@ -24,10 +24,13 @@ import Dashboard from './components/pages/Dashboard'
 import Profile from './components/pages/Profile'
 import AccountDetails from './components/pages/AccountDetails'
 import ChangePassword from './components/pages/ChangePassword'
+import AdminRegister from './components/pages/AdminRegister'
+import AuthCallback from './components/pages/AuthCallback'
 import { AuthProvider } from './contexts/AuthContext'
 import { RouteSettingsProvider } from './contexts/RouteSettingsContext'
 import { ToastProvider } from './components/ui/toast'
 import RouteGuard from './components/guards/RouteGuard'
+import CookieConsent from './components/ui/CookieConsent'
 import { preloadAnimationClasses, getOptimizedAnimationSettings } from './utils/animation-utils'
 import './styles/globals.css'
 
@@ -150,6 +153,8 @@ function App() {
                     } />
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
+                    <Route path="/admin-register" element={<AdminRegister />} />
+                    <Route path="/auth/callback" element={<AuthCallback />} />
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/account-details" element={<AccountDetails />} />
@@ -159,6 +164,7 @@ function App() {
                 </main>
                 <Footer />
               </div>
+              <CookieConsent />
               <Toaster
                 position="top-right"
                 expand={true}

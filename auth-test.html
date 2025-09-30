@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication System Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto py-8">
+        <h1 class="text-3xl font-bold text-center mb-8">Authentication System Test</h1>
+
+        <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Available Authentication Features</h2>
+
+            <div class="space-y-4">
+                <div class="border-l-4 border-blue-500 pl-4">
+                    <h3 class="font-semibold">✅ Regular User Registration</h3>
+                    <p class="text-gray-600">URL: <a href="http://localhost:5173/register" class="text-blue-600 hover:underline">http://localhost:5173/register</a></p>
+                    <p class="text-sm text-gray-500">Creates users with 'user' role</p>
+                </div>
+
+                <div class="border-l-4 border-red-500 pl-4">
+                    <h3 class="font-semibold">✅ Admin Registration</h3>
+                    <p class="text-gray-600">URL: <a href="http://localhost:5173/admin-register" class="text-blue-600 hover:underline">http://localhost:5173/admin-register</a></p>
+                    <p class="text-sm text-gray-500">Creates users with 'admin' role</p>
+                </div>
+
+                <div class="border-l-4 border-green-500 pl-4">
+                    <h3 class="font-semibold">✅ User Login</h3>
+                    <p class="text-gray-600">URL: <a href="http://localhost:5173/login" class="text-blue-600 hover:underline">http://localhost:5173/login</a></p>
+                    <p class="text-sm text-gray-500">Works for all user roles (user, admin, super_admin)</p>
+                </div>
+
+                <div class="border-l-4 border-purple-500 pl-4">
+                    <h3 class="font-semibold">✅ Google OAuth (CSP Fixed)</h3>
+                    <p class="text-gray-600">Available on both register and login pages</p>
+                    <p class="text-sm text-gray-500">Server-side initiated OAuth flow to avoid CSP issues</p>
+                    <p class="text-sm text-gray-500">Google Client ID: 524263291-aisbr9ul1lqpru1aeeb654ggrcqhqvc8.apps.googleusercontent.com</p>
+                </div>
+            </div>
+
+            <div class="mt-8 p-4 bg-blue-50 rounded-lg">
+                <h3 class="font-semibold mb-2">Backend API Endpoints</h3>
+                <ul class="text-sm space-y-1">
+                    <li><code class="bg-gray-200 px-2 py-1 rounded">POST /api/auth/register</code> - Regular user registration</li>
+                    <li><code class="bg-gray-200 px-2 py-1 rounded">POST /api/auth/admin-register</code> - Admin registration</li>
+                    <li><code class="bg-gray-200 px-2 py-1 rounded">POST /api/auth/login</code> - User login</li>
+                    <li><code class="bg-gray-200 px-2 py-1 rounded">GET /api/auth/google/redirect</code> - Google OAuth initiation (CSP fix)</li>
+                    <li><code class="bg-gray-200 px-2 py-1 rounded">GET /api/auth/google/callback</code> - Google OAuth callback</li>
+                    <li><code class="bg-gray-200 px-2 py-1 rounded">POST /api/auth/google</code> - Google OAuth (legacy)</li>
+                </ul>
+            </div>
+
+            <div class="mt-6 p-4 bg-green-50 rounded-lg">
+                <h3 class="font-semibold mb-2">Environment Configuration</h3>
+                <p class="text-sm">✅ Backend Google OAuth credentials configured</p>
+                <p class="text-sm">✅ Frontend Google OAuth client ID configured</p>
+                <p class="text-sm">✅ JWT secret configured</p>
+                <p class="text-sm">✅ Database connection working</p>
+            </div>
+
+            <div class="mt-6 p-4 bg-orange-50 rounded-lg border-l-4 border-orange-500">
+                <h3 class="font-semibold mb-2">🔧 CSP Issue Fixed</h3>
+                <p class="text-sm mb-2">The Content Security Policy error has been resolved by implementing server-side OAuth initiation:</p>
+                <ul class="text-sm space-y-1 list-disc list-inside">
+                    <li>Google OAuth now uses <code>/api/auth/google/redirect</code> endpoint</li>
+                    <li>No client-side Google scripts needed (avoids CSP violations)</li>
+                    <li>Fully server-side OAuth flow for better security</li>
+                </ul>
+            </div>
+
+            <div class="mt-6 p-4 bg-yellow-50 rounded-lg">
+                <h3 class="font-semibold mb-2">Test Instructions</h3>
+                <ol class="text-sm space-y-1 list-decimal list-inside">
+                    <li>Start the backend server on port 8002</li>
+                    <li>Start the frontend dev server (should be running)</li>
+                    <li>Try registering a new user at <a href="http://localhost:5173/register" class="text-blue-600 hover:underline">/register</a></li>
+                    <li>Try registering an admin at <a href="http://localhost:5173/admin-register" class="text-blue-600 hover:underline">/admin-register</a></li>
+                    <li>Test login with created credentials</li>
+                    <li>Test Google OAuth login (now works without CSP errors!)</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

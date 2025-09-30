@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics API Direct Test</title>
+    <style>
+        body { font-family: monospace; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .error { color: red; }
+        .success { color: green; }
+        .warning { color: orange; }
+        button { margin: 5px; padding: 8px 15px; }
+        .response { background: #f5f5f5; padding: 10px; margin: 10px 0; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>Analytics API Direct Test</h1>
+
+    <div class="test-section">
+        <h3>Test 1: Analytics Opt-In (POST /api/analytics/opt-in)</h3>
+        <button onclick="testOptIn()">Test Opt-In</button>
+        <div id="opt-in-result" class="response"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test 2: Analytics Track (POST /api/analytics/track)</h3>
+        <button onclick="testTrack()">Test Track</button>
+        <div id="track-result" class="response"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test 3: Analytics Export (GET /api/admin/analytics/export)</h3>
+        <button onclick="testExport()">Test Export</button>
+        <div id="export-result" class="response"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test 4: Analytics Opt-Out (POST /api/analytics/opt-out)</h3>
+        <button onclick="testOptOut()">Test Opt-Out</button>
+        <div id="opt-out-result" class="response"></div>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://localhost:8002';
+
+        async function testOptIn() {
+            const resultDiv = document.getElementById('opt-in-result');
+            resultDiv.innerHTML = 'Testing...';
+
+            try {
+                const response = await fetch(`${BASE_URL}/api/analytics/opt-in`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: 'test-user-123',
+                        consent: true
+                    })
+                });
+
+                const data = await response.text();
+                const status = response.status;
+
+                resultDiv.innerHTML = `Status: ${status}\nResponse: ${data}`;
+                resultDiv.className = status === 200 ? 'response success' : 'response error';
+
+            } catch (error) {
+                resultDiv.innerHTML = `Error: ${error.message}`;
+                resultDiv.className = 'response error';
+            }
+        }
+
+        async function testTrack() {
+            const resultDiv = document.getElementById('track-result');
+            resultDiv.innerHTML = 'Testing...';
+
+            try {
+                const response = await fetch(`${BASE_URL}/api/analytics/track`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        page_url: '/test-page',
+                        page_title: 'Test Page',
+                        user_agent: navigator.userAgent,
+                        referrer: document.referrer,
+                        session_id: 'test-session-123'
+                    })
+                });
+
+                const data = await response.text();
+                const status = response.status;
+
+                resultDiv.innerHTML = `Status: ${status}\nResponse: ${data}`;
+                resultDiv.className = status === 200 ? 'response success' : 'response error';
+
+            } catch (error) {
+                resultDiv.innerHTML = `Error: ${error.message}`;
+                resultDiv.className = 'response error';
+            }
+        }
+
+        async function testExport() {
+            const resultDiv = document.getElementById('export-result');
+            resultDiv.innerHTML = 'Testing...';
+
+            try {
+                const response = await fetch(`${BASE_URL}/api/admin/analytics/export?format=csv&period=30d&type=overview`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // Note: This might need authentication headers
+                    }
+                });
+
+                const data = await response.text();
+                const status = response.status;
+
+                resultDiv.innerHTML = `Status: ${status}\nResponse: ${data}`;
+                resultDiv.className = status === 200 ? 'response success' : 'response error';
+
+            } catch (error) {
+                resultDiv.innerHTML = `Error: ${error.message}`;
+                resultDiv.className = 'response error';
+            }
+        }
+
+        async function testOptOut() {
+            const resultDiv = document.getElementById('opt-out-result');
+            resultDiv.innerHTML = 'Testing...';
+
+            try {
+                const response = await fetch(`${BASE_URL}/api/analytics/opt-out`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: 'test-user-123'
+                    })
+                });
+
+                const data = await response.text();
+                const status = response.status;
+
+                resultDiv.innerHTML = `Status: ${status}\nResponse: ${data}`;
+                resultDiv.className = status === 200 ? 'response success' : 'response error';
+
+            } catch (error) {
+                resultDiv.innerHTML = `Error: ${error.message}`;
+                resultDiv.className = 'response error';
+            }
+        }
+
+        // Auto-run tests when page loads
+        window.onload = function() {
+            console.log('Analytics API Test Page Loaded');
+            console.log('Backend URL:', BASE_URL);
+        };
+    </script>
+</body>
+</html>

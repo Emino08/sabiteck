@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, Filter, Calendar, Globe, GraduationCap, DollarSign, Clock, Award, BookOpen, Users, Trophy, Briefcase, Star, Crown, Shield, Sparkles, Diamond, Zap, CheckCircle, TrendingUp } from 'lucide-react'
+import { Search, Filter, Calendar, Globe, GraduationCap, DollarSign, Clock, Award, BookOpen, Users, Trophy, Briefcase, Star, Crown, Shield, Sparkles, Diamond, Zap, CheckCircle, TrendingUp, Copy } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Badge } from '../ui/badge'
 import { apiRequest } from '../../utils/api'
+import { toast } from 'sonner'
 
 const Scholarships = () => {
   const [scholarships, setScholarships] = useState([])
@@ -156,6 +157,38 @@ const Scholarships = () => {
       GraduationCap: GraduationCap
     }
     return iconMap[icon] || Award
+  }
+
+  const copyScholarshipLink = async (scholarship) => {
+    try {
+      // Generate the scholarship link based on the slug or ID
+      const baseUrl = window.location.origin
+      const scholarshipUrl = `${baseUrl}/scholarships/${scholarship.slug || scholarship.id}`
+
+      // Copy to clipboard
+      await navigator.clipboard.writeText(scholarshipUrl)
+
+      toast.success('✨ Elite scholarship link copied to clipboard!', {
+        description: `${scholarship.title} - ${scholarshipUrl}`,
+        duration: 3000
+      })
+    } catch (error) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea')
+      const baseUrl = window.location.origin
+      const scholarshipUrl = `${baseUrl}/scholarships/${scholarship.slug || scholarship.id}`
+
+      textArea.value = scholarshipUrl
+      document.body.appendChild(textArea)
+      textArea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textArea)
+
+      toast.success('✨ Elite scholarship link copied to clipboard!', {
+        description: `${scholarship.title} - ${scholarshipUrl}`,
+        duration: 3000
+      })
+    }
   }
 
   return (
@@ -351,16 +384,25 @@ const Scholarships = () => {
                       </div>
                     </div>
 
-                    <Link
-                      to={`/scholarships/${scholarship.slug || scholarship.id}`}
-                      className="block w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold py-3 px-6 rounded-2xl text-center transition-all duration-300 hover:scale-105 hover:shadow-xl"
-                    >
-                      <div className="flex items-center justify-center space-x-2">
-                        <Star className="w-4 h-4 fill-current" />
-                        <span>Explore Elite Opportunity</span>
-                        <Zap className="w-4 h-4" />
-                      </div>
-                    </Link>
+                    <div className="flex space-x-3">
+                      <button
+                        onClick={() => copyScholarshipLink(scholarship)}
+                        className="flex-shrink-0 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white p-3 rounded-2xl font-bold transition-all duration-300 hover:scale-105 hover:shadow-xl flex items-center justify-center"
+                        title="Copy Elite Scholarship Link"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </button>
+                      <Link
+                        to={`/scholarships/${scholarship.slug || scholarship.id}`}
+                        className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold py-3 px-6 rounded-2xl text-center transition-all duration-300 hover:scale-105 hover:shadow-xl"
+                      >
+                        <div className="flex items-center justify-center space-x-2">
+                          <Star className="w-4 h-4 fill-current" />
+                          <span>Explore Elite Opportunity</span>
+                          <Zap className="w-4 h-4" />
+                        </div>
+                      </Link>
+                    </div>
                   </div>
                 )
               })}
@@ -654,16 +696,25 @@ const Scholarships = () => {
                       </div>
                     </div>
 
-                    <Link
-                      to={`/scholarships/${scholarship.slug || scholarship.id}`}
-                      className="block w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-bold py-3 px-6 rounded-2xl text-center transition-all duration-300 hover:scale-105 hover:shadow-xl"
-                    >
-                      <div className="flex items-center justify-center space-x-2">
-                        <Diamond className="w-4 h-4" />
-                        <span>Explore Elite Opportunity</span>
-                        <Zap className="w-4 h-4" />
-                      </div>
-                    </Link>
+                    <div className="flex space-x-3">
+                      <button
+                        onClick={() => copyScholarshipLink(scholarship)}
+                        className="flex-shrink-0 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white p-3 rounded-2xl font-bold transition-all duration-300 hover:scale-105 hover:shadow-xl flex items-center justify-center"
+                        title="Copy Elite Scholarship Link"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </button>
+                      <Link
+                        to={`/scholarships/${scholarship.slug || scholarship.id}`}
+                        className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-bold py-3 px-6 rounded-2xl text-center transition-all duration-300 hover:scale-105 hover:shadow-xl"
+                      >
+                        <div className="flex items-center justify-center space-x-2">
+                          <Diamond className="w-4 h-4" />
+                          <span>Explore Elite Opportunity</span>
+                          <Zap className="w-4 h-4" />
+                        </div>
+                      </Link>
+                    </div>
                   </div>
                 )
               })}

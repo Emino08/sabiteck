@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Connection Fix Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #495057;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .logs {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+            align-items: center;
+        }
+        input {
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 Database Connection Fix Test</h1>
+            <p>Test the fixed scholarship endpoints and database connectivity</p>
+        </div>
+
+        <!-- Backend Status -->
+        <div class="test-section">
+            <h3>📊 Backend Status</h3>
+            <button onclick="testBackend()">Test Backend</button>
+            <button onclick="testDatabase()">Test Database</button>
+            <div id="backend-status"></div>
+        </div>
+
+        <!-- Authentication -->
+        <div class="test-section">
+            <h3>🔐 Authentication</h3>
+            <div class="controls">
+                <input type="text" id="username" placeholder="Username" value="admin">
+                <input type="password" id="password" placeholder="Password" value="">
+                <button onclick="testLogin()">Login</button>
+            </div>
+            <div id="auth-status"></div>
+        </div>
+
+        <!-- Scholarship Endpoints -->
+        <div class="test-section">
+            <h3>📚 Scholarship Endpoints</h3>
+            <div class="controls">
+                <button onclick="testAllScholarships()">Test All Scholarships</button>
+                <button onclick="testActiveScholarships()">Test Active Scholarships</button>
+                <button onclick="createTestScholarship()">Create Test Scholarship</button>
+            </div>
+            <div id="scholarship-status"></div>
+        </div>
+
+        <!-- Generator Test -->
+        <div class="test-section">
+            <h3>📄 Column Generator Test</h3>
+            <button onclick="testColumnGenerator()">Test Column Layout PDF</button>
+            <div id="generator-status"></div>
+        </div>
+
+        <!-- Logs -->
+        <div class="test-section">
+            <h3>📝 Logs</h3>
+            <button onclick="clearLogs()">Clear Logs</button>
+            <div id="logs" class="logs"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8002';
+        let authToken = '';
+
+        function log(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            logs.innerHTML += `<div>[${timestamp}] [${type.toUpperCase()}] ${message}</div>`;
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        function showStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function clearLogs() {
+            document.getElementById('logs').innerHTML = '';
+        }
+
+        async function testBackend() {
+            log('Testing backend connection...');
+            try {
+                const response = await fetch(`${API_URL}/api/test`);
+                const data = await response.json();
+
+                if (data.success) {
+                    showStatus('backend-status', `✅ Backend working! Database: ${data.database}, Users: ${data.user_count}`, 'success');
+                    log(`Backend test successful: ${JSON.stringify(data)}`);
+                } else {
+                    showStatus('backend-status', '❌ Backend test failed', 'error');
+                    log(`Backend test failed: ${JSON.stringify(data)}`);
+                }
+            } catch (error) {
+                showStatus('backend-status', `❌ Connection failed: ${error.message}`, 'error');
+                log(`Backend connection error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testDatabase() {
+            log('Testing database tables...');
+            try {
+                const response = await fetch(`${API_URL}/api/test`);
+                const data = await response.json();
+
+                if (data.success) {
+                    showStatus('backend-status', `✅ Database connected: ${data.database}`, 'success');
+                    log(`Database test successful: Connected to ${data.database}`);
+                } else {
+                    showStatus('backend-status', '❌ Database test failed', 'error');
+                    log(`Database test failed: ${JSON.stringify(data)}`);
+                }
+            } catch (error) {
+                showStatus('backend-status', `❌ Database error: ${error.message}`, 'error');
+                log(`Database error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            log(`Attempting login with username: ${username}`);
+            try {
+                const response = await fetch(`${API_URL}/api/auth/admin-login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    authToken = data.data.token;
+                    showStatus('auth-status', `✅ Login successful! User: ${data.data.user.username}`, 'success');
+                    log(`Login successful: ${JSON.stringify(data.data.user)}`);
+                } else {
+                    showStatus('auth-status', `❌ Login failed: ${data.error}`, 'error');
+                    log(`Login failed: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showStatus('auth-status', `❌ Login error: ${error.message}`, 'error');
+                log(`Login error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testAllScholarships() {
+            if (!authToken) {
+                showStatus('scholarship-status', '❌ Please login first', 'error');
+                return;
+            }
+
+            log('Testing all scholarships endpoint...');
+            try {
+                const response = await fetch(`${API_URL}/api/admin/scholarships`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        showStatus('scholarship-status', `✅ All scholarships loaded: ${data.data.length} items`, 'success');
+                        log(`All scholarships test successful: ${data.data.length} scholarships found`);
+                    } else {
+                        showStatus('scholarship-status', `❌ Failed: ${data.error}`, 'error');
+                        log(`All scholarships failed: ${data.error}`, 'error');
+                    }
+                } else {
+                    const errorText = await response.text();
+                    showStatus('scholarship-status', `❌ HTTP ${response.status}: ${errorText}`, 'error');
+                    log(`All scholarships HTTP error: ${response.status} - ${errorText}`, 'error');
+                }
+            } catch (error) {
+                showStatus('scholarship-status', `❌ Network error: ${error.message}`, 'error');
+                log(`All scholarships network error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testActiveScholarships() {
+            if (!authToken) {
+                showStatus('scholarship-status', '❌ Please login first', 'error');
+                return;
+            }
+
+            log('Testing active scholarships endpoint...');
+            try {
+                const response = await fetch(`${API_URL}/api/admin/scholarships/active`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        showStatus('scholarship-status', `✅ Active scholarships loaded: ${data.data.length} items`, 'success');
+                        log(`Active scholarships test successful: ${data.data.length} active scholarships found`);
+                    } else {
+                        showStatus('scholarship-status', `❌ Failed: ${data.error}`, 'error');
+                        log(`Active scholarships failed: ${data.error}`, 'error');
+                    }
+                } else {
+                    const errorText = await response.text();
+                    showStatus('scholarship-status', `❌ HTTP ${response.status}: ${errorText}`, 'error');
+                    log(`Active scholarships HTTP error: ${response.status} - ${errorText}`, 'error');
+                }
+            } catch (error) {
+                showStatus('scholarship-status', `❌ Network error: ${error.message}`, 'error');
+                log(`Active scholarships network error: ${error.message}`, 'error');
+            }
+        }
+
+        async function createTestScholarship() {
+            if (!authToken) {
+                showStatus('scholarship-status', '❌ Please login first', 'error');
+                return;
+            }
+
+            const testScholarship = {
+                title: "Test Column Layout Scholarship",
+                amount: "$2,500",
+                deadline: "2024-12-31",
+                status: "active",
+                description: "Test scholarship for column layout verification"
+            };
+
+            log('Creating test scholarship...');
+            try {
+                const response = await fetch(`${API_URL}/api/admin/scholarships`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testScholarship)
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        showStatus('scholarship-status', `✅ Test scholarship created successfully!`, 'success');
+                        log(`Test scholarship creation successful: ID ${data.data?.id || 'unknown'}`);
+                    } else {
+                        showStatus('scholarship-status', `❌ Creation failed: ${data.error}`, 'error');
+                        log(`Test scholarship creation failed: ${data.error}`, 'error');
+                    }
+                } else {
+                    const errorText = await response.text();
+                    showStatus('scholarship-status', `❌ HTTP ${response.status}: ${errorText}`, 'error');
+                    log(`Test scholarship HTTP error: ${response.status} - ${errorText}`, 'error');
+                }
+            } catch (error) {
+                showStatus('scholarship-status', `❌ Network error: ${error.message}`, 'error');
+                log(`Test scholarship network error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testColumnGenerator() {
+            if (!authToken) {
+                showStatus('generator-status', '❌ Please login first', 'error');
+                return;
+            }
+
+            log('Testing column layout generator...');
+            try {
+                // Get active scholarships first
+                const scholarshipsResponse = await fetch(`${API_URL}/api/admin/scholarships/active`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                let scholarships = [];
+                if (scholarshipsResponse.ok) {
+                    const scholarshipsData = await scholarshipsResponse.json();
+                    if (scholarshipsData.success) {
+                        scholarships = scholarshipsData.data || [];
+                    }
+                }
+
+                if (scholarships.length === 0) {
+                    showStatus('generator-status', '❌ No scholarships available. Create test data first.', 'error');
+                    return;
+                }
+
+                // Generate PDF with column layout
+                const response = await fetch(`${API_URL}/api/admin/scholarships/generate`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        scholarships: scholarships.slice(0, 6), // Test with 6 scholarships
+                        format: 'pdf',
+                        orientation: 'landscape',
+                        includeLinks: false,
+                        template: 'table'
+                    })
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `column_layout_test_${new Date().toISOString().split('T')[0]}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+
+                    showStatus('generator-status', `✅ Column layout PDF generated successfully!`, 'success');
+                    log(`Column layout generation successful: ${scholarships.length} scholarships processed`);
+                } else {
+                    const errorData = await response.json();
+                    showStatus('generator-status', `❌ Generation failed: ${errorData.error}`, 'error');
+                    log(`Column layout generation failed: ${errorData.error}`, 'error');
+                }
+            } catch (error) {
+                showStatus('generator-status', `❌ Generation error: ${error.message}`, 'error');
+                log(`Column layout generation error: ${error.message}`, 'error');
+            }
+        }
+
+        // Initialize
+        window.onload = function() {
+            log('Database fix test initialized');
+            testBackend();
+        };
+    </script>
+</body>
+</html>

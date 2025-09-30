@@ -23,7 +23,24 @@ class ApiService {
         err.status = response.status;
         throw err;
       }
-      return await response.json();
+
+      // Check if response is JSON before parsing
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        try {
+          return await response.json();
+        } catch (jsonError) {
+          console.error('Failed to parse JSON response:', jsonError);
+          const text = await response.text();
+          console.error('Response text:', text);
+          throw new Error(`Invalid JSON response: ${jsonError.message}`);
+        }
+      } else {
+        // Non-JSON response
+        const text = await response.text();
+        console.error('Non-JSON response received:', text);
+        throw new Error(`Expected JSON response but received: ${contentType || 'unknown content type'}`);
+      }
     } catch (error) {
       const suppress404 = options && options.suppress404;
       if (!(suppress404 && (error?.status === 404 || String(error?.message || '').includes('404')))) {
@@ -147,6 +164,14 @@ class ApiService {
 
   async getAdminDashboard(token) {
     return this.request('/admin/dashboard', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  async getUserDashboard(token) {
+    return this.request('/user/dashboard', {
       headers: {
         'Authorization': `Bearer ${token}`,
       },

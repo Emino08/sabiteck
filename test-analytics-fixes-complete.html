@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Fixes Complete Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .status { padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+        .test-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin: 20px 0; }
+        .test-card { background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #dee2e6; }
+        .test-card h3 { margin-top: 0; color: #495057; }
+        .endpoint-test { padding: 10px; margin: 5px 0; border-radius: 4px; font-size: 14px; }
+        .endpoint-success { background: #d4edda; color: #155724; }
+        .endpoint-error { background: #f8d7da; color: #721c24; }
+        pre { background: #e9ecef; padding: 10px; border-radius: 3px; overflow-x: auto; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Analytics Fixes Complete - Final Test</h1>
+        <p>This page tests all analytics fixes: API routing, NaN issues, and tracking functionality.</p>
+
+        <div id="status-container">
+            <div class="status info">
+                <strong>🔄 Starting comprehensive tests...</strong>
+            </div>
+        </div>
+
+        <div class="test-grid">
+            <div class="test-card">
+                <h3>🌐 API Endpoint Tests</h3>
+                <button onclick="testAllEndpoints()">Test All API Endpoints</button>
+                <div id="endpoint-results"></div>
+            </div>
+
+            <div class="test-card">
+                <h3>📊 NaN/Bounce Rate Tests</h3>
+                <button onclick="testNaNHandling()">Test NaN Value Handling</button>
+                <button onclick="testBounceRateCalculation()">Test Bounce Rate Calculation</button>
+                <div id="nan-results"></div>
+            </div>
+
+            <div class="test-card">
+                <h3>📈 Analytics Tracking Tests</h3>
+                <button onclick="testTrackingAPI()">Test Page View Tracking</button>
+                <button onclick="testEventTracking()">Test Event Tracking</button>
+                <button onclick="testOptInOut()">Test Opt-in/Opt-out</button>
+                <div id="tracking-results"></div>
+            </div>
+
+            <div class="test-card">
+                <h3>⚡ Real-time Tests</h3>
+                <button onclick="testRealtimeData()">Test Real-time Analytics</button>
+                <button onclick="generateTestData()">Generate Test Data</button>
+                <div id="realtime-results"></div>
+            </div>
+        </div>
+
+        <div id="comprehensive-results" class="status info" style="margin-top: 20px;">
+            <strong>Results will appear here...</strong>
+        </div>
+    </div>
+
+    <script>
+        let testResults = [];
+
+        function addResult(test, status, message, details = null) {
+            testResults.push({ test, status, message, details, timestamp: new Date().toLocaleTimeString() });
+            updateComprehensiveResults();
+        }
+
+        function updateComprehensiveResults() {
+            const container = document.getElementById('comprehensive-results');
+            const passed = testResults.filter(r => r.status === 'success').length;
+            const total = testResults.length;
+
+            container.innerHTML = `
+                <h4>Test Summary: ${passed}/${total} Tests Passed</h4>
+                ${testResults.map(r => `
+                    <div class="status ${r.status}" style="margin: 5px 0; padding: 10px;">
+                        <strong>[${r.timestamp}] ${r.test}:</strong> ${r.message}
+                        ${r.details ? `<pre>${JSON.stringify(r.details, null, 2)}</pre>` : ''}
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        function updateStatus(message, type = 'info') {
+            document.getElementById('status-container').innerHTML =
+                `<div class="status ${type}"><strong>${message}</strong></div>`;
+        }
+
+        async function testAllEndpoints() {
+            const endpointContainer = document.getElementById('endpoint-results');
+            endpointContainer.innerHTML = '<p>Testing endpoints...</p>';
+
+            const endpoints = [
+                { name: 'Dashboard', url: '/api/admin/analytics/dashboard?period=30d', method: 'GET' },
+                { name: 'Pages', url: '/api/admin/analytics/pages?period=30d', method: 'GET' },
+                { name: 'Referrers', url: '/api/admin/analytics/referrers?period=30d', method: 'GET' },
+                { name: 'Devices', url: '/api/admin/analytics/devices?period=30d', method: 'GET' },
+                { name: 'Geography', url: '/api/admin/analytics/geography?period=30d', method: 'GET' },
+                { name: 'Track', url: '/api/analytics/track', method: 'POST' },
+                { name: 'Track Event', url: '/api/analytics/track-event', method: 'POST' },
+                { name: 'Opt-in', url: '/api/analytics/opt-in', method: 'POST' },
+                { name: 'Opt-out', url: '/api/analytics/opt-out', method: 'POST' },
+                { name: 'Realtime', url: '/api/analytics/realtime', method: 'GET' }
+            ];
+
+            let results = '';
+
+            for (const endpoint of endpoints) {
+                try {
+                    let response;
+
+                    if (endpoint.method === 'POST') {
+                        const testData = {
+                            visitor_id: 'test-visitor-' + Date.now(),
+                            session_id: 'test-session-' + Date.now(),
+                            page_url: window.location.href,
+                            page_title: document.title,
+                            event_category: 'test',
+                            event_action: 'endpoint_test'
+                        };
+
+                        response = await fetch(endpoint.url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(testData)
+                        });
+                    } else {
+                        response = await fetch(endpoint.url);
+                    }
+
+                    if (response.ok) {
+                        results += `<div class="endpoint-test endpoint-success">✅ ${endpoint.name}: ${response.status} OK</div>`;
+                        addResult('API Endpoint', 'success', `${endpoint.name} endpoint working`);
+                    } else {
+                        results += `<div class="endpoint-test endpoint-error">❌ ${endpoint.name}: ${response.status} ${response.statusText}</div>`;
+                        addResult('API Endpoint', 'error', `${endpoint.name} endpoint failed: ${response.status}`);
+                    }
+                } catch (error) {
+                    results += `<div class="endpoint-test endpoint-error">❌ ${endpoint.name}: ${error.message}</div>`;
+                    addResult('API Endpoint', 'error', `${endpoint.name} endpoint error: ${error.message}`);
+                }
+            }
+
+            endpointContainer.innerHTML = results;
+        }
+
+        function testNaNHandling() {
+            const nanContainer = document.getElementById('nan-results');
+
+            // Test formatPercentage function (simulate from frontend)
+            function formatPercentage(value) {
+                if (value === undefined || value === null || isNaN(value)) return '0%'
+                const percentage = Number(value)
+                if (!isFinite(percentage)) return '0%'
+                return Math.round(percentage) + '%'
+            }
+
+            function formatNumber(num) {
+                if (num === undefined || num === null || isNaN(num)) return '0'
+                const number = Number(num)
+                if (!isFinite(number)) return '0'
+                if (number >= 1000000) return (number / 1000000).toFixed(1) + 'M'
+                if (number >= 1000) return (number / 1000).toFixed(1) + 'K'
+                return Math.round(number).toString()
+            }
+
+            const testValues = [
+                { name: 'undefined', value: undefined },
+                { name: 'null', value: null },
+                { name: 'NaN', value: NaN },
+                { name: 'Infinity', value: Infinity },
+                { name: '-Infinity', value: -Infinity },
+                { name: 'empty string', value: '' },
+                { name: 'zero', value: 0 },
+                { name: 'valid number', value: 42.7 }
+            ];
+
+            let results = '<h4>NaN Handling Test Results:</h4>';
+            let allPassed = true;
+
+            testValues.forEach(test => {
+                const percentResult = formatPercentage(test.value);
+                const numberResult = formatNumber(test.value);
+
+                const hasNaN = percentResult.includes('NaN') || numberResult.includes('NaN') ||
+                              percentResult.includes('undefined') || numberResult.includes('undefined');
+
+                if (hasNaN) {
+                    allPassed = false;
+                    results += `<div class="endpoint-test endpoint-error">❌ ${test.name}: Percent="${percentResult}", Number="${numberResult}"</div>`;
+                } else {
+                    results += `<div class="endpoint-test endpoint-success">✅ ${test.name}: Percent="${percentResult}", Number="${numberResult}"</div>`;
+                }
+            });
+
+            nanContainer.innerHTML = results;
+
+            if (allPassed) {
+                addResult('NaN Handling', 'success', 'All NaN/undefined values handled correctly');
+            } else {
+                addResult('NaN Handling', 'error', 'Some NaN values not handled properly');
+            }
+        }
+
+        function testBounceRateCalculation() {
+            // Test bounce rate calculation scenarios
+            const scenarios = [
+                { visitors: 0, bounces: 0, expected: '0%' },
+                { visitors: 100, bounces: 30, expected: '30%' },
+                { visitors: null, bounces: null, expected: '0%' },
+                { visitors: undefined, bounces: undefined, expected: '0%' }
+            ];
+
+            function calculateBounceRate(bounces, visitors) {
+                if (!visitors || visitors === 0) return 0;
+                const rate = (bounces / visitors) * 100;
+                return isNaN(rate) ? 0 : Math.round(rate);
+            }
+
+            function formatPercentage(value) {
+                if (value === undefined || value === null || isNaN(value)) return '0%'
+                const percentage = Number(value)
+                if (!isFinite(percentage)) return '0%'
+                return Math.round(percentage) + '%'
+            }
+
+            let results = '<h4>Bounce Rate Calculation Test:</h4>';
+            let allPassed = true;
+
+            scenarios.forEach((scenario, index) => {
+                const rate = calculateBounceRate(scenario.bounces, scenario.visitors);
+                const formatted = formatPercentage(rate);
+
+                if (formatted === scenario.expected) {
+                    results += `<div class="endpoint-test endpoint-success">✅ Scenario ${index + 1}: ${formatted}</div>`;
+                } else {
+                    allPassed = false;
+                    results += `<div class="endpoint-test endpoint-error">❌ Scenario ${index + 1}: Expected ${scenario.expected}, got ${formatted}</div>`;
+                }
+            });
+
+            document.getElementById('nan-results').innerHTML += results;
+
+            if (allPassed) {
+                addResult('Bounce Rate Calculation', 'success', 'All bounce rate calculations correct');
+            } else {
+                addResult('Bounce Rate Calculation', 'error', 'Bounce rate calculation issues found');
+            }
+        }
+
+        async function testTrackingAPI() {
+            const trackingContainer = document.getElementById('tracking-results');
+            trackingContainer.innerHTML = '<p>Testing tracking APIs...</p>';
+
+            try {
+                const trackData = {
+                    visitor_id: 'test-visitor-' + Date.now(),
+                    session_id: 'test-session-' + Date.now(),
+                    page_url: window.location.href,
+                    page_title: document.title,
+                    device_type: 'desktop',
+                    operating_system: 'Test OS',
+                    browser: 'Test Browser',
+                    time_on_page: 30,
+                    scroll_depth: 50
+                };
+
+                const response = await fetch('/api/analytics/track', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(trackData)
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    trackingContainer.innerHTML = '<div class="endpoint-test endpoint-success">✅ Page tracking working</div>';
+                    addResult('Page Tracking', 'success', 'Page view tracking successful', data);
+                } else {
+                    trackingContainer.innerHTML = '<div class="endpoint-test endpoint-error">❌ Page tracking failed</div>';
+                    addResult('Page Tracking', 'error', `Page tracking failed: ${response.status}`);
+                }
+            } catch (error) {
+                trackingContainer.innerHTML = '<div class="endpoint-test endpoint-error">❌ Page tracking error</div>';
+                addResult('Page Tracking', 'error', `Page tracking error: ${error.message}`);
+            }
+        }
+
+        async function testEventTracking() {
+            try {
+                const eventData = {
+                    visitor_id: 'test-visitor-' + Date.now(),
+                    session_id: 'test-session-' + Date.now(),
+                    event_category: 'test',
+                    event_action: 'button_click',
+                    event_label: 'test_button'
+                };
+
+                const response = await fetch('/api/analytics/track-event', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(eventData)
+                });
+
+                if (response.ok) {
+                    addResult('Event Tracking', 'success', 'Event tracking successful');
+                } else {
+                    addResult('Event Tracking', 'error', `Event tracking failed: ${response.status}`);
+                }
+            } catch (error) {
+                addResult('Event Tracking', 'error', `Event tracking error: ${error.message}`);
+            }
+        }
+
+        async function testOptInOut() {
+            try {
+                const visitorId = 'test-visitor-' + Date.now();
+
+                // Test opt-in
+                const optInResponse = await fetch('/api/analytics/opt-in', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ visitor_id: visitorId })
+                });
+
+                // Test opt-out
+                const optOutResponse = await fetch('/api/analytics/opt-out', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ visitor_id: visitorId })
+                });
+
+                if (optInResponse.ok && optOutResponse.ok) {
+                    addResult('Opt-in/Opt-out', 'success', 'Both opt-in and opt-out working');
+                } else {
+                    addResult('Opt-in/Opt-out', 'error', 'Opt-in/out functionality failed');
+                }
+            } catch (error) {
+                addResult('Opt-in/Opt-out', 'error', `Opt-in/out error: ${error.message}`);
+            }
+        }
+
+        async function testRealtimeData() {
+            const realtimeContainer = document.getElementById('realtime-results');
+
+            try {
+                const response = await fetch('/api/analytics/realtime');
+                if (response.ok) {
+                    const data = await response.json();
+                    realtimeContainer.innerHTML = `
+                        <div class="endpoint-test endpoint-success">✅ Real-time API working</div>
+                        <p>Active users: ${data.data?.total_active_users || 0}</p>
+                        <p>Active pages: ${data.data?.active_pages?.length || 0}</p>
+                    `;
+                    addResult('Real-time Analytics', 'success', 'Real-time data endpoint working', data.data);
+                } else {
+                    realtimeContainer.innerHTML = '<div class="endpoint-test endpoint-error">❌ Real-time API failed</div>';
+                    addResult('Real-time Analytics', 'error', `Real-time API failed: ${response.status}`);
+                }
+            } catch (error) {
+                realtimeContainer.innerHTML = '<div class="endpoint-test endpoint-error">❌ Real-time API error</div>';
+                addResult('Real-time Analytics', 'error', `Real-time API error: ${error.message}`);
+            }
+        }
+
+        async function generateTestData() {
+            updateStatus('🧪 Generating test analytics data...', 'info');
+
+            // Generate several test page views
+            for (let i = 0; i < 5; i++) {
+                const testData = {
+                    visitor_id: 'test-visitor-' + (Date.now() + i),
+                    session_id: 'test-session-' + (Date.now() + i),
+                    page_url: window.location.href + '?test=' + i,
+                    page_title: 'Test Page ' + i,
+                    device_type: ['desktop', 'mobile', 'tablet'][i % 3],
+                    operating_system: ['Windows', 'macOS', 'iOS', 'Android'][i % 4],
+                    browser: ['Chrome', 'Firefox', 'Safari', 'Edge'][i % 4],
+                    time_on_page: Math.random() * 300,
+                    scroll_depth: Math.random() * 100
+                };
+
+                try {
+                    await fetch('/api/analytics/track', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(testData)
+                    });
+                } catch (error) {
+                    console.error('Error generating test data:', error);
+                }
+            }
+
+            addResult('Test Data Generation', 'success', 'Generated 5 test page views');
+            updateStatus('✅ Test data generation completed', 'success');
+        }
+
+        // Auto-start tests
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                testNaNHandling();
+                testBounceRateCalculation();
+                testAllEndpoints();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

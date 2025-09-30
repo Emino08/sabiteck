@@ -4,7 +4,10 @@ namespace DevCo\Controllers;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use DevCo\Models\Database;
+use App\Services\EmailService;
+use App\Services\PermissionService;
 use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 
 class AuthController
 {
@@ -62,17 +65,32 @@ class AuthController
                 return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
             }
             
+            // Generate a secure password if not provided or create flag is set
+            $generatedPassword = null;
+            $isAdminCreated = isset($data['admin_created']) && $data['admin_created'];
+
+            if ($isAdminCreated || empty($data['password'])) {
+                $generatedPassword = $this->generateSecurePassword();
+                $passwordToHash = $generatedPassword;
+            } else {
+                $passwordToHash = $data['password'];
+            }
+
             // Hash password
-            $passwordHash = password_hash($data['password'], PASSWORD_DEFAULT);
-            
+            $passwordHash = password_hash($passwordToHash, PASSWORD_DEFAULT);
+
+            // Determine role
+            $role = $data['role'] ?? 'user';
+            $roleId = $this->getRoleId($db, $role);
+
             // Create user
             $stmt = $db->prepare("
                 INSERT INTO users (
                     first_name, last_name, email, username, password_hash,
-                    phone, organization, role, status, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, 'user', 'active', NOW())
+                    phone, organization, role, role_id, status, must_change_password, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, NOW())
             ");
-            
+
             $stmt->execute([
                 $data['first_name'],
                 $data['last_name'],
@@ -80,22 +98,33 @@ class AuthController
                 $data['username'],
                 $passwordHash,
                 $data['phone'] ?? null,
-                $data['organization'] ?? null
+                $data['organization'] ?? null,
+                $role,
+                $roleId,
+                $isAdminCreated ? 1 : 0  // Must change password if admin created
             ]);
-            
+
             $userId = $db->lastInsertId();
-            
+
+            // Send password email if it was generated
+            if ($generatedPassword) {
+                $this->sendPasswordEmail($data['email'], $data['first_name'] . ' ' . $data['last_name'], $generatedPassword, $isAdminCreated);
+            }
+
             // Get the created user
             $userStmt = $db->prepare("
-                SELECT id, first_name, last_name, email, username, role, status 
+                SELECT id, first_name, last_name, email, username, role, status
                 FROM users WHERE id = ?
             ");
             $userStmt->execute([$userId]);
             $user = $userStmt->fetch();
-            
+
+            $message = $generatedPassword ? 'Account created successfully. Password sent to email.' : 'Account created successfully';
+
             $response->getBody()->write(json_encode([
-                'message' => 'Account created successfully',
-                'user' => $user
+                'message' => $message,
+                'user' => $user,
+                'password_sent' => $generatedPassword ? true : false
             ]));
             return $response->withStatus(201)->withHeader('Content-Type', 'application/json');
             
@@ -125,36 +154,66 @@ class AuthController
             
             // Find user by username or email
             $stmt = $db->prepare("
-                SELECT id, username, password_hash, role, first_name, last_name, email, status
-                FROM users 
-                WHERE (username = ? OR email = ?) AND status = 'active'
+                SELECT u.id, u.username, u.password_hash, u.role, u.role_id, u.first_name, u.last_name,
+                       u.email, u.status, u.failed_login_attempts, u.locked_until, u.must_change_password,
+                       r.name as role_name, r.display_name as role_display_name
+                FROM users u
+                LEFT JOIN roles r ON u.role_id = r.id
+                WHERE (u.username = ? OR u.email = ?) AND u.status IN ('active', 'pending')
             ");
             $stmt->execute([$data['username'], $data['username']]);
             $user = $stmt->fetch();
-            
-            if (!$user || !password_verify($data['password'], $user['password_hash'])) {
+
+            if (!$user) {
                 $response->getBody()->write(json_encode([
                     'error' => 'Invalid username or password'
                 ]));
                 return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
             }
-            
-            // Update last login
-            $updateStmt = $db->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
+
+            // Check if account is locked
+            if ($user['locked_until'] && strtotime($user['locked_until']) > time()) {
+                $response->getBody()->write(json_encode([
+                    'error' => 'Account is temporarily locked due to too many failed login attempts'
+                ]));
+                return $response->withStatus(423)->withHeader('Content-Type', 'application/json');
+            }
+
+            // Verify password
+            if (!password_verify($data['password'], $user['password_hash'])) {
+                // Increment failed login attempts
+                $this->handleFailedLogin($db, $user['id'], $user['failed_login_attempts']);
+
+                $response->getBody()->write(json_encode([
+                    'error' => 'Invalid username or password'
+                ]));
+                return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
+            }
+
+            // Reset failed login attempts and activate pending users on successful login
+            $updateStmt = $db->prepare("UPDATE users SET last_login = NOW(), failed_login_attempts = 0, locked_until = NULL, status = CASE WHEN status = 'pending' THEN 'active' ELSE status END WHERE id = ?");
             $updateStmt->execute([$user['id']]);
-            
-            // Generate JWT token
+
+            // Get user permissions
+            $permissionService = new PermissionService($db);
+            $userPermissions = $permissionService->getUserPermissions($user['id']);
+            $userModules = $permissionService->getUserModules($user['id']);
+
+            // Generate JWT token with permissions
             $payload = [
                 'user_id' => $user['id'],
                 'username' => $user['username'],
                 'role' => $user['role'],
+                'role_name' => $user['role_name'],
+                'permissions' => array_column($userPermissions, 'name'),
+                'modules' => $userModules,
                 'iat' => time(),
                 'exp' => time() + (24 * 60 * 60) // 24 hours
             ];
-            
+
             $token = JWT::encode($payload, $_ENV['JWT_SECRET'], 'HS256');
-            
-            $response->getBody()->write(json_encode([
+
+            $responseData = [
                 'success' => true,
                 'message' => 'Login successful',
                 'data' => [
@@ -165,10 +224,22 @@ class AuthController
                         'first_name' => $user['first_name'],
                         'last_name' => $user['last_name'],
                         'email' => $user['email'],
-                        'role' => $user['role']
-                    ]
+                        'role' => $user['role'],
+                        'role_name' => $user['role_name'],
+                        'must_change_password' => (bool)$user['must_change_password']
+                    ],
+                    'permissions' => $userPermissions,
+                    'modules' => $userModules
                 ]
-            ]));
+            ];
+
+            // Check if password must be changed
+            if ($user['must_change_password']) {
+                $responseData['message'] = 'Login successful. You must change your password.';
+                $responseData['action_required'] = 'change_password';
+            }
+
+            $response->getBody()->write(json_encode($responseData));
             return $response->withHeader('Content-Type', 'application/json');
             
         } catch (\Exception $e) {
@@ -213,9 +284,9 @@ class AuthController
                 // Create new user from Google data
                 $insertStmt = $db->prepare("
                     INSERT INTO users (
-                        first_name, last_name, email, username, google_id,
+                        first_name, last_name, email, username, password_hash, google_id,
                         profile_image, role, status, created_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, 'user', 'active', NOW())
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, 'user', 'active', NOW())
                 ");
                 
                 $username = strtolower($googleUserInfo['given_name'] . '_' . $googleUserInfo['family_name']);
@@ -237,6 +308,7 @@ class AuthController
                     $googleUserInfo['family_name'],
                     $googleUserInfo['email'],
                     $username,
+                    'GOOGLE_OAUTH_USER', // Placeholder password_hash for Google OAuth users
                     $googleUserInfo['sub'],
                     $googleUserInfo['picture'] ?? null
                 ]);
@@ -279,8 +351,15 @@ class AuthController
             
         } catch (\Exception $e) {
             error_log("Google auth error: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
             $response->getBody()->write(json_encode([
-                'error' => 'Authentication failed'
+                'error' => 'Authentication failed',
+                'details' => $e->getMessage(),
+                'debug' => [
+                    'redirect_uri' => $_ENV['GOOGLE_REDIRECT_URI'] ?? 'NOT_SET',
+                    'client_id' => $_ENV['GOOGLE_CLIENT_ID'] ?? 'NOT_SET',
+                    'has_secret' => isset($_ENV['GOOGLE_CLIENT_SECRET']) ? 'YES' : 'NO'
+                ]
             ]));
             return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
         }
@@ -427,73 +506,37 @@ class AuthController
             return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
         }
     }
-    
-    public function changePassword(Request $request, Response $response, $args)
+
+    public function googleRedirect(Request $request, Response $response, $args)
     {
-        $data = json_decode($request->getBody()->getContents(), true);
-        $currentUser = $request->getAttribute('user');
-        
-        if (!$currentUser) {
-            $response->getBody()->write(json_encode([
-                'error' => 'Authentication required'
-            ]));
-            return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
-        }
-        
-        // Validate required fields
-        if (empty($data['current_password']) || empty($data['new_password'])) {
-            $response->getBody()->write(json_encode([
-                'error' => 'Current password and new password are required'
-            ]));
-            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
-        }
-        
-        // Validate new password length
-        if (strlen($data['new_password']) < 6) {
-            $response->getBody()->write(json_encode([
-                'error' => 'New password must be at least 6 characters long'
-            ]));
-            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
-        }
-        
         try {
-            $db = Database::getInstance();
-            
-            // Get current user's password hash
-            $stmt = $db->prepare("SELECT password_hash FROM users WHERE id = ?");
-            $stmt->execute([$currentUser->user_id]);
-            $user = $stmt->fetch();
-            
-            if (!$user) {
+            $googleClientId = $_ENV['GOOGLE_CLIENT_ID'] ?? '';
+            $redirectUri = $_ENV['GOOGLE_REDIRECT_URI'] ?? '';
+
+            if (empty($googleClientId) || empty($redirectUri)) {
                 $response->getBody()->write(json_encode([
-                    'error' => 'User not found'
+                    'error' => 'Google OAuth is not properly configured'
                 ]));
-                return $response->withStatus(404)->withHeader('Content-Type', 'application/json');
+                return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
             }
-            
-            // Verify current password
-            if (!password_verify($data['current_password'], $user['password_hash'])) {
-                $response->getBody()->write(json_encode([
-                    'error' => 'Current password is incorrect'
-                ]));
-                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
-            }
-            
-            // Update password
-            $newPasswordHash = password_hash($data['new_password'], PASSWORD_DEFAULT);
-            $updateStmt = $db->prepare("UPDATE users SET password_hash = ?, updated_at = NOW() WHERE id = ?");
-            $updateStmt->execute([$newPasswordHash, $currentUser->user_id]);
-            
-            $response->getBody()->write(json_encode([
-                'success' => true,
-                'message' => 'Password changed successfully'
-            ]));
-            return $response->withHeader('Content-Type', 'application/json');
-            
+
+            $scopes = 'openid email profile';
+
+            $googleAuthUrl = 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query([
+                'client_id' => $googleClientId,
+                'redirect_uri' => $redirectUri,
+                'scope' => $scopes,
+                'response_type' => 'code',
+                'access_type' => 'offline',
+                'prompt' => 'select_account'
+            ]);
+
+            return $response->withStatus(302)->withHeader('Location', $googleAuthUrl);
+
         } catch (\Exception $e) {
-            error_log("Change password error: " . $e->getMessage());
+            error_log("Google OAuth redirect error: " . $e->getMessage());
             $response->getBody()->write(json_encode([
-                'error' => 'Failed to change password'
+                'error' => 'Failed to initialize Google OAuth'
             ]));
             return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
         }
@@ -550,9 +593,9 @@ class AuthController
                 // Create new user from Google data
                 $insertStmt = $db->prepare("
                     INSERT INTO users (
-                        first_name, last_name, email, username, google_id,
+                        first_name, last_name, email, username, password_hash, google_id,
                         profile_image, role, status, created_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, 'user', 'active', NOW())
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, 'user', 'active', NOW())
                 ");
                 
                 $username = strtolower($userInfo['given_name'] . '_' . $userInfo['family_name']);
@@ -574,6 +617,7 @@ class AuthController
                     $userInfo['family_name'],
                     $userInfo['email'],
                     $username,
+                    'GOOGLE_OAUTH_USER', // Placeholder password_hash for Google OAuth users
                     $userInfo['id'],
                     $userInfo['picture'] ?? null
                 ]);
@@ -601,7 +645,7 @@ class AuthController
             $token = JWT::encode($payload, $_ENV['JWT_SECRET'], 'HS256');
             
             // Redirect to frontend with token
-            $frontendUrl = $_ENV['FRONTEND_URL'] ?? 'https://yourdomain.com';
+            $frontendUrl = $_ENV['FRONTEND_URL'] ?? 'http://localhost:5182';
             $redirectUrl = $frontendUrl . '/auth/callback?token=' . urlencode($token) . '&user=' . urlencode(json_encode([
                 'id' => $user['id'],
                 'username' => $user['username'],
@@ -615,10 +659,13 @@ class AuthController
             
         } catch (\Exception $e) {
             error_log("Google OAuth callback error: " . $e->getMessage());
-            $response->getBody()->write(json_encode([
-                'error' => 'Authentication failed'
-            ]));
-            return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
+            error_log("Stack trace: " . $e->getTraceAsString());
+
+            // Redirect to frontend with error
+            $frontendUrl = $_ENV['FRONTEND_URL'] ?? 'http://localhost:5182';
+            $errorUrl = $frontendUrl . '/auth/callback?error=' . urlencode('Authentication failed: ' . $e->getMessage());
+
+            return $response->withStatus(302)->withHeader('Location', $errorUrl);
         }
     }
     
@@ -642,12 +689,21 @@ class AuthController
         
         $context = stream_context_create($options);
         $response = file_get_contents('https://oauth2.googleapis.com/token', false, $context);
-        
+
         if ($response === false) {
+            error_log("Google token exchange failed for code: $code");
+            error_log("Request data: " . json_encode($data));
+            $error = error_get_last();
+            error_log("Last error: " . json_encode($error));
             return false;
         }
-        
-        return json_decode($response, true);
+
+        $tokenData = json_decode($response, true);
+        if (isset($tokenData['error'])) {
+            error_log("Google token exchange error: " . json_encode($tokenData));
+        }
+
+        return $tokenData;
     }
     
     private function getGoogleUserInfo($accessToken)
@@ -668,27 +724,515 @@ class AuthController
         return json_decode($response, true);
     }
 
+    public function adminRegister(Request $request, Response $response, $args)
+    {
+        $data = json_decode($request->getBody()->getContents(), true);
+
+        // Validate required fields
+        $required = ['first_name', 'last_name', 'email', 'username', 'password'];
+        foreach ($required as $field) {
+            if (empty($data[$field])) {
+                $response->getBody()->write(json_encode([
+                    'error' => ucfirst(str_replace('_', ' ', $field)) . ' is required'
+                ]));
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            }
+        }
+
+        // Validate email format
+        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            $response->getBody()->write(json_encode([
+                'error' => 'Please provide a valid email address'
+            ]));
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+        }
+
+        // Validate password length
+        if (strlen($data['password']) < 6) {
+            $response->getBody()->write(json_encode([
+                'error' => 'Password must be at least 6 characters long'
+            ]));
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+        }
+
+        try {
+            $db = Database::getInstance();
+
+            // Check if email already exists
+            $emailStmt = $db->prepare("SELECT id FROM users WHERE email = ?");
+            $emailStmt->execute([$data['email']]);
+            if ($emailStmt->fetch()) {
+                $response->getBody()->write(json_encode([
+                    'error' => 'Email address is already registered'
+                ]));
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            }
+
+            // Check if username already exists
+            $usernameStmt = $db->prepare("SELECT id FROM users WHERE username = ?");
+            $usernameStmt->execute([$data['username']]);
+            if ($usernameStmt->fetch()) {
+                $response->getBody()->write(json_encode([
+                    'error' => 'Username is already taken'
+                ]));
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            }
+
+            // Hash password
+            $passwordHash = password_hash($data['password'], PASSWORD_DEFAULT);
+
+            // Create admin user
+            $stmt = $db->prepare("
+                INSERT INTO users (
+                    first_name, last_name, email, username, password_hash,
+                    phone, organization, role, status, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, 'admin', 'active', NOW())
+            ");
+
+            $stmt->execute([
+                $data['first_name'],
+                $data['last_name'],
+                $data['email'],
+                $data['username'],
+                $passwordHash,
+                $data['phone'] ?? null,
+                $data['organization'] ?? null
+            ]);
+
+            $userId = $db->lastInsertId();
+
+            // Get the created admin user
+            $userStmt = $db->prepare("
+                SELECT id, first_name, last_name, email, username, role, status
+                FROM users WHERE id = ?
+            ");
+            $userStmt->execute([$userId]);
+            $user = $userStmt->fetch();
+
+            $response->getBody()->write(json_encode([
+                'message' => 'Admin account created successfully',
+                'user' => $user
+            ]));
+            return $response->withStatus(201)->withHeader('Content-Type', 'application/json');
+
+        } catch (\Exception $e) {
+            error_log("Admin registration error: " . $e->getMessage());
+            $response->getBody()->write(json_encode([
+                'error' => 'Admin registration failed. Please try again.'
+            ]));
+            return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
+        }
+    }
+
     private function verifyGoogleToken($token)
     {
         try {
             $url = 'https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=' . $token;
             $response = file_get_contents($url);
-            
+
             if ($response === false) {
                 return false;
             }
-            
+
             $userInfo = json_decode($response, true);
-            
+
             // Verify the token is valid and for our app
             if (isset($userInfo['error']) || !isset($userInfo['email'])) {
                 return false;
             }
-            
+
             return $userInfo;
         } catch (\Exception $e) {
             error_log("Google token verification error: " . $e->getMessage());
             return false;
+        }
+    }
+
+    /**
+     * Forgot password functionality
+     */
+    public function forgotPassword(Request $request, Response $response, $args)
+    {
+        $data = json_decode($request->getBody()->getContents(), true);
+
+        if (empty($data['email'])) {
+            $response->getBody()->write(json_encode([
+                'error' => 'Email address is required'
+            ]));
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+        }
+
+        try {
+            $db = Database::getInstance();
+
+            // Check if user exists
+            $stmt = $db->prepare("SELECT id, first_name, last_name, email FROM users WHERE email = ? AND status = 'active'");
+            $stmt->execute([$data['email']]);
+            $user = $stmt->fetch();
+
+            // Always return success message to prevent email enumeration
+            $successMessage = 'If an account with that email exists, a password reset link has been sent.';
+
+            if ($user) {
+                // Generate reset token
+                $token = bin2hex(random_bytes(32));
+                $expiresAt = date('Y-m-d H:i:s', strtotime('+1 hour'));
+
+                // Store reset token
+                $stmt = $db->prepare("
+                    INSERT INTO password_resets (email, token, expires_at)
+                    VALUES (?, ?, ?)
+                ");
+                $stmt->execute([$data['email'], $token, $expiresAt]);
+
+                // Send password reset email
+                $this->sendPasswordResetEmail(
+                    $user['email'],
+                    $user['first_name'] . ' ' . $user['last_name'],
+                    $token
+                );
+            }
+
+            $response->getBody()->write(json_encode([
+                'message' => $successMessage
+            ]));
+            return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
+
+        } catch (\Exception $e) {
+            error_log("Forgot password error: " . $e->getMessage());
+            $response->getBody()->write(json_encode([
+                'error' => 'Unable to process request. Please try again.'
+            ]));
+            return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
+        }
+    }
+
+    /**
+     * Reset password with token
+     */
+    public function resetPassword(Request $request, Response $response, $args)
+    {
+        $data = json_decode($request->getBody()->getContents(), true);
+
+        $required = ['token', 'password', 'password_confirmation'];
+        foreach ($required as $field) {
+            if (empty($data[$field])) {
+                $response->getBody()->write(json_encode([
+                    'error' => ucfirst(str_replace('_', ' ', $field)) . ' is required'
+                ]));
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            }
+        }
+
+        if ($data['password'] !== $data['password_confirmation']) {
+            $response->getBody()->write(json_encode([
+                'error' => 'Passwords do not match'
+            ]));
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+        }
+
+        if (strlen($data['password']) < 6) {
+            $response->getBody()->write(json_encode([
+                'error' => 'Password must be at least 6 characters long'
+            ]));
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+        }
+
+        try {
+            $db = Database::getInstance();
+
+            // Verify reset token
+            $stmt = $db->prepare("
+                SELECT email FROM password_resets
+                WHERE token = ? AND expires_at > NOW() AND used = 0
+            ");
+            $stmt->execute([$data['token']]);
+            $reset = $stmt->fetch();
+
+            if (!$reset) {
+                $response->getBody()->write(json_encode([
+                    'error' => 'Invalid or expired reset token'
+                ]));
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            }
+
+            // Update user password
+            $passwordHash = password_hash($data['password'], PASSWORD_DEFAULT);
+            $stmt = $db->prepare("
+                UPDATE users SET
+                    password_hash = ?,
+                    must_change_password = 0,
+                    last_password_change = NOW(),
+                    failed_login_attempts = 0,
+                    locked_until = NULL
+                WHERE email = ?
+            ");
+            $stmt->execute([$passwordHash, $reset['email']]);
+
+            // Mark token as used
+            $stmt = $db->prepare("UPDATE password_resets SET used = 1 WHERE token = ?");
+            $stmt->execute([$data['token']]);
+
+            $response->getBody()->write(json_encode([
+                'message' => 'Password reset successfully'
+            ]));
+            return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
+
+        } catch (\Exception $e) {
+            error_log("Reset password error: " . $e->getMessage());
+            $response->getBody()->write(json_encode([
+                'error' => 'Unable to reset password. Please try again.'
+            ]));
+            return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
+        }
+    }
+
+    /**
+     * Change password for authenticated user
+     */
+    public function changePassword(Request $request, Response $response, $args)
+    {
+        $data = json_decode($request->getBody()->getContents(), true);
+
+        $required = ['current_password', 'new_password', 'password_confirmation'];
+        foreach ($required as $field) {
+            if (empty($data[$field])) {
+                $response->getBody()->write(json_encode([
+                    'error' => ucfirst(str_replace('_', ' ', $field)) . ' is required'
+                ]));
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            }
+        }
+
+        if ($data['new_password'] !== $data['password_confirmation']) {
+            $response->getBody()->write(json_encode([
+                'error' => 'New passwords do not match'
+            ]));
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+        }
+
+        try {
+            // Get user ID from JWT token (implement JWT middleware)
+            $userId = $this->getUserIdFromToken($request);
+            if (!$userId) {
+                $response->getBody()->write(json_encode([
+                    'error' => 'Authentication required'
+                ]));
+                return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
+            }
+
+            $db = Database::getInstance();
+
+            // Get current user
+            $stmt = $db->prepare("SELECT password_hash FROM users WHERE id = ?");
+            $stmt->execute([$userId]);
+            $user = $stmt->fetch();
+
+            if (!$user || !password_verify($data['current_password'], $user['password_hash'])) {
+                $response->getBody()->write(json_encode([
+                    'error' => 'Current password is incorrect'
+                ]));
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            }
+
+            // Update password
+            $passwordHash = password_hash($data['new_password'], PASSWORD_DEFAULT);
+            $stmt = $db->prepare("
+                UPDATE users SET
+                    password_hash = ?,
+                    must_change_password = 0,
+                    last_password_change = NOW()
+                WHERE id = ?
+            ");
+            $stmt->execute([$passwordHash, $userId]);
+
+            $response->getBody()->write(json_encode([
+                'message' => 'Password changed successfully'
+            ]));
+            return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
+
+        } catch (\Exception $e) {
+            error_log("Change password error: " . $e->getMessage());
+            $response->getBody()->write(json_encode([
+                'error' => 'Unable to change password. Please try again.'
+            ]));
+            return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
+        }
+    }
+
+    /**
+     * Generate a secure password
+     */
+    private function generateSecurePassword($length = 12): string
+    {
+        $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+        $password = '';
+        for ($i = 0; $i < $length; $i++) {
+            $password .= $chars[random_int(0, strlen($chars) - 1)];
+        }
+        return $password;
+    }
+
+    /**
+     * Get role ID from role name
+     */
+    private function getRoleId($db, string $roleName): ?int
+    {
+        try {
+            $stmt = $db->prepare("SELECT id FROM roles WHERE name = ? OR display_name = ?");
+            $stmt->execute([$roleName, $roleName]);
+            $role = $stmt->fetch();
+            return $role ? $role['id'] : null;
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Handle failed login attempt
+     */
+    private function handleFailedLogin($db, int $userId, int $currentAttempts): void
+    {
+        $newAttempts = $currentAttempts + 1;
+        $lockUntil = null;
+
+        // Lock account after 5 failed attempts for 30 minutes
+        if ($newAttempts >= 5) {
+            $lockUntil = date('Y-m-d H:i:s', strtotime('+30 minutes'));
+        }
+
+        $stmt = $db->prepare("
+            UPDATE users SET
+                failed_login_attempts = ?,
+                locked_until = ?
+            WHERE id = ?
+        ");
+        $stmt->execute([$newAttempts, $lockUntil, $userId]);
+    }
+
+    /**
+     * Send password email for new accounts
+     */
+    private function sendPasswordEmail(string $email, string $name, string $password, bool $isAdminCreated): void
+    {
+        try {
+            // Get email configuration from .env
+            // Use authentication email configuration for user account emails
+            $emailConfig = [
+                'smtp_host' => $_ENV['AUTH_SMTP_HOST'] ?? 'smtp.gmail.com',
+                'smtp_port' => $_ENV['AUTH_SMTP_PORT'] ?? 587,
+                'smtp_user' => $_ENV['AUTH_SMTP_USER'] ?? 'auth@sabiteck.com',
+                'smtp_password' => $_ENV['AUTH_SMTP_PASS'] ?? '',
+                'smtp_encryption' => $_ENV['AUTH_SMTP_ENCRYPTION'] ?? 'tls',
+                'from_email' => $_ENV['AUTH_FROM_EMAIL'] ?? 'auth@sabiteck.com',
+                'from_name' => $_ENV['AUTH_FROM_NAME'] ?? 'Sabitech Authentication'
+            ];
+
+            $emailService = new EmailService($emailConfig);
+
+            $subject = 'Your Account Access Details - Sabiteck Limited';
+
+            $body = "
+            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                <div style='background: #007bff; color: white; padding: 20px; text-align: center;'>
+                    <h1>Welcome to Sabiteck Limited</h1>
+                </div>
+                <div style='padding: 30px; background: #f8f9fa;'>
+                    <h2>Hello $name,</h2>
+                    <p>Your account has been " . ($isAdminCreated ? "created by an administrator" : "successfully registered") . ".</p>
+                    <div style='background: white; padding: 20px; border-radius: 8px; border-left: 4px solid #007bff; margin: 20px 0;'>
+                        <h3>Your Login Details:</h3>
+                        <p><strong>Email:</strong> $email</p>
+                        <p><strong>Password:</strong> $password</p>
+                    </div>
+                    " . ($isAdminCreated ? "<p><strong>Important:</strong> You will be required to change this password when you first log in.</p>" : "") . "
+                    <p>Please keep these credentials secure and do not share them with anyone.</p>
+                    <div style='text-align: center; margin: 30px 0;'>
+                        <a href='" . ($_ENV['FRONTEND_URL'] ?? 'http://localhost:5173') . "/login' style='background: #007bff; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;'>Login to Your Account</a>
+                    </div>
+                    <p>If you have any questions, please contact our support team.</p>
+                </div>
+                <div style='background: #343a40; color: white; padding: 20px; text-align: center; font-size: 12px;'>
+                    <p>&copy; " . date('Y') . " Sabiteck Limited. All rights reserved.</p>
+                </div>
+            </div>";
+
+            $emailService->sendEmail($email, $subject, $body, true, $name);
+
+        } catch (\Exception $e) {
+            error_log("Failed to send password email: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Send password reset email
+     */
+    private function sendPasswordResetEmail(string $email, string $name, string $token): void
+    {
+        try {
+            // Use authentication email configuration for user account emails
+            $emailConfig = [
+                'smtp_host' => $_ENV['AUTH_SMTP_HOST'] ?? 'smtp.gmail.com',
+                'smtp_port' => $_ENV['AUTH_SMTP_PORT'] ?? 587,
+                'smtp_user' => $_ENV['AUTH_SMTP_USER'] ?? 'auth@sabiteck.com',
+                'smtp_password' => $_ENV['AUTH_SMTP_PASS'] ?? '',
+                'smtp_encryption' => $_ENV['AUTH_SMTP_ENCRYPTION'] ?? 'tls',
+                'from_email' => $_ENV['AUTH_FROM_EMAIL'] ?? 'auth@sabiteck.com',
+                'from_name' => $_ENV['AUTH_FROM_NAME'] ?? 'Sabitech Authentication'
+            ];
+
+            $emailService = new EmailService($emailConfig);
+
+            $resetUrl = ($_ENV['FRONTEND_URL'] ?? 'http://localhost:5173') . "/reset-password?token=$token";
+
+            $subject = 'Password Reset Request - Sabiteck Limited';
+
+            $body = "
+            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                <div style='background: #dc3545; color: white; padding: 20px; text-align: center;'>
+                    <h1>Password Reset Request</h1>
+                </div>
+                <div style='padding: 30px; background: #f8f9fa;'>
+                    <h2>Hello $name,</h2>
+                    <p>We received a request to reset your password for your Sabiteck Limited account.</p>
+                    <p>If you requested this password reset, click the button below to reset your password:</p>
+                    <div style='text-align: center; margin: 30px 0;'>
+                        <a href='$resetUrl' style='background: #dc3545; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;'>Reset Your Password</a>
+                    </div>
+                    <p><strong>This link will expire in 1 hour.</strong></p>
+                    <p>If you did not request this password reset, please ignore this email and your password will remain unchanged.</p>
+                    <p>For security reasons, this password reset link can only be used once.</p>
+                </div>
+                <div style='background: #343a40; color: white; padding: 20px; text-align: center; font-size: 12px;'>
+                    <p>&copy; " . date('Y') . " Sabiteck Limited. All rights reserved.</p>
+                </div>
+            </div>";
+
+            $emailService->sendEmail($email, $subject, $body, true, $name);
+
+        } catch (\Exception $e) {
+            error_log("Failed to send password reset email: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Get user ID from JWT token
+     */
+    private function getUserIdFromToken(Request $request): ?int
+    {
+        try {
+            $authHeader = $request->getHeader('Authorization');
+            if (empty($authHeader)) {
+                return null;
+            }
+
+            $token = str_replace('Bearer ', '', $authHeader[0]);
+            $decoded = JWT::decode($token, new Key($_ENV['JWT_SECRET'], 'HS256'));
+
+            return $decoded->user_id ?? null;
+
+        } catch (\Exception $e) {
+            return null;
         }
     }
 }

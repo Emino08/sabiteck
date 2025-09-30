@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scholarships Copy Link Functionality Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e293b 0%, #3730a3 30%, #7c3aed 60%, #be185d 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b, #eab308);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(251, 191, 36, 0.3);
+        }
+        .header p {
+            font-size: 1.3rem;
+            color: #e2e8f0;
+            font-weight: 500;
+        }
+        .elite-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #1a202c;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .stat-label {
+            color: #cbd5e1;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+        .scholarships-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        .scholarship-card {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .scholarship-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: rgba(147, 51, 234, 0.5);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+        .scholarship-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #fbbf24, #f59e0b, #eab308);
+        }
+        .featured-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #1a202c;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            animation: pulse 2s infinite;
+        }
+        .category-badge {
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.2), rgba(126, 34, 206, 0.2));
+            color: #a855f7;
+            padding: 8px 15px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+        .scholarship-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+        .scholarship-title:hover {
+            color: #fbbf24;
+        }
+        .scholarship-description {
+            color: #cbd5e1;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+        .scholarship-details {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+        .detail-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .detail-label {
+            display: flex;
+            align-items: center;
+            color: #94a3b8;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .detail-label::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .funding .detail-label::before { background: #10b981; }
+        .level .detail-label::before { background: #3b82f6; }
+        .region .detail-label::before { background: #8b5cf6; }
+        .deadline .detail-label::before { background: #ef4444; }
+        .detail-value {
+            font-weight: 700;
+            color: white;
+            font-size: 0.9rem;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        .copy-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+            width: 48px;
+            height: 48px;
+        }
+        .copy-btn:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+        }
+        .explore-btn {
+            background: linear-gradient(135deg, #7c3aed, #5b21b6);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            flex: 1;
+            font-size: 0.9rem;
+        }
+        .explore-btn:hover {
+            background: linear-gradient(135deg, #5b21b6, #4c1d95);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(124, 58, 237, 0.4);
+        }
+        .success {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            color: #065f46;
+            padding: 20px 25px;
+            border-radius: 16px;
+            border: 1px solid #6ee7b7;
+            display: none;
+            max-width: 450px;
+            z-index: 1000;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+        }
+        .success.show {
+            display: block;
+            animation: slideIn 0.4s ease;
+        }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        .clipboard-status {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+        }
+        .test-meta {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 0.8rem;
+            color: #64748b;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="header">
+            <div class="elite-badge">🏆 Elite Scholarship Portal</div>
+            <h1>🎓 Scholarships Copy Test</h1>
+            <p>Testing copy link functionality for elite scholarship opportunities</p>
+        </div>
+
+        <div class="clipboard-status" id="clipboardStatus">
+            <strong>🔗 Clipboard API Status:</strong> <span id="statusText">Checking...</span>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">3</div>
+                <div class="stat-label">Test Scholarships</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">2</div>
+                <div class="stat-label">Featured</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">$150K</div>
+                <div class="stat-label">Total Funding</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">3</div>
+                <div class="stat-label">Categories</div>
+            </div>
+        </div>
+
+        <div class="scholarships-grid">
+            <!-- Featured Scholarship 1 -->
+            <div class="scholarship-card">
+                <div class="featured-badge">👑 Elite Featured</div>
+
+                <div class="category-badge">🏆 Academic Excellence</div>
+
+                <h3 class="scholarship-title">Global Leaders Scholarship Program</h3>
+
+                <p class="scholarship-description">
+                    Prestigious scholarship for outstanding students demonstrating exceptional leadership potential
+                    and academic excellence in their chosen field of study.
+                </p>
+
+                <div class="scholarship-details">
+                    <div class="detail-row funding">
+                        <div class="detail-label">💰 Elite Funding</div>
+                        <div class="detail-value">$75,000</div>
+                    </div>
+                    <div class="detail-row level">
+                        <div class="detail-label">🎓 Elite Level</div>
+                        <div class="detail-value">Graduate</div>
+                    </div>
+                    <div class="detail-row region">
+                        <div class="detail-label">🌍 Elite Region</div>
+                        <div class="detail-value">Global</div>
+                    </div>
+                    <div class="detail-row deadline">
+                        <div class="detail-label">⏰ Elite Deadline</div>
+                        <div class="detail-value">30 days left</div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="copy-btn" onclick="testCopyScholarshipLink({
+                        id: 201,
+                        slug: 'global-leaders-scholarship-program',
+                        title: 'Global Leaders Scholarship Program',
+                        category: 'Academic Excellence'
+                    })" title="Copy Elite Scholarship Link">
+                        📋
+                    </button>
+                    <button class="explore-btn">
+                        ⭐ Explore Elite Opportunity 🚀
+                    </button>
+                </div>
+
+                <div class="test-meta">
+                    <strong>Test Data:</strong> ID: 201 | Slug: global-leaders-scholarship-program | Featured: Yes
+                </div>
+            </div>
+
+            <!-- Featured Scholarship 2 -->
+            <div class="scholarship-card">
+                <div class="featured-badge">👑 Elite Featured</div>
+
+                <div class="category-badge">💼 STEM Innovation</div>
+
+                <h3 class="scholarship-title">Future Tech Innovators Fund</h3>
+
+                <p class="scholarship-description">
+                    Exclusive funding opportunity for visionary students pursuing breakthrough research
+                    in emerging technologies and scientific innovation.
+                </p>
+
+                <div class="scholarship-details">
+                    <div class="detail-row funding">
+                        <div class="detail-label">💰 Elite Funding</div>
+                        <div class="detail-value">$50,000</div>
+                    </div>
+                    <div class="detail-row level">
+                        <div class="detail-label">🎓 Elite Level</div>
+                        <div class="detail-value">Undergraduate</div>
+                    </div>
+                    <div class="detail-row region">
+                        <div class="detail-label">🌍 Elite Region</div>
+                        <div class="detail-value">North America</div>
+                    </div>
+                    <div class="detail-row deadline">
+                        <div class="detail-label">⏰ Elite Deadline</div>
+                        <div class="detail-value">15 days left</div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="copy-btn" onclick="testCopyScholarshipLink({
+                        id: 202,
+                        slug: 'future-tech-innovators-fund',
+                        title: 'Future Tech Innovators Fund',
+                        category: 'STEM Innovation'
+                    })" title="Copy Elite Scholarship Link">
+                        📋
+                    </button>
+                    <button class="explore-btn">
+                        💎 Explore Elite Opportunity ⚡
+                    </button>
+                </div>
+
+                <div class="test-meta">
+                    <strong>Test Data:</strong> ID: 202 | Slug: future-tech-innovators-fund | Featured: Yes
+                </div>
+            </div>
+
+            <!-- Regular Scholarship -->
+            <div class="scholarship-card">
+                <div class="category-badge">🌟 Community Impact</div>
+
+                <h3 class="scholarship-title">Social Impact Leadership Award</h3>
+
+                <p class="scholarship-description">
+                    Supporting dedicated students who are making meaningful contributions to their communities
+                    through social impact initiatives and leadership.
+                </p>
+
+                <div class="scholarship-details">
+                    <div class="detail-row funding">
+                        <div class="detail-label">💰 Elite Funding</div>
+                        <div class="detail-value">$25,000</div>
+                    </div>
+                    <div class="detail-row level">
+                        <div class="detail-label">🎓 Elite Level</div>
+                        <div class="detail-value">All Levels</div>
+                    </div>
+                    <div class="detail-row region">
+                        <div class="detail-label">🌍 Elite Region</div>
+                        <div class="detail-value">Sierra Leone</div>
+                    </div>
+                    <div class="detail-row deadline">
+                        <div class="detail-label">⏰ Elite Deadline</div>
+                        <div class="detail-value">45 days left</div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="copy-btn" onclick="testCopyScholarshipLink({
+                        id: 203,
+                        slug: null,
+                        title: 'Social Impact Leadership Award',
+                        category: 'Community Impact'
+                    })" title="Copy Elite Scholarship Link">
+                        📋
+                    </button>
+                    <button class="explore-btn">
+                        💎 Explore Elite Opportunity ⚡
+                    </button>
+                </div>
+
+                <div class="test-meta">
+                    <strong>Test Data:</strong> ID: 203 | Slug: null (uses ID) | Featured: No
+                </div>
+            </div>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        // Test implementation of the copy scholarship link functionality
+        async function testCopyScholarshipLink(scholarship) {
+            try {
+                // Generate the scholarship link based on the slug or ID
+                const baseUrl = window.location.origin;
+                const scholarshipUrl = `${baseUrl}/scholarships/${scholarship.slug || scholarship.id}`;
+
+                // Copy to clipboard
+                await navigator.clipboard.writeText(scholarshipUrl);
+
+                // Show success message
+                showSuccess(`✨ Elite scholarship link copied to clipboard!<br><strong>Scholarship:</strong> ${scholarship.title}<br><strong>Category:</strong> ${scholarship.category}<br><strong>URL:</strong> ${scholarshipUrl}`);
+
+            } catch (error) {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                const baseUrl = window.location.origin;
+                const scholarshipUrl = `${baseUrl}/scholarships/${scholarship.slug || scholarship.id}`;
+
+                textArea.value = scholarshipUrl;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+
+                showSuccess(`✨ Elite scholarship link copied to clipboard! (Fallback method)<br><strong>Scholarship:</strong> ${scholarship.title}<br><strong>Category:</strong> ${scholarship.category}<br><strong>URL:</strong> ${scholarshipUrl}`);
+            }
+        }
+
+        function showSuccess(message) {
+            const resultsDiv = document.getElementById('results');
+
+            // Remove any existing success message
+            const existingSuccess = document.querySelector('.success');
+            if (existingSuccess) {
+                existingSuccess.remove();
+            }
+
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success show';
+            successDiv.innerHTML = `<div style="display: flex; align-items: center; gap: 12px;"><span style="font-size: 1.5rem;">✅</span><div>${message}</div></div>`;
+
+            document.body.appendChild(successDiv);
+
+            // Auto-hide after 8 seconds
+            setTimeout(() => {
+                successDiv.style.opacity = '0';
+                successDiv.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (successDiv.parentNode) {
+                        successDiv.parentNode.removeChild(successDiv);
+                    }
+                }, 400);
+            }, 8000);
+        }
+
+        // Test clipboard API availability
+        window.addEventListener('DOMContentLoaded', () => {
+            const statusText = document.getElementById('statusText');
+
+            if (!navigator.clipboard) {
+                statusText.innerHTML = '⚠️ Clipboard API not available. Will use fallback method.';
+                statusText.style.color = '#f59e0b';
+            } else {
+                statusText.innerHTML = '✅ Clipboard API is available and ready for testing.';
+                statusText.style.color = '#10b981';
+            }
+        });
+    </script>
+</body>
+</html>

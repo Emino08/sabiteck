@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Single Scholarship Detail Converter Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #495057;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+        button.secondary {
+            background: #6c757d;
+        }
+        button.secondary:hover {
+            background: #545b62;
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .logs {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+            align-items: center;
+        }
+        input {
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .scholarship-preview {
+            background: #fff;
+            border: 2px solid #007bff;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        .scholarship-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+        .scholarship-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .detail-item {
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-left: 3px solid #007bff;
+        }
+        .detail-label {
+            font-weight: bold;
+            color: #495057;
+            font-size: 12px;
+        }
+        .detail-value {
+            color: #2c3e50;
+            margin-top: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📄 Single Scholarship Detail Converter Test</h1>
+            <p>Test the new single scholarship detail generator with portrait mode and comprehensive information</p>
+        </div>
+
+        <!-- Authentication Test -->
+        <div class="test-section">
+            <h3>🔐 Authentication</h3>
+            <div class="controls">
+                <input type="text" id="username" placeholder="Username" value="admin">
+                <input type="password" id="password" placeholder="Password" value="">
+                <button onclick="testLogin()">Login</button>
+            </div>
+            <div id="auth-status"></div>
+        </div>
+
+        <!-- Test Scholarship Selection -->
+        <div class="test-section">
+            <h3>📚 Select Test Scholarship</h3>
+            <div class="controls">
+                <button onclick="loadScholarships()">Load Available Scholarships</button>
+                <select id="scholarship-select" onchange="previewScholarship()">
+                    <option value="">Select a scholarship...</option>
+                </select>
+            </div>
+            <div id="scholarship-status"></div>
+            <div id="scholarship-preview"></div>
+        </div>
+
+        <!-- Single Scholarship Detail Generation -->
+        <div class="test-section">
+            <h3>📄 Single Scholarship Detail Generation</h3>
+            <div class="controls">
+                <button onclick="generateSinglePDF()">Generate PDF Detail</button>
+                <button onclick="generateSingleImage()" class="secondary">Generate Image Detail</button>
+                <label>
+                    <input type="checkbox" id="include-contact" checked> Include Contact Info
+                </label>
+                <label>
+                    <input type="checkbox" id="include-requirements" checked> Include Requirements
+                </label>
+            </div>
+            <div id="generation-status"></div>
+        </div>
+
+        <!-- Feature Comparison -->
+        <div class="test-section">
+            <h3>⚖️ Feature Comparison Test</h3>
+            <div class="controls">
+                <button onclick="testFeatureComparison()">Compare: Multiple vs Single</button>
+            </div>
+            <div id="comparison-status"></div>
+        </div>
+
+        <!-- Logs -->
+        <div class="test-section">
+            <h3>📝 Test Logs</h3>
+            <button onclick="clearLogs()">Clear Logs</button>
+            <div id="logs" class="logs"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8002';
+        let authToken = '';
+        let scholarships = [];
+        let selectedScholarship = null;
+
+        function log(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            logs.innerHTML += `<div>[${timestamp}] [${type.toUpperCase()}] ${message}</div>`;
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        function showStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function clearLogs() {
+            document.getElementById('logs').innerHTML = '';
+        }
+
+        async function testLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            log(`Attempting login with username: ${username}`);
+            try {
+                const response = await fetch(`${API_URL}/api/auth/admin-login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    authToken = data.data.token;
+                    showStatus('auth-status', `✅ Login successful! User: ${data.data.user.username}`, 'success');
+                    log(`Login successful: ${JSON.stringify(data.data.user)}`);
+                } else {
+                    showStatus('auth-status', `❌ Login failed: ${data.error}`, 'error');
+                    log(`Login failed: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showStatus('auth-status', `❌ Login error: ${error.message}`, 'error');
+                log(`Login error: ${error.message}`, 'error');
+            }
+        }
+
+        async function loadScholarships() {
+            if (!authToken) {
+                showStatus('scholarship-status', '❌ Please login first', 'error');
+                return;
+            }
+
+            log('Loading available scholarships...');
+            try {
+                const response = await fetch(`${API_URL}/api/admin/scholarships/active`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    scholarships = data.data;
+                    const select = document.getElementById('scholarship-select');
+                    select.innerHTML = '<option value="">Select a scholarship...</option>';
+
+                    scholarships.forEach((scholarship, index) => {
+                        const option = document.createElement('option');
+                        option.value = index;
+                        option.textContent = `${scholarship.title} - ${scholarship.currency} ${scholarship.amount}`;
+                        select.appendChild(option);
+                    });
+
+                    showStatus('scholarship-status', `✅ Loaded ${scholarships.length} scholarships`, 'success');
+                    log(`Scholarships loaded: ${scholarships.length} items`);
+                } else {
+                    showStatus('scholarship-status', `❌ Failed to load scholarships: ${data.error}`, 'error');
+                    log(`Failed to load scholarships: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showStatus('scholarship-status', `❌ Error loading scholarships: ${error.message}`, 'error');
+                log(`Error loading scholarships: ${error.message}`, 'error');
+            }
+        }
+
+        function previewScholarship() {
+            const select = document.getElementById('scholarship-select');
+            const index = select.value;
+
+            if (index === '') {
+                document.getElementById('scholarship-preview').innerHTML = '';
+                selectedScholarship = null;
+                return;
+            }
+
+            selectedScholarship = scholarships[index];
+
+            const preview = `
+                <div class="scholarship-preview">
+                    <div class="scholarship-title">${selectedScholarship.title}</div>
+                    <div class="scholarship-details">
+                        <div class="detail-item">
+                            <div class="detail-label">Amount</div>
+                            <div class="detail-value">${selectedScholarship.currency} ${selectedScholarship.amount}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Deadline</div>
+                            <div class="detail-value">${selectedScholarship.deadline}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Category</div>
+                            <div class="detail-value">${selectedScholarship.category || 'N/A'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Region</div>
+                            <div class="detail-value">${selectedScholarship.region || 'N/A'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Education Level</div>
+                            <div class="detail-value">${selectedScholarship.education_level || 'N/A'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Status</div>
+                            <div class="detail-value">${selectedScholarship.status}</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <div class="detail-label">Description</div>
+                        <div class="detail-value">${selectedScholarship.description || 'No description available'}</div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('scholarship-preview').innerHTML = preview;
+            log(`Selected scholarship: ${selectedScholarship.title}`);
+        }
+
+        async function generateSinglePDF() {
+            await generateSingleDetail('pdf');
+        }
+
+        async function generateSingleImage() {
+            await generateSingleDetail('image');
+        }
+
+        async function generateSingleDetail(format) {
+            if (!authToken) {
+                showStatus('generation-status', '❌ Please login first', 'error');
+                return;
+            }
+
+            if (!selectedScholarship) {
+                showStatus('generation-status', '❌ Please select a scholarship first', 'error');
+                return;
+            }
+
+            const includeContact = document.getElementById('include-contact').checked;
+            const includeRequirements = document.getElementById('include-requirements').checked;
+
+            log(`Generating ${format.toUpperCase()} detail for: ${selectedScholarship.title}`);
+            showStatus('generation-status', `🔄 Generating ${format.toUpperCase()} detail...`, 'info');
+
+            try {
+                const response = await fetch(`${API_URL}/api/admin/scholarships/generate-single`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        scholarship: selectedScholarship,
+                        format: format,
+                        includeContact: includeContact,
+                        includeRequirements: includeRequirements
+                    })
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+
+                    const safeName = selectedScholarship.title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                    const timestamp = new Date().toISOString().split('T')[0];
+                    a.download = `${safeName}_detail_${timestamp}.${format}`;
+
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+
+                    showStatus('generation-status', `✅ ${format.toUpperCase()} detail generated successfully!`, 'success');
+                    log(`${format.toUpperCase()} generation successful: ${selectedScholarship.title}`);
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `Failed to generate ${format}`);
+                }
+            } catch (error) {
+                showStatus('generation-status', `❌ ${format.toUpperCase()} generation failed: ${error.message}`, 'error');
+                log(`${format.toUpperCase()} generation error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testFeatureComparison() {
+            if (!authToken || !selectedScholarship) {
+                showStatus('comparison-status', '❌ Please login and select a scholarship first', 'error');
+                return;
+            }
+
+            log('Testing feature comparison: Multiple vs Single scholarship generation');
+            showStatus('comparison-status', '🔄 Running comparison test...', 'info');
+
+            try {
+                // Generate single scholarship detail
+                log('Generating single scholarship detail...');
+                const singleResponse = await fetch(`${API_URL}/api/admin/scholarships/generate-single`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        scholarship: selectedScholarship,
+                        format: 'pdf',
+                        includeContact: true,
+                        includeRequirements: true
+                    })
+                });
+
+                // Generate multiple scholarships (traditional way)
+                log('Generating traditional multiple scholarships PDF...');
+                const multipleResponse = await fetch(`${API_URL}/api/admin/scholarships/generate`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        scholarships: [selectedScholarship],
+                        format: 'pdf',
+                        orientation: 'portrait',
+                        includeLinks: true,
+                        template: 'table'
+                    })
+                });
+
+                if (singleResponse.ok && multipleResponse.ok) {
+                    const singleBlob = await singleResponse.blob();
+                    const multipleBlob = await multipleResponse.blob();
+
+                    showStatus('comparison-status',
+                        `✅ Comparison successful! Single detail: ${Math.round(singleBlob.size/1024)}KB, Multiple format: ${Math.round(multipleBlob.size/1024)}KB`,
+                        'success'
+                    );
+                    log(`Comparison results - Single: ${singleBlob.size} bytes, Multiple: ${multipleBlob.size} bytes`);
+                } else {
+                    throw new Error('One or both generation methods failed');
+                }
+            } catch (error) {
+                showStatus('comparison-status', `❌ Comparison test failed: ${error.message}`, 'error');
+                log(`Comparison test error: ${error.message}`, 'error');
+            }
+        }
+
+        // Initialize
+        window.onload = function() {
+            log('Single scholarship detail converter test initialized');
+            log('Ready to test the new portrait mode single scholarship detail generator');
+        };
+    </script>
+</body>
+</html>

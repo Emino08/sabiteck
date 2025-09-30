@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Copy Link Functionality Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .test-item {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+        button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #218838;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border: 1px solid #c3e6cb;
+        }
+        .content-preview {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>✨ Copy Link Functionality Test</h1>
+        <p>This test verifies that the copy link functionality works correctly for content posts in the admin panel.</p>
+
+        <div class="test-item">
+            <h3>Test Content Item 1 - Blog Post</h3>
+            <div class="content-preview">
+                <strong>Title:</strong> "How to Build Elite Web Applications"<br>
+                <strong>Type:</strong> blog<br>
+                <strong>Slug:</strong> how-to-build-elite-web-applications<br>
+                <strong>ID:</strong> 123
+            </div>
+            <button onclick="testCopyLink({
+                id: 123,
+                content_type: 'blog',
+                slug: 'how-to-build-elite-web-applications',
+                title: 'How to Build Elite Web Applications'
+            })">📋 Copy Link (Blog)</button>
+        </div>
+
+        <div class="test-item">
+            <h3>Test Content Item 2 - Article without Slug</h3>
+            <div class="content-preview">
+                <strong>Title:</strong> "Professional Web Development Tips"<br>
+                <strong>Type:</strong> article<br>
+                <strong>Slug:</strong> null<br>
+                <strong>ID:</strong> 456
+            </div>
+            <button onclick="testCopyLink({
+                id: 456,
+                content_type: 'article',
+                slug: null,
+                title: 'Professional Web Development Tips'
+            })">📋 Copy Link (Article)</button>
+        </div>
+
+        <div class="test-item">
+            <h3>Test Content Item 3 - News Item</h3>
+            <div class="content-preview">
+                <strong>Title:</strong> "Latest Company Updates"<br>
+                <strong>Type:</strong> news<br>
+                <strong>Slug:</strong> latest-company-updates<br>
+                <strong>ID:</strong> 789
+            </div>
+            <button onclick="testCopyLink({
+                id: 789,
+                content_type: 'news',
+                slug: 'latest-company-updates',
+                title: 'Latest Company Updates'
+            })">📋 Copy Link (News)</button>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        // Test implementation of the copy link functionality
+        async function testCopyLink(item) {
+            try {
+                // Generate the content link based on the content type and slug or ID
+                const baseUrl = window.location.origin;
+                let contentUrl = '';
+
+                if (item.content_type === 'blog') {
+                    contentUrl = `${baseUrl}/blog/${item.slug || item.id}`;
+                } else {
+                    contentUrl = `${baseUrl}/${item.content_type}/${item.slug || item.id}`;
+                }
+
+                // Copy to clipboard
+                await navigator.clipboard.writeText(contentUrl);
+
+                // Show success message
+                showSuccess(`✨ Content link copied to clipboard!<br><strong>URL:</strong> ${contentUrl}`);
+
+            } catch (error) {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                const baseUrl = window.location.origin;
+                const contentUrl = item.content_type === 'blog'
+                    ? `${baseUrl}/blog/${item.slug || item.id}`
+                    : `${baseUrl}/${item.content_type}/${item.slug || item.id}`;
+
+                textArea.value = contentUrl;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+
+                showSuccess(`✨ Content link copied to clipboard! (Fallback method)<br><strong>URL:</strong> ${contentUrl}`);
+            }
+        }
+
+        function showSuccess(message) {
+            const resultsDiv = document.getElementById('results');
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success';
+            successDiv.innerHTML = message;
+
+            // Clear previous results
+            resultsDiv.innerHTML = '';
+            resultsDiv.appendChild(successDiv);
+
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                successDiv.style.opacity = '0';
+                setTimeout(() => {
+                    if (successDiv.parentNode) {
+                        successDiv.parentNode.removeChild(successDiv);
+                    }
+                }, 300);
+            }, 5000);
+        }
+
+        // Test clipboard API availability
+        window.addEventListener('DOMContentLoaded', () => {
+            if (!navigator.clipboard) {
+                showSuccess('⚠️ Note: Clipboard API not available. Will use fallback method.');
+            } else {
+                showSuccess('✅ Clipboard API is available and ready for testing.');
+            }
+        });
+    </script>
+</body>
+</html>

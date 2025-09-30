@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Curriculum Viewer</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        iframe { width: 100%; height: 400px; border: 1px solid #ccc; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px; }
+        button:hover { background: #0056b3; }
+        .info { background: #f8f9fa; padding: 10px; border-radius: 4px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Curriculum Viewer Test</h1>
+
+    <div class="test-section">
+        <h2>📊 Implementation Summary</h2>
+        <div class="info">
+            <strong>✅ Changes Made:</strong>
+            <ul>
+                <li><strong>Backend:</strong> Added <code>viewCurriculum()</code> method with <code>Content-Disposition: inline</code></li>
+                <li><strong>API:</strong> New route <code>/api/curriculum/view</code> for viewing files in browser</li>
+                <li><strong>Frontend:</strong> Updated <code>handleViewPDF()</code> to use view endpoint instead of download</li>
+                <li><strong>Link Support:</strong> External links now open in new tab instead of embedding</li>
+                <li><strong>Download:</strong> Kept separate <code>/api/curriculum/download</code> for actual file downloads</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔧 Test Endpoints</h2>
+        <p>Test the difference between view and download endpoints:</p>
+
+        <button onclick="testViewEndpoint()">Test View Endpoint (Should display inline)</button>
+        <button onclick="testDownloadEndpoint()">Test Download Endpoint (Should download file)</button>
+        <button onclick="testExternalLink()">Test External Link (Should open in new tab)</button>
+
+        <div id="result" style="margin-top: 20px;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>📄 PDF Viewer Test</h2>
+        <p>This iframe should display a PDF inline when a valid subject ID is used:</p>
+        <iframe id="pdfViewer" src="about:blank"></iframe>
+
+        <div style="margin-top: 10px;">
+            <input type="number" id="subjectId" placeholder="Subject ID" value="1" style="padding: 8px; margin-right: 10px;">
+            <button onclick="loadPDF()">Load PDF in Viewer</button>
+            <button onclick="downloadPDF()">Download PDF</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+
+        function testViewEndpoint() {
+            const url = `${API_BASE}/api/curriculum/view?subject_id=1`;
+            document.getElementById('result').innerHTML =
+                `<strong>View Endpoint Test:</strong><br>
+                 URL: <a href="${url}" target="_blank">${url}</a><br>
+                 Expected: File should display in browser (PDF viewer, etc.)`;
+        }
+
+        function testDownloadEndpoint() {
+            const url = `${API_BASE}/api/curriculum/download?subject_id=1`;
+            document.getElementById('result').innerHTML =
+                `<strong>Download Endpoint Test:</strong><br>
+                 URL: <a href="${url}" target="_blank">${url}</a><br>
+                 Expected: File should be downloaded to computer`;
+        }
+
+        function testExternalLink() {
+            document.getElementById('result').innerHTML =
+                `<strong>External Link Test:</strong><br>
+                 For subjects with external URLs (e.g., https://example.com/doc.pdf)<br>
+                 Expected: Opens in new tab instead of embedding`;
+        }
+
+        function loadPDF() {
+            const subjectId = document.getElementById('subjectId').value;
+            const viewUrl = `${API_BASE}/api/curriculum/view?subject_id=${subjectId}`;
+            document.getElementById('pdfViewer').src = viewUrl;
+        }
+
+        function downloadPDF() {
+            const subjectId = document.getElementById('subjectId').value;
+            const downloadUrl = `${API_BASE}/api/curriculum/download?subject_id=${subjectId}`;
+            window.open(downloadUrl, '_blank');
+        }
+
+        // Load initial test
+        testViewEndpoint();
+    </script>
+</body>
+</html>

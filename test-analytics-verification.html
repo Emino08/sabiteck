@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics System Verification</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .status { padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+        .results { margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px; }
+        pre { background: #e9ecef; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Analytics System Verification</h1>
+        <p>This page tests the analytics system after clearing data and implementing new tracking features.</p>
+
+        <div id="status-container">
+            <div class="status info">
+                <strong>🔄 Initializing verification...</strong>
+            </div>
+        </div>
+
+        <div class="results">
+            <h3>Test Actions:</h3>
+            <button onclick="testPageView()">📊 Test Page View Tracking</button>
+            <button onclick="testEvent()">🎯 Test Event Tracking</button>
+            <button onclick="testDeviceDetection()">📱 Test Device Detection</button>
+            <button onclick="testCookieConsent()">🍪 Test Cookie Consent</button>
+            <button onclick="checkAnalyticsData()">📈 Check Analytics Data</button>
+            <button onclick="testRealTimeData()">⚡ Test Real-time Data</button>
+
+            <div id="test-results"></div>
+        </div>
+
+        <div class="status warning">
+            <strong>Note:</strong> Make sure you have accepted analytics cookies in the cookie consent banner for tracking to work properly.
+        </div>
+    </div>
+
+    <!-- Load Analytics Script -->
+    <script src="/analytics.js"></script>
+
+    <script>
+        let results = [];
+
+        function addResult(test, status, message, details = null) {
+            results.push({ test, status, message, details, timestamp: new Date().toLocaleTimeString() });
+            updateResults();
+        }
+
+        function updateResults() {
+            const container = document.getElementById('test-results');
+            container.innerHTML = '<h4>Test Results:</h4>' +
+                results.map(r => `
+                    <div class="status ${r.status}">
+                        <strong>[${r.timestamp}] ${r.test}:</strong> ${r.message}
+                        ${r.details ? `<pre>${JSON.stringify(r.details, null, 2)}</pre>` : ''}
+                    </div>
+                `).join('');
+        }
+
+        function updateStatus(message, type = 'info') {
+            document.getElementById('status-container').innerHTML =
+                `<div class="status ${type}"><strong>${message}</strong></div>`;
+        }
+
+        // Test Functions
+        function testPageView() {
+            if (window.SabiteckAnalytics) {
+                // Trigger a manual page view
+                window.SabiteckAnalytics.track('test', 'page_view', 'manual_test');
+                addResult('Page View', 'success', 'Page view tracking triggered successfully');
+            } else {
+                addResult('Page View', 'error', 'Analytics script not loaded');
+            }
+        }
+
+        function testEvent() {
+            if (window.SabiteckAnalytics) {
+                window.SabiteckAnalytics.track('test', 'button_click', 'verification_test', 1);
+                addResult('Event Tracking', 'success', 'Event tracking triggered successfully');
+            } else {
+                addResult('Event Tracking', 'error', 'Analytics script not loaded');
+            }
+        }
+
+        function testDeviceDetection() {
+            const deviceInfo = {
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                language: navigator.language,
+                screenSize: `${screen.width}x${screen.height}`,
+                viewport: `${window.innerWidth}x${window.innerHeight}`,
+                touchSupport: 'ontouchstart' in window,
+                cookiesEnabled: navigator.cookieEnabled
+            };
+
+            addResult('Device Detection', 'success', 'Device information collected', deviceInfo);
+        }
+
+        function testCookieConsent() {
+            const consentCookie = document.cookie.split(';').find(c => c.trim().startsWith('cookie_consent='));
+            const analyticsCookie = document.cookie.split(';').find(c => c.trim().startsWith('analytics_consent='));
+
+            if (consentCookie || analyticsCookie) {
+                addResult('Cookie Consent', 'success', 'Cookie consent detected', {
+                    consent: consentCookie ? consentCookie.split('=')[1] : null,
+                    analytics: analyticsCookie ? analyticsCookie.split('=')[1] : null
+                });
+            } else {
+                addResult('Cookie Consent', 'warning', 'No consent cookies found - user may not have interacted with consent banner yet');
+            }
+        }
+
+        async function checkAnalyticsData() {
+            try {
+                // Test API endpoint
+                const response = await fetch('/api/admin/analytics/dashboard?period=1d');
+                if (response.ok) {
+                    const data = await response.json();
+                    addResult('API Connection', 'success', 'Analytics API responding correctly', data);
+                } else {
+                    addResult('API Connection', 'warning', `API returned status: ${response.status}`);
+                }
+            } catch (error) {
+                addResult('API Connection', 'error', 'Failed to connect to analytics API', error.message);
+            }
+        }
+
+        async function testRealTimeData() {
+            try {
+                const response = await fetch('/api/admin/analytics/realtime');
+                if (response.ok) {
+                    const data = await response.json();
+                    addResult('Real-time Data', 'success', 'Real-time endpoint working', data);
+                } else {
+                    addResult('Real-time Data', 'warning', `Real-time API returned status: ${response.status}`);
+                }
+            } catch (error) {
+                addResult('Real-time Data', 'error', 'Failed to get real-time data', error.message);
+            }
+        }
+
+        // Initialize verification
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                if (window.SabiteckAnalytics) {
+                    updateStatus('✅ Analytics system loaded and ready for testing', 'success');
+                    addResult('System Check', 'success', 'Analytics script loaded successfully');
+                } else {
+                    updateStatus('❌ Analytics system not detected', 'error');
+                    addResult('System Check', 'error', 'Analytics script failed to load');
+                }
+            }, 1000);
+        });
+
+        // Monitor for consent changes
+        setInterval(() => {
+            const hasConsent = document.cookie.includes('analytics_consent=true');
+            if (hasConsent && !window.analyticsConsentDetected) {
+                window.analyticsConsentDetected = true;
+                addResult('Consent Monitor', 'success', 'Analytics consent granted - tracking is now active');
+            }
+        }, 2000);
+    </script>
+</body>
+</html>

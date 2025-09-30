@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Announcements Copy Link Functionality Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        .test-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .header h1 {
+            color: #1e293b;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        .header p {
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+        .test-announcement {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        .test-announcement::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #fbbf24, #f59e0b);
+        }
+        .announcement-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .announcement-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 20px;
+        }
+        .announcement-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 0;
+        }
+        .announcement-meta {
+            background: rgba(255,255,255,0.1);
+            padding: 12px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-size: 0.9rem;
+        }
+        .announcement-content {
+            margin: 15px 0;
+            line-height: 1.6;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .copy-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+        .copy-btn:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        }
+        .secondary-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        .secondary-btn:hover {
+            background: rgba(255,255,255,0.3);
+            border-color: rgba(255,255,255,0.5);
+        }
+        .success {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            color: #065f46;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 1px solid #6ee7b7;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.3s ease;
+        }
+        .success.show {
+            display: flex;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .priority-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .priority-critical { background: #fecaca; color: #991b1b; }
+        .priority-high { background: #fed7aa; color: #9a3412; }
+        .priority-medium { background: #bfdbfe; color: #1e40af; }
+        .type-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            margin-left: 10px;
+        }
+        .clipboard-status {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #3b82f6;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="header">
+            <h1>📢 Announcements Copy Test</h1>
+            <p>Testing copy link functionality for announcement items</p>
+        </div>
+
+        <div class="clipboard-status" id="clipboardStatus">
+            <strong>Clipboard Status:</strong> <span id="statusText">Checking...</span>
+        </div>
+
+        <div class="test-announcement">
+            <div class="announcement-header">
+                <div class="announcement-icon">🔧</div>
+                <h3 class="announcement-title">System Maintenance Scheduled</h3>
+                <span class="priority-badge priority-high">High</span>
+                <span class="type-badge">Maintenance</span>
+            </div>
+
+            <div class="announcement-meta">
+                <strong>ID:</strong> 1 | <strong>Type:</strong> maintenance | <strong>Author:</strong> IT Team<br>
+                <strong>Published:</strong> January 15, 2025 | <strong>Valid until:</strong> January 22, 2025
+            </div>
+
+            <div class="announcement-content">
+                We will be performing scheduled maintenance on our systems this weekend. During this time, some services may be temporarily unavailable. We apologize for any inconvenience.
+            </div>
+
+            <div class="action-buttons">
+                <button class="copy-btn" onclick="testCopyLink({id: 1, type: 'maintenance', title: 'System Maintenance Scheduled'})">
+                    📋 Copy Link
+                </button>
+                <button class="secondary-btn">
+                    📧 Learn More
+                </button>
+            </div>
+        </div>
+
+        <div class="test-announcement">
+            <div class="announcement-header">
+                <div class="announcement-icon">⭐</div>
+                <h3 class="announcement-title">New Feature Release: Enhanced Dashboard</h3>
+                <span class="priority-badge priority-medium">Medium</span>
+                <span class="type-badge">Feature</span>
+            </div>
+
+            <div class="announcement-meta">
+                <strong>ID:</strong> 2 | <strong>Type:</strong> feature | <strong>Author:</strong> Product Team<br>
+                <strong>Slug:</strong> enhanced-dashboard-release | <strong>Published:</strong> January 14, 2025
+            </div>
+
+            <div class="announcement-content">
+                We are excited to announce the release of our enhanced dashboard with improved analytics, better performance, and a more intuitive user interface.
+            </div>
+
+            <div class="action-buttons">
+                <button class="copy-btn" onclick="testCopyLink({id: 2, slug: 'enhanced-dashboard-release', type: 'feature', title: 'New Feature Release'})">
+                    📋 Copy Link
+                </button>
+                <button class="secondary-btn">
+                    📖 View Documentation
+                </button>
+            </div>
+        </div>
+
+        <div class="test-announcement">
+            <div class="announcement-header">
+                <div class="announcement-icon">⚠️</div>
+                <h3 class="announcement-title">Security Update Required</h3>
+                <span class="priority-badge priority-critical">Critical</span>
+                <span class="type-badge">Warning</span>
+            </div>
+
+            <div class="announcement-meta">
+                <strong>ID:</strong> 3 | <strong>Type:</strong> warning | <strong>Author:</strong> Security Team<br>
+                <strong>Published:</strong> January 13, 2025 | <strong>Valid until:</strong> February 12, 2025
+            </div>
+
+            <div class="announcement-content">
+                Important security update available. Please update your passwords and enable two-factor authentication for enhanced account security.
+            </div>
+
+            <div class="action-buttons">
+                <button class="copy-btn" onclick="testCopyLink({id: 3, type: 'warning', title: 'Security Update Required'})">
+                    📋 Copy Link
+                </button>
+                <button class="secondary-btn">
+                    🔐 Update Password
+                </button>
+            </div>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        // Test implementation of the copy announcement link functionality
+        async function testCopyLink(announcement) {
+            try {
+                // Generate the announcement link based on the ID or slug
+                const baseUrl = window.location.origin;
+                const announcementUrl = `${baseUrl}/announcements/${announcement.slug || announcement.id}`;
+
+                // Copy to clipboard
+                await navigator.clipboard.writeText(announcementUrl);
+
+                // Show success message
+                showSuccess(`✨ Announcement link copied to clipboard!<br><strong>URL:</strong> ${announcementUrl}`);
+
+            } catch (error) {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                const baseUrl = window.location.origin;
+                const announcementUrl = `${baseUrl}/announcements/${announcement.slug || announcement.id}`;
+
+                textArea.value = announcementUrl;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+
+                showSuccess(`✨ Announcement link copied to clipboard! (Fallback method)<br><strong>URL:</strong> ${announcementUrl}`);
+            }
+        }
+
+        function showSuccess(message) {
+            const resultsDiv = document.getElementById('results');
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success show';
+            successDiv.innerHTML = `<span style="font-size: 1.2rem;">✅</span> ${message}`;
+
+            // Clear previous results
+            resultsDiv.innerHTML = '';
+            resultsDiv.appendChild(successDiv);
+
+            // Auto-hide after 6 seconds
+            setTimeout(() => {
+                successDiv.style.opacity = '0';
+                successDiv.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    if (successDiv.parentNode) {
+                        successDiv.parentNode.removeChild(successDiv);
+                    }
+                }, 300);
+            }, 6000);
+        }
+
+        // Test clipboard API availability
+        window.addEventListener('DOMContentLoaded', () => {
+            const statusText = document.getElementById('statusText');
+
+            if (!navigator.clipboard) {
+                statusText.innerHTML = '⚠️ Clipboard API not available. Will use fallback method.';
+                statusText.style.color = '#d97706';
+            } else {
+                statusText.innerHTML = '✅ Clipboard API is available and ready for testing.';
+                statusText.style.color = '#059669';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -14,12 +14,12 @@ class SettingsController
             $db = Database::getInstance();
             $this->ensureSettingsTable($db);
 
-            // Get all route visibility settings
+            // Get all route visibility settings using correct column names
             $stmt = $db->prepare("
-                SELECT setting_key, setting_value, description
-                FROM site_settings
-                WHERE setting_key LIKE 'route_%_enabled'
-                ORDER BY setting_key
+                SELECT name, value
+                FROM settings
+                WHERE category = 'route' AND name LIKE '%_enabled'
+                ORDER BY name
             ");
             $stmt->execute();
             $settings = $stmt->fetchAll();
@@ -27,10 +27,10 @@ class SettingsController
             // Format for easier frontend consumption
             $routeSettings = [];
             foreach ($settings as $setting) {
-                $routeKey = str_replace(['route_', '_enabled'], '', $setting['setting_key']);
+                $routeKey = str_replace('_enabled', '', $setting['name']);
                 $routeSettings[$routeKey] = [
-                    'enabled' => (bool)$setting['setting_value'],
-                    'description' => $setting['description']
+                    'enabled' => (bool)$setting['value'],
+                    'description' => ''
                 ];
             }
 
@@ -72,15 +72,15 @@ class SettingsController
 
             try {
                 foreach ($data['routes'] as $route => $enabled) {
-                    $settingKey = "route_{$route}_enabled";
+                    $settingName = "{$route}_enabled";
                     $stmt = $db->prepare("
-                        INSERT INTO site_settings (setting_key, setting_value, updated_at)
-                        VALUES (?, ?, NOW())
+                        INSERT INTO settings (category, name, value, updated_at)
+                        VALUES ('route', ?, ?, NOW())
                         ON DUPLICATE KEY UPDATE
-                        setting_value = VALUES(setting_value),
+                        value = VALUES(value),
                         updated_at = NOW()
                     ");
-                    $stmt->execute([$settingKey, $enabled ? 1 : 0]);
+                    $stmt->execute([$settingName, $enabled ? 1 : 0]);
                 }
 
                 $db->commit();
@@ -113,15 +113,18 @@ class SettingsController
             $db = Database::getInstance();
             $this->ensureSettingsTable($db);
 
-            $stmt = $db->query("SELECT setting_key, setting_value, description FROM site_settings ORDER BY setting_key");
+            // Get all settings using correct column names
+            $stmt = $db->query("SELECT category, name, value FROM settings ORDER BY category, name");
             $settings = $stmt->fetchAll();
 
             // Format settings as key-value pairs
             $formattedSettings = [];
             foreach ($settings as $setting) {
-                $formattedSettings[$setting['setting_key']] = [
-                    'value' => $setting['setting_value'],
-                    'description' => $setting['description']
+                $key = $setting['category'] . '.' . $setting['name'];
+                $formattedSettings[$key] = [
+                    'value' => $setting['value'],
+                    'description' => '',
+                    'category' => $setting['category']
                 ];
             }
 
@@ -164,17 +167,23 @@ class SettingsController
             try {
                 foreach ($data['settings'] as $key => $valueData) {
                     $value = is_array($valueData) ? $valueData['value'] : $valueData;
-                    $description = is_array($valueData) ? ($valueData['description'] ?? '') : '';
+                    $category = is_array($valueData) ? ($valueData['category'] ?? 'general') : 'general';
+
+                    // Parse key if it contains category (e.g., "general.site_name" -> category="general", name="site_name")
+                    if (strpos($key, '.') !== false) {
+                        list($category, $name) = explode('.', $key, 2);
+                    } else {
+                        $name = $key;
+                    }
 
                     $stmt = $db->prepare("
-                        INSERT INTO site_settings (setting_key, setting_value, description, updated_at)
+                        INSERT INTO settings (category, name, value, updated_at)
                         VALUES (?, ?, ?, NOW())
                         ON DUPLICATE KEY UPDATE
-                        setting_value = VALUES(setting_value),
-                        description = VALUES(description),
+                        value = VALUES(value),
                         updated_at = NOW()
                     ");
-                    $stmt->execute([$key, $value, $description]);
+                    $stmt->execute([$category, $name, $value]);
                 }
 
                 $db->commit();
@@ -207,15 +216,18 @@ class SettingsController
             $db = Database::getInstance();
             $this->ensureSettingsTable($db);
 
-            $stmt = $db->query("SELECT setting_key, setting_value, description FROM site_settings ORDER BY setting_key");
+            // Get all settings using correct column names
+            $stmt = $db->query("SELECT category, name, value FROM settings ORDER BY category, name");
             $settings = $stmt->fetchAll();
 
             // Format settings as key-value pairs
             $formattedSettings = [];
             foreach ($settings as $setting) {
-                $formattedSettings[$setting['setting_key']] = [
-                    'value' => $setting['setting_value'],
-                    'description' => $setting['description']
+                $key = $setting['category'] . '.' . $setting['name'];
+                $formattedSettings[$key] = [
+                    'value' => $setting['value'],
+                    'description' => '',
+                    'category' => $setting['category']
                 ];
             }
 
@@ -258,17 +270,23 @@ class SettingsController
             try {
                 foreach ($data['settings'] as $key => $valueData) {
                     $value = is_array($valueData) ? $valueData['value'] : $valueData;
-                    $description = is_array($valueData) ? ($valueData['description'] ?? '') : '';
+                    $category = is_array($valueData) ? ($valueData['category'] ?? 'general') : 'general';
+
+                    // Parse key if it contains category (e.g., "general.site_name" -> category="general", name="site_name")
+                    if (strpos($key, '.') !== false) {
+                        list($category, $name) = explode('.', $key, 2);
+                    } else {
+                        $name = $key;
+                    }
 
                     $stmt = $db->prepare("
-                        INSERT INTO site_settings (setting_key, setting_value, description, updated_at)
+                        INSERT INTO settings (category, name, value, updated_at)
                         VALUES (?, ?, ?, NOW())
                         ON DUPLICATE KEY UPDATE
-                        setting_value = VALUES(setting_value),
-                        description = VALUES(description),
+                        value = VALUES(value),
                         updated_at = NOW()
                     ");
-                    $stmt->execute([$key, $value, $description]);
+                    $stmt->execute([$category, $name, $value]);
                 }
 
                 $db->commit();
@@ -294,36 +312,56 @@ class SettingsController
         }
     }
 
+    /**
+     * Get table columns
+     */
+    private function getTableColumns($db, string $tableName): array
+    {
+        try {
+            $stmt = $db->query("SHOW COLUMNS FROM {$tableName}");
+            $columns = [];
+            while ($row = $stmt->fetch()) {
+                $columns[] = $row['Field'];
+            }
+            return $columns;
+        } catch (Exception $e) {
+            return [];
+        }
+    }
+
     private function ensureSettingsTable($db)
     {
-        $stmt = $db->query("SHOW TABLES LIKE 'site_settings'");
+        $stmt = $db->query("SHOW TABLES LIKE 'settings'");
         if ($stmt->rowCount() == 0) {
             $db->exec("
-                CREATE TABLE site_settings (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    setting_key VARCHAR(100) UNIQUE NOT NULL,
-                    setting_value TEXT,
-                    description TEXT,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                CREATE TABLE settings (
+                    id INT NOT NULL AUTO_INCREMENT,
+                    category VARCHAR(50) NOT NULL DEFAULT 'general',
+                    name VARCHAR(100) NOT NULL,
+                    value TEXT NULL,
+                    created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    PRIMARY KEY (id),
+                    UNIQUE INDEX unique_setting (category ASC, name ASC),
+                    INDEX idx_category (category ASC)
                 )
             ");
 
             // Insert default route settings
             $defaultRoutes = [
-                ['route_home_enabled', '1', 'Enable/disable home page'],
-                ['route_about_enabled', '1', 'Enable/disable about page'],
-                ['route_services_enabled', '1', 'Enable/disable services page'],
-                ['route_portfolio_enabled', '1', 'Enable/disable portfolio page'],
-                ['route_jobs_enabled', '1', 'Enable/disable jobs page'],
-                ['route_scholarships_enabled', '1', 'Enable/disable scholarships page'],
-                ['route_blog_enabled', '1', 'Enable/disable blog page'],
-                ['route_contact_enabled', '1', 'Enable/disable contact page'],
-                ['route_team_enabled', '1', 'Enable/disable team page'],
-                ['route_news_enabled', '1', 'Enable/disable news page']
+                ['route', 'home_enabled', '1'],
+                ['route', 'about_enabled', '1'],
+                ['route', 'services_enabled', '1'],
+                ['route', 'portfolio_enabled', '1'],
+                ['route', 'jobs_enabled', '1'],
+                ['route', 'scholarships_enabled', '1'],
+                ['route', 'blog_enabled', '1'],
+                ['route', 'contact_enabled', '1'],
+                ['route', 'team_enabled', '1'],
+                ['route', 'news_enabled', '1']
             ];
 
-            $stmt = $db->prepare("INSERT INTO site_settings (setting_key, setting_value, description) VALUES (?, ?, ?)");
+            $stmt = $db->prepare("INSERT INTO settings (category, name, value) VALUES (?, ?, ?)");
             foreach ($defaultRoutes as $route) {
                 $stmt->execute($route);
             }

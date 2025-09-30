@@ -103,13 +103,33 @@ export const apiRequest = async (endpoint, options = {}) => {
       throw new Error(`Server returned non-JSON response: ${contentType || 'unknown content type'}`);
     }
 
-    const data = await response.json().catch((parseError) => {
+    // Clone response before reading to allow for debugging
+    const responseClone = response.clone();
+
+    let data;
+    try {
+      data = await response.json();
+    } catch (parseError) {
       secureLog('error', 'Failed to parse JSON response', {
         parseError: parseError.message,
-        endpoint
+        endpoint,
+        responseStatus: response.status,
+        responseStatusText: response.statusText
       });
+
+      // Try to get response text for debugging using clone
+      try {
+        const responseText = await responseClone.text();
+        secureLog('error', 'Response text that failed to parse as JSON', {
+          responseText: responseText.substring(0, 500), // Log first 500 chars
+          endpoint
+        });
+      } catch (textError) {
+        secureLog('error', 'Could not get response text', { textError: textError.message });
+      }
+
       throw new Error(`Invalid JSON response: ${parseError.message}`);
-    });
+    }
     secureLog('info', 'API request successful', { hasData: !!data });
 
     // If the response already has success flag, return it as-is

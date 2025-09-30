@@ -209,6 +209,9 @@
         trackPageView() {
             if (!this.isTracking) return;
 
+            const deviceInfo = this.getDeviceInfo();
+            const locationInfo = this.getLocationInfo();
+
             const data = {
                 visitor_id: this.visitorId,
                 session_id: this.sessionId,
@@ -222,6 +225,14 @@
                 viewport_size: window.innerWidth + 'x' + window.innerHeight,
                 timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                 is_entry_page: this.isEntryPage(),
+                device_type: deviceInfo.type,
+                device_model: deviceInfo.model,
+                operating_system: deviceInfo.os,
+                browser: deviceInfo.browser,
+                browser_version: deviceInfo.browserVersion,
+                is_mobile: deviceInfo.isMobile,
+                is_tablet: deviceInfo.isTablet,
+                country: locationInfo.country,
                 ...this.getUTMParameters()
             };
 
@@ -324,6 +335,154 @@
                 utm_term: params.get('utm_term'),
                 utm_content: params.get('utm_content')
             };
+        }
+
+        /**
+         * Get comprehensive device information
+         */
+        getDeviceInfo() {
+            const userAgent = navigator.userAgent.toLowerCase();
+            const platform = navigator.platform.toLowerCase();
+
+            // Device type detection
+            const isMobile = /android|webos|iphone|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+            const isTablet = /ipad|android(?!.*mobile)|tablet|kindle|silk|playbook/i.test(userAgent);
+            const isDesktop = !isMobile && !isTablet;
+
+            let deviceType = 'desktop';
+            if (isMobile) deviceType = 'mobile';
+            else if (isTablet) deviceType = 'tablet';
+
+            // Operating System detection
+            let os = 'Unknown';
+            if (/windows phone/i.test(userAgent)) os = 'Windows Phone';
+            else if (/windows/i.test(userAgent)) os = 'Windows';
+            else if (/android/i.test(userAgent)) os = 'Android';
+            else if (/iphone|ipad|ipod/i.test(userAgent)) os = 'iOS';
+            else if (/mac/i.test(userAgent)) os = 'macOS';
+            else if (/linux/i.test(userAgent)) os = 'Linux';
+            else if (/cros/i.test(userAgent)) os = 'Chrome OS';
+
+            // Browser detection
+            let browser = 'Unknown';
+            let browserVersion = '';
+
+            if (/firefox/i.test(userAgent)) {
+                browser = 'Firefox';
+                const match = userAgent.match(/firefox\/(\d+\.\d+)/i);
+                browserVersion = match ? match[1] : '';
+            } else if (/chrome/i.test(userAgent) && !/edge|edg/i.test(userAgent)) {
+                browser = 'Chrome';
+                const match = userAgent.match(/chrome\/(\d+\.\d+)/i);
+                browserVersion = match ? match[1] : '';
+            } else if (/safari/i.test(userAgent) && !/chrome|edge|edg/i.test(userAgent)) {
+                browser = 'Safari';
+                const match = userAgent.match(/version\/(\d+\.\d+)/i);
+                browserVersion = match ? match[1] : '';
+            } else if (/edge|edg/i.test(userAgent)) {
+                browser = 'Edge';
+                const match = userAgent.match(/edg?\/(\d+\.\d+)/i);
+                browserVersion = match ? match[1] : '';
+            } else if (/opera|opr/i.test(userAgent)) {
+                browser = 'Opera';
+                const match = userAgent.match(/(?:opera|opr)\/(\d+\.\d+)/i);
+                browserVersion = match ? match[1] : '';
+            }
+
+            // Device model detection (for mobile/tablet)
+            let deviceModel = '';
+            if (isMobile || isTablet) {
+                if (/iphone/i.test(userAgent)) {
+                    const match = userAgent.match(/iphone os (\d+_\d+)/i);
+                    deviceModel = match ? `iPhone (iOS ${match[1].replace('_', '.')})` : 'iPhone';
+                } else if (/ipad/i.test(userAgent)) {
+                    const match = userAgent.match(/os (\d+_\d+)/i);
+                    deviceModel = match ? `iPad (iOS ${match[1].replace('_', '.')})` : 'iPad';
+                } else if (/android/i.test(userAgent)) {
+                    const match = userAgent.match(/android (\d+\.\d+)/i);
+                    deviceModel = match ? `Android ${match[1]}` : 'Android Device';
+                }
+            }
+
+            return {
+                type: deviceType,
+                model: deviceModel,
+                os: os,
+                browser: browser,
+                browserVersion: browserVersion,
+                isMobile: isMobile,
+                isTablet: isTablet,
+                isDesktop: isDesktop,
+                platform: platform,
+                touchSupport: 'ontouchstart' in window || navigator.maxTouchPoints > 0,
+                screenSize: screen.width + 'x' + screen.height,
+                colorDepth: screen.colorDepth,
+                pixelRatio: window.devicePixelRatio || 1
+            };
+        }
+
+        /**
+         * Get location information (using IP geolocation)
+         */
+        getLocationInfo() {
+            // Try to get cached location first
+            const cachedLocation = this.getCookie('analytics_location');
+            if (cachedLocation) {
+                try {
+                    return JSON.parse(cachedLocation);
+                } catch (e) {
+                    // Invalid cached data, continue to fetch new
+                }
+            }
+
+            // Default location info
+            const defaultLocation = {
+                country: null,
+                countryCode: null,
+                region: null,
+                city: null,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+            };
+
+            // Fetch location data asynchronously
+            this.fetchLocationData().then(locationData => {
+                if (locationData) {
+                    // Cache location for 24 hours
+                    this.setCookie('analytics_location', JSON.stringify(locationData), 1);
+                }
+            });
+
+            return defaultLocation;
+        }
+
+        /**
+         * Fetch location data from IP geolocation service
+         */
+        async fetchLocationData() {
+            try {
+                // Use a free IP geolocation service
+                const response = await fetch('https://ipapi.co/json/', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    return {
+                        country: data.country_name,
+                        countryCode: data.country,
+                        region: data.region,
+                        city: data.city,
+                        timezone: data.timezone
+                    };
+                }
+            } catch (error) {
+                this.log('Failed to fetch location data:', error);
+            }
+
+            return null;
         }
 
         /**

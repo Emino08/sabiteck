@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test File Upload</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input, select, textarea { width: 100%; padding: 8px; margin-bottom: 10px; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }
+        .result { margin-top: 20px; padding: 10px; border: 1px solid #ddd; background: #f9f9f9; }
+    </style>
+</head>
+<body>
+    <h1>Test Curriculum Subject Upload</h1>
+
+    <form id="uploadForm">
+        <div class="form-group">
+            <label for="name">Subject Name:</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+
+        <div class="form-group">
+            <label for="category_id">Category ID:</label>
+            <input type="number" id="category_id" name="category_id" value="1" required>
+        </div>
+
+        <div class="form-group">
+            <label for="code">Subject Code:</label>
+            <input type="text" id="code" name="code">
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description:</label>
+            <textarea id="description" name="description"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="uploadType">Upload Type:</label>
+            <select id="uploadType" onchange="toggleUploadType()">
+                <option value="file">File Upload</option>
+                <option value="link">External Link</option>
+            </select>
+        </div>
+
+        <div class="form-group" id="fileGroup">
+            <label for="file">Upload File:</label>
+            <input type="file" id="file" name="file" accept=".pdf,.doc,.docx">
+        </div>
+
+        <div class="form-group" id="linkGroup" style="display: none;">
+            <label for="link_url">External Link:</label>
+            <input type="url" id="link_url" name="link_url" placeholder="https://example.com/document.pdf">
+        </div>
+
+        <button type="submit">Add Subject</button>
+    </form>
+
+    <div id="result" class="result" style="display: none;"></div>
+
+    <script>
+        function toggleUploadType() {
+            const uploadType = document.getElementById('uploadType').value;
+            const fileGroup = document.getElementById('fileGroup');
+            const linkGroup = document.getElementById('linkGroup');
+
+            if (uploadType === 'file') {
+                fileGroup.style.display = 'block';
+                linkGroup.style.display = 'none';
+            } else {
+                fileGroup.style.display = 'none';
+                linkGroup.style.display = 'block';
+            }
+        }
+
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData();
+            const uploadType = document.getElementById('uploadType').value;
+
+            // Add form fields
+            formData.append('name', document.getElementById('name').value);
+            formData.append('category_id', document.getElementById('category_id').value);
+            formData.append('code', document.getElementById('code').value);
+            formData.append('description', document.getElementById('description').value);
+
+            if (uploadType === 'file') {
+                const fileInput = document.getElementById('file');
+                if (fileInput.files[0]) {
+                    formData.append('file', fileInput.files[0]);
+                }
+            } else {
+                formData.append('link_url', document.getElementById('link_url').value);
+            }
+
+            try {
+                const response = await fetch('http://localhost:8000/api/admin/curriculum/subjects', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Authorization': 'Bearer your-admin-token-here'
+                    }
+                });
+
+                const result = await response.json();
+
+                document.getElementById('result').style.display = 'block';
+                document.getElementById('result').innerHTML =
+                    '<h3>Response:</h3><pre>' + JSON.stringify(result, null, 2) + '</pre>';
+
+            } catch (error) {
+                document.getElementById('result').style.display = 'block';
+                document.getElementById('result').innerHTML =
+                    '<h3>Error:</h3><pre>' + error.message + '</pre>';
+            }
+        });
+    </script>
+</body>
+</html>

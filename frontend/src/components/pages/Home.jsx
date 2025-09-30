@@ -273,7 +273,7 @@ const Home = () => {
                 <Button
                   variant="outline"
                   size="lg"
-                  className="border-2 border-white/30 text-white hover:bg-white/10 px-10 py-5 rounded-2xl font-bold text-lg backdrop-blur-sm hover:scale-105 transition-all duration-300 group"
+                  className="border-2 border-white/30 text-blue-900 hover:bg-white/10 px-10 py-5 rounded-2xl font-bold text-lg backdrop-blur-sm hover:scale-105 transition-all duration-300 group"
                   onClick={() => navigate('/portfolio')}
                 >
                   <Play className="mr-3 h-6 w-6" />
@@ -620,7 +620,7 @@ const Home = () => {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="border-2 border-white/30 text-white hover:bg-white/10 px-10 py-5 rounded-2xl font-bold text-lg backdrop-blur-sm hover:scale-105 transition-all duration-300"
+                  className="border-2 border-white/30 text-blue-900 hover:bg-white/10 px-10 py-5 rounded-2xl font-bold text-lg backdrop-blur-sm hover:scale-105 transition-all duration-300"
                   onClick={() => navigate('/portfolio')}
                 >
                   <Globe className="mr-3 h-6 w-6" />

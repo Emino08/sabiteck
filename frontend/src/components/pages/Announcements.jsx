@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import {
   Calendar, Clock, Pin, Star, Bell, ExternalLink, Download,
   Filter, Search, ChevronDown, AlertCircle, Info, CheckCircle,
-  TrendingUp, Users, Megaphone, Zap, Shield, Globe, Target, Award
+  TrendingUp, Users, Megaphone, Zap, Shield, Globe, Target, Award,
+  Copy
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
+import { toast } from 'sonner';
 
 const Announcements = () => {
   const [announcements, setAnnouncements] = useState([]);
@@ -254,6 +256,38 @@ const Announcements = () => {
       urgent: filteredAnnouncements.filter(a => a.type === 'urgent').length
     };
     return stats;
+  };
+
+  const copyAnnouncementLink = async (announcement) => {
+    try {
+      // Generate the announcement link based on the ID or slug
+      const baseUrl = window.location.origin;
+      const announcementUrl = `${baseUrl}/announcements/${announcement.slug || announcement.id}`;
+
+      // Copy to clipboard
+      await navigator.clipboard.writeText(announcementUrl);
+
+      toast.success('✨ Announcement link copied to clipboard!', {
+        description: announcementUrl,
+        duration: 3000
+      });
+    } catch (error) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      const baseUrl = window.location.origin;
+      const announcementUrl = `${baseUrl}/announcements/${announcement.slug || announcement.id}`;
+
+      textArea.value = announcementUrl;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+
+      toast.success('✨ Announcement link copied to clipboard!', {
+        description: announcementUrl,
+        duration: 3000
+      });
+    }
   };
 
   const stats = getAnnouncementStats();
@@ -526,30 +560,39 @@ const Announcements = () => {
                           </div>
 
                           {/* Action Buttons */}
-                          {(announcement.action_url || announcement.attachments) && (
-                            <div className="flex items-center space-x-4 pt-4 border-t border-slate-100">
-                              {announcement.action_url && (
-                                <Button
-                                  variant="default"
-                                  onClick={() => window.open(announcement.action_url, '_blank')}
-                                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
-                                >
-                                  {announcement.action_text || 'Learn More'}
-                                  <ExternalLink className="w-4 h-4 ml-2" />
-                                </Button>
-                              )}
-                              {announcement.attachments && (
-                                <Button
-                                  variant="outline"
-                                  onClick={() => window.open(announcement.attachments, '_blank')}
-                                  className="border-slate-300 hover:bg-slate-50"
-                                >
-                                  <Download className="w-4 h-4 mr-2" />
-                                  Download
-                                </Button>
-                              )}
-                            </div>
-                          )}
+                          <div className="flex items-center space-x-4 pt-4 border-t border-slate-100">
+                            {/* Copy Link Button - Always visible */}
+                            <Button
+                              variant="outline"
+                              onClick={() => copyAnnouncementLink(announcement)}
+                              className="border-green-300 hover:bg-green-50 text-green-700 hover:text-green-800"
+                              title="Copy Link"
+                            >
+                              <Copy className="w-4 h-4 mr-2" />
+                              Copy Link
+                            </Button>
+
+                            {announcement.action_url && (
+                              <Button
+                                variant="default"
+                                onClick={() => window.open(announcement.action_url, '_blank')}
+                                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                              >
+                                {announcement.action_text || 'Learn More'}
+                                <ExternalLink className="w-4 h-4 ml-2" />
+                              </Button>
+                            )}
+                            {announcement.attachments && (
+                              <Button
+                                variant="outline"
+                                onClick={() => window.open(announcement.attachments, '_blank')}
+                                className="border-slate-300 hover:bg-slate-50"
+                              >
+                                <Download className="w-4 h-4 mr-2" />
+                                Download
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>

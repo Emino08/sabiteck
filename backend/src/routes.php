@@ -132,6 +132,9 @@ function handleRoutes($method, $path, $db) {
             $response = new \Slim\Psr7\Response();
             return $organizationController->delete($request, $response, ['id' => $matches[1]]);
 
+        case ($path === '/api/admin/scholarships/generate' && $method === 'POST'):
+            return $adminController->generateScholarshipDocument();
+
         default:
             return false; // Route not handled by this system
     }

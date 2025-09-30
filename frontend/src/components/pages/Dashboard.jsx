@@ -51,8 +51,14 @@ const Dashboard = () => {
             return;
         }
 
+        // If user is not an admin, redirect to home
+        if (!isAdmin()) {
+            navigate('/');
+            return;
+        }
+
         loadDashboardData();
-    }, [authLoading, isAuthenticated, navigate]);
+    }, [authLoading, isAuthenticated, isAdmin, navigate]);
 
     const loadDashboardData = async (showRefreshIndicator = false) => {
         try {
@@ -73,9 +79,7 @@ const Dashboard = () => {
             if (isAdmin()) {
                 response = await ApiService.getAdminDashboard(token);
             } else {
-                // For regular users, we can still show some basic stats
-                // You might want to create a separate user dashboard endpoint
-                response = await ApiService.getAdminDashboard(token);
+                response = await ApiService.getUserDashboard(token);
             }
 
             if (response.success) {

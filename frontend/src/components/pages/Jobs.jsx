@@ -26,12 +26,14 @@ import {
     Diamond,
     Eye,
     BookOpen,
-    Layers
+    Layers,
+    Copy
 } from 'lucide-react';
 import { apiRequest } from '../../utils/api';
 import ApiService from '../../services/api';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import ErrorMessage from '../ui/ErrorMessage';
+import { toast } from 'sonner';
 
 const Jobs = () => {
     // State management
@@ -295,6 +297,38 @@ const Jobs = () => {
         return [];
     };
 
+    const copyJobLink = async (job) => {
+        try {
+            // Generate the job link based on the slug or ID
+            const baseUrl = window.location.origin;
+            const jobUrl = `${baseUrl}/jobs/${job.slug || job.id}`;
+
+            // Copy to clipboard
+            await navigator.clipboard.writeText(jobUrl);
+
+            toast.success('✨ Job link copied to clipboard!', {
+                description: jobUrl,
+                duration: 3000
+            });
+        } catch (error) {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            const baseUrl = window.location.origin;
+            const jobUrl = `${baseUrl}/jobs/${job.slug || job.id}`;
+
+            textArea.value = jobUrl;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+
+            toast.success('✨ Job link copied to clipboard!', {
+                description: jobUrl,
+                duration: 3000
+            });
+        }
+    };
+
     if (loading && jobs.length === 0) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 pt-32 flex items-center justify-center">
@@ -530,14 +564,23 @@ const Jobs = () => {
                                             </div>
                                         )}
 
-                                        {/* Action Button */}
-                                        <Link
-                                            to={`/jobs/${job.slug}`}
-                                            className="w-full bg-gradient-to-r from-slate-900 to-slate-800 hover:from-blue-600 hover:to-blue-700 text-white py-3 px-6 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center group/btn"
-                                        >
-                                            View Details
-                                            <TrendingUp className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform duration-200" />
-                                        </Link>
+                                        {/* Action Buttons */}
+                                        <div className="flex space-x-3">
+                                            <button
+                                                onClick={() => copyJobLink(job)}
+                                                className="flex-shrink-0 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white p-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center group/btn"
+                                                title="Copy Job Link"
+                                            >
+                                                <Copy className="w-4 h-4" />
+                                            </button>
+                                            <Link
+                                                to={`/jobs/${job.slug}`}
+                                                className="flex-1 bg-gradient-to-r from-slate-900 to-slate-800 hover:from-blue-600 hover:to-blue-700 text-white py-3 px-6 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center group/btn"
+                                            >
+                                                View Details
+                                                <TrendingUp className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform duration-200" />
+                                            </Link>
+                                        </div>
                                     </div>
                                 </div>
                             ))}
@@ -797,13 +840,22 @@ const Jobs = () => {
                                                                 )}
                                                             </div>
 
-                                                            <Link
-                                                                to={`/jobs/${job.slug}`}
-                                                                className="group/btn inline-flex items-center px-6 py-2 bg-gradient-to-r from-slate-900 to-slate-800 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-semibold transition-all duration-200 transform hover:-translate-y-0.5"
-                                                            >
-                                                                Apply Now
-                                                                <TrendingUp className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform duration-200" />
-                                                            </Link>
+                                                            <div className="flex items-center space-x-3">
+                                                                <button
+                                                                    onClick={() => copyJobLink(job)}
+                                                                    className="p-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl font-semibold transition-all duration-200 transform hover:-translate-y-0.5"
+                                                                    title="Copy Job Link"
+                                                                >
+                                                                    <Copy className="w-4 h-4" />
+                                                                </button>
+                                                                <Link
+                                                                    to={`/jobs/${job.slug}`}
+                                                                    className="group/btn inline-flex items-center px-6 py-2 bg-gradient-to-r from-slate-900 to-slate-800 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-semibold transition-all duration-200 transform hover:-translate-y-0.5"
+                                                                >
+                                                                    Apply Now
+                                                                    <TrendingUp className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform duration-200" />
+                                                                </Link>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>

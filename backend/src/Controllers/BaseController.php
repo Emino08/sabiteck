@@ -77,6 +77,22 @@ abstract class BaseController
     }
 
     /**
+     * Get route parameter from URL path
+     */
+    protected function getRouteParam(string $paramName): ?string
+    {
+        $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        $pathSegments = explode('/', trim($path, '/'));
+
+        // For endpoints like /api/admin/scholarships/{id}
+        if ($paramName === 'id' && count($pathSegments) >= 4) {
+            return end($pathSegments);
+        }
+
+        return null;
+    }
+
+    /**
      * Get default field value
      */
     protected function getDefaultValue(string $entityType, string $fieldName, $fallback = null)
@@ -203,6 +219,25 @@ abstract class BaseController
     protected function handleDatabaseException(Exception $e, string $operation): void
     {
         error_log("Database error in {$operation}: " . $e->getMessage());
-        $this->errorResponse('DB_CONNECTION_FAILED', 500);
+
+        $response = [
+            'success' => false,
+            'error' => 'Database connection failed',
+            'error_code' => 'DB_CONNECTION_FAILED'
+        ];
+
+        // Add detailed error information if available
+        if (property_exists($e, 'errorDetails') && !empty($e->errorDetails)) {
+            $response['error_details'] = $e->errorDetails;
+        } else {
+            // Fallback for other types of database errors
+            $response['error_details'] = [
+                'message' => $e->getMessage(),
+                'operation' => $operation,
+                'timestamp' => date('Y-m-d H:i:s')
+            ];
+        }
+
+        $this->jsonResponse($response, 500);
     }
 }

@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { useNavigate } from 'react-router-dom'
 
 const ChangePassword = () => {
-  const { user, isAuthenticated, loading: authLoading } = useAuth()
+  const { user, token, login, isAuthenticated, loading: authLoading } = useAuth()
   const navigate = useNavigate()
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
@@ -80,7 +80,8 @@ const ChangePassword = () => {
         },
         body: JSON.stringify({
           current_password: formData.currentPassword,
-          new_password: formData.newPassword
+          new_password: formData.newPassword,
+          password_confirmation: formData.confirmPassword
         })
       })
 
@@ -88,6 +89,13 @@ const ChangePassword = () => {
 
       if (data.success) {
         toast.success('Password changed successfully!')
+
+        // Update user context to clear must_change_password flag
+        if (user) {
+          const updatedUser = { ...user, must_change_password: false };
+          login(updatedUser, token);
+        }
+
         setFormData({
           currentPassword: '',
           newPassword: '',
@@ -100,6 +108,15 @@ const ChangePassword = () => {
           number: false,
           special: false
         })
+
+        // Redirect to appropriate page after successful password change
+        setTimeout(() => {
+          if (user?.role && ['admin', 'super_admin'].includes(user.role)) {
+            navigate('/dashboard', { replace: true });
+          } else {
+            navigate('/', { replace: true });
+          }
+        }, 1500);
       } else {
         toast.error(data.error || 'Failed to change password')
       }

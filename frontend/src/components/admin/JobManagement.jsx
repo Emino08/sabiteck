@@ -31,12 +31,14 @@ import {
     Award,
     Rocket,
     Diamond,
-    Globe
+    Globe,
+    Copy
 } from 'lucide-react';
 import { apiRequest } from '../../utils/api';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import ErrorMessage from '../ui/ErrorMessage';
 import JobEditor from './JobEditor';
+import { toast } from 'sonner';
 
 const JobManagement = () => {
     // State management
@@ -218,11 +220,43 @@ const JobManagement = () => {
         const today = new Date();
         const diffTime = date - today;
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
+
         if (diffDays < 0) return 'text-red-600';
         if (diffDays <= 7) return 'text-orange-600';
         if (diffDays <= 30) return 'text-yellow-600';
         return 'text-green-600';
+    };
+
+    const copyJobLink = async (job) => {
+        try {
+            // Generate the job link based on the slug or ID
+            const baseUrl = window.location.origin;
+            const jobUrl = `${baseUrl}/jobs/${job.slug || job.id}`;
+
+            // Copy to clipboard
+            await navigator.clipboard.writeText(jobUrl);
+
+            toast.success('✨ Elite job link copied to clipboard!', {
+                description: `${job.title} - ${jobUrl}`,
+                duration: 3000
+            });
+        } catch (error) {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            const baseUrl = window.location.origin;
+            const jobUrl = `${baseUrl}/jobs/${job.slug || job.id}`;
+
+            textArea.value = jobUrl;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+
+            toast.success('✨ Elite job link copied to clipboard!', {
+                description: `${job.title} - ${jobUrl}`,
+                duration: 3000
+            });
+        }
     };
 
     if (loading && jobs.length === 0) {
@@ -786,7 +820,15 @@ const JobManagement = () => {
                                         </td>
 
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <div className="flex items-center space-x-3">
+                                            <div className="flex items-center space-x-2">
+                                                <button
+                                                    onClick={() => copyJobLink(job)}
+                                                    className="p-2 bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-400/30 rounded-xl text-green-400 hover:text-green-300 backdrop-blur-lg transition-all duration-300 hover:scale-110"
+                                                    title="Copy Elite Job Link"
+                                                >
+                                                    <Copy className="w-4 h-4" />
+                                                </button>
+
                                                 <a
                                                     href={`/jobs/${job.slug}`}
                                                     target="_blank"

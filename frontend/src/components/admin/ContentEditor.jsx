@@ -7,7 +7,8 @@ import {
   CheckCircle2, AlertCircle, Monitor, Smartphone, Tablet, Type,
   Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight,
   Hash, Code, Maximize2, Minimize2, RotateCcw, Layers, BookOpen,
-  MoreVertical, Archive, FolderOpen, Heart, Share2, Wand2, Users
+  MoreVertical, Archive, FolderOpen, Heart, Share2, Wand2, Users,
+  Copy
 } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
@@ -336,6 +337,46 @@ const ContentEditor = () => {
     setModalType('')
   }
 
+  const copyContentLink = async (item) => {
+    try {
+      // Generate the content link based on the content type and slug or ID
+      const baseUrl = window.location.origin
+      let contentUrl = ''
+
+      if (item.content_type === 'blog') {
+        contentUrl = `${baseUrl}/blog/${item.slug || item.id}`
+      } else {
+        contentUrl = `${baseUrl}/${item.content_type}/${item.slug || item.id}`
+      }
+
+      // Copy to clipboard
+      await navigator.clipboard.writeText(contentUrl)
+
+      toast.success('✨ Content link copied to clipboard!', {
+        description: contentUrl,
+        duration: 3000
+      })
+    } catch (error) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea')
+      const baseUrl = window.location.origin
+      const contentUrl = item.content_type === 'blog'
+        ? `${baseUrl}/blog/${item.slug || item.id}`
+        : `${baseUrl}/${item.content_type}/${item.slug || item.id}`
+
+      textArea.value = contentUrl
+      document.body.appendChild(textArea)
+      textArea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textArea)
+
+      toast.success('✨ Content link copied to clipboard!', {
+        description: contentUrl,
+        duration: 3000
+      })
+    }
+  }
+
   const insertMedia = (type) => {
     if (type === 'link') {
       // For links, we need URL first, then link text
@@ -602,14 +643,23 @@ const ContentEditor = () => {
                       <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
                         <div className="flex space-x-2">
                           <button
+                            onClick={() => copyContentLink(item)}
+                            className="p-2 bg-black/50 backdrop-blur-lg rounded-lg border border-white/20 hover:bg-green-500 transition-all"
+                            title="Copy Link"
+                          >
+                            <Copy className="w-4 h-4 text-white" />
+                          </button>
+                          <button
                             onClick={() => editContent(item)}
                             className="p-2 bg-black/50 backdrop-blur-lg rounded-lg border border-white/20 hover:bg-indigo-500 transition-all"
+                            title="Edit Content"
                           >
                             <Edit className="w-4 h-4 text-white" />
                           </button>
                           <button
                             onClick={() => deleteContent(item.id)}
                             className="p-2 bg-black/50 backdrop-blur-lg rounded-lg border border-white/20 hover:bg-red-500 transition-all"
+                            title="Delete Content"
                           >
                             <Trash2 className="w-4 h-4 text-white" />
                           </button>
@@ -722,14 +772,23 @@ const ContentEditor = () => {
                       </div>
                       <div className="flex items-center space-x-2 flex-shrink-0">
                         <button
+                          onClick={() => copyContentLink(item)}
+                          className="p-2 bg-green-500/20 hover:bg-green-500 text-green-400 hover:text-white rounded-lg transition-all"
+                          title="Copy Link"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </button>
+                        <button
                           onClick={() => editContent(item)}
                           className="p-2 bg-indigo-500/20 hover:bg-indigo-500 text-indigo-400 hover:text-white rounded-lg transition-all"
+                          title="Edit Content"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => deleteContent(item.id)}
                           className="p-2 bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white rounded-lg transition-all"
+                          title="Delete Content"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>

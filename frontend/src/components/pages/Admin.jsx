@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from 'sonner';
 import { useAuth } from '../../contexts/AuthContext';
+import { getAccessibleTabs, hasPermission, PermissionWrapper } from '../../utils/permissionUtils';
 import {
   Briefcase,
   GraduationCap,
@@ -18,7 +20,13 @@ import {
   FileText,
   User,
   Folder,
-  Megaphone
+  Megaphone,
+  Building2,
+  Eye,
+  MousePointer,
+  Clock,
+  Shield,
+  Wrench
 } from 'lucide-react';
 import ContentEditor from '../admin/ContentEditor';
 import JobManagement from '../admin/JobManagement';
@@ -34,16 +42,189 @@ import TeamManagement from '../admin/TeamManagement';
 import AboutManagement from '../admin/AboutManagement';
 import PortfolioManagement from '../admin/PortfolioManagement';
 import AnnouncementManagement from '../admin/AnnouncementManagement';
+import ToolsManagement from '../admin/ToolsManagement';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8002';
 
 const Admin = () => {
+  const navigate = useNavigate();
   const { user, token, loading: authLoading, isAuthenticated, isAdmin, logout, login } = useAuth();
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [dashboardData, setDashboardData] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
+
+  // Tab definitions (moved before useMemo to ensure consistent hook order)
+  const tabs = [
+    {
+      id: 'overview',
+      label: 'Overview',
+      icon: BarChart3,
+      category: 'dashboard',
+      permissions: ['view-dashboard'],
+      modules: ['dashboard']
+    },
+    {
+      id: 'content',
+      label: 'Content',
+      icon: Globe,
+      category: 'content',
+      permissions: ['view-content'],
+      modules: ['content']
+    },
+    {
+      id: 'services',
+      label: 'Services',
+      icon: Database,
+      category: 'content',
+      permissions: ['view-services'],
+      modules: ['services']
+    },
+    {
+      id: 'portfolio',
+      label: 'Portfolio',
+      icon: Folder,
+      category: 'content',
+      permissions: ['view-portfolio'],
+      modules: ['portfolio']
+    },
+    {
+      id: 'about',
+      label: 'About',
+      icon: FileText,
+      category: 'content',
+      permissions: ['view-content'],
+      modules: ['content']
+    },
+    {
+      id: 'team',
+      label: 'Team',
+      icon: User,
+      category: 'content',
+      permissions: ['view-team'],
+      modules: ['team']
+    },
+    {
+      id: 'announcements',
+      label: 'Announcements',
+      icon: Megaphone,
+      category: 'content',
+      permissions: ['view-announcements'],
+      modules: ['announcements']
+    },
+    {
+      id: 'jobs',
+      label: 'Jobs',
+      icon: Briefcase,
+      category: 'management',
+      permissions: ['view-jobs'],
+      modules: ['jobs']
+    },
+    {
+      id: 'scholarships',
+      label: 'Scholarships',
+      icon: GraduationCap,
+      category: 'management',
+      permissions: ['view-scholarships'],
+      modules: ['scholarships']
+    },
+    {
+      id: 'organizations',
+      label: 'Organizations',
+      icon: Database,
+      category: 'management',
+      permissions: ['view-organizations'],
+      modules: ['organizations']
+    },
+    {
+      id: 'analytics',
+      label: 'Analytics',
+      icon: TrendingUp,
+      category: 'tools',
+      permissions: ['view-analytics'],
+      modules: ['dashboard']
+    },
+    {
+      id: 'newsletter',
+      label: 'Newsletter',
+      icon: Mail,
+      category: 'tools',
+      permissions: ['view-newsletter'],
+      modules: ['newsletter']
+    },
+    {
+      id: 'tools-management',
+      label: 'Tools & Curriculum',
+      icon: Settings,
+      category: 'tools',
+      permissions: ['view-tools'],
+      modules: ['tools']
+    },
+    {
+      id: 'roles',
+      label: 'User Roles',
+      icon: Users,
+      category: 'system',
+      permissions: ['view-users', 'manage-user-permissions'],
+      modules: ['users']
+    },
+    {
+      id: 'routes',
+      label: 'Navigation',
+      icon: Navigation,
+      category: 'system',
+      permissions: ['edit-settings'],
+      modules: ['settings']
+    },
+    {
+      id: 'settings',
+      label: 'Settings',
+      icon: Settings,
+      category: 'system',
+      permissions: ['view-settings'],
+      modules: ['settings']
+    }
+  ];
+
+  // Filter tabs based on user permissions (moved to top to ensure consistent hook order)
+  const accessibleTabs = useMemo(() => {
+    if (!user) return [];
+
+    return tabs.filter(tab => {
+      // If no permissions required, show the tab
+      if (!tab.permissions && !tab.modules) return true;
+
+      // Check permissions
+      if (tab.permissions) {
+        const hasRequiredPermission = tab.permissions.some(permission =>
+          hasPermission(user, permission)
+        );
+        if (!hasRequiredPermission) return false;
+      }
+
+      // Check modules (if user has modules data)
+      if (tab.modules && user.modules) {
+        const hasRequiredModule = tab.modules.some(module =>
+          user.modules.includes(module)
+        );
+        if (!hasRequiredModule) return false;
+      }
+
+      return true;
+    });
+  }, [user, tabs]);
+
+  // Ensure active tab is accessible to the user (moved to top for consistent hook order)
+  useEffect(() => {
+    if (accessibleTabs && accessibleTabs.length > 0) {
+      const isActiveTabAccessible = accessibleTabs.some(tab => tab.id === activeTab);
+      if (!isActiveTabAccessible) {
+        // Set to the first accessible tab
+        setActiveTab(accessibleTabs[0].id);
+      }
+    }
+  }, [accessibleTabs, activeTab]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -80,40 +261,86 @@ const Admin = () => {
         'Authorization': `Bearer ${token || localStorage.getItem('auth_token')}`
       };
 
-      const [servicesRes, jobsRes, scholarshipsRes, settingsRes, teamRes, portfolioRes] = await Promise.all([
+      const [
+        servicesRes,
+        jobsRes,
+        scholarshipsRes,
+        settingsRes,
+        teamRes,
+        portfolioRes,
+        announcementsRes,
+        organizationsRes,
+        analyticsRes,
+        toolsRes
+      ] = await Promise.all([
         fetch(`${API_BASE_URL}/api/admin/services`, { headers: authHeaders }),
         fetch(`${API_BASE_URL}/api/admin/jobs`, { headers: authHeaders }),
         fetch(`${API_BASE_URL}/api/admin/scholarships`, { headers: authHeaders }),
         fetch(`${API_BASE_URL}/api/admin/settings`, { headers: authHeaders }),
         fetch(`${API_BASE_URL}/api/team`),
-        fetch(`${API_BASE_URL}/api/portfolio`)
+        fetch(`${API_BASE_URL}/api/portfolio`),
+        fetch(`${API_BASE_URL}/api/admin/announcements`, { headers: authHeaders }),
+        fetch(`${API_BASE_URL}/api/admin/organizations`, { headers: authHeaders }),
+        fetch(`${API_BASE_URL}/api/admin/analytics/dashboard`, { headers: authHeaders }),
+        fetch(`${API_BASE_URL}/api/admin/tools`, { headers: authHeaders })
       ]);
 
-      const [services, jobs, scholarships, settings, team, portfolio] = await Promise.all([
+      const [
+        services,
+        jobs,
+        scholarships,
+        settings,
+        team,
+        portfolio,
+        announcements,
+        organizations,
+        analytics,
+        tools
+      ] = await Promise.all([
         servicesRes.json().catch(() => ({ total: 0, recent: [] })),
         jobsRes.json().catch(() => ({ total: 0, recent: [], applications: 0 })),
         scholarshipsRes.json().catch(() => ({ total: 0, recent: [], applications: 0 })),
         settingsRes.json().catch(() => ({ settings: {} })),
         teamRes.json().catch(() => ({ team: [] })),
-        portfolioRes.json().catch(() => ({ portfolio: [] }))
+        portfolioRes.json().catch(() => ({ portfolio: [] })),
+        announcementsRes.json().catch(() => ({ total: 0, recent: [] })),
+        organizationsRes.json().catch(() => ({ total: 0, recent: [] })),
+        analyticsRes.json().catch(() => ({
+          unique_visitors: 0,
+          page_views: 0,
+          bounce_rate: { rate: 0, growth: 0 },
+          visitors: { total: 0, growth: 0 },
+          pageviews: { total: 0, growth: 0 }
+        })),
+        toolsRes.json().catch(() => ({ total: 0, recent: [] }))
       ]);
 
       setDashboardData({
         services: services.recent || [],
         jobs: jobs.recent || [],
         scholarships: scholarships.recent || [],
+        announcements: announcements.recent || [],
+        organizations: organizations.recent || [],
+        tools: tools.recent || [],
         settings: settings.settings || {},
         team: team.team || [],
         portfolio: portfolio.portfolio || [],
+        analytics: analytics || { unique_visitors: 0, page_views: 0, bounce_rate: { rate: 0, growth: 0 } },
         stats: {
-          totalServices: services.total || 0,
-          totalJobs: jobs.total || 0,
-          totalScholarships: scholarships.total || 0,
-          activeJobs: jobs.total || 0,
-          totalTeamMembers: team.team?.length || 0,
-          totalProjects: portfolio.portfolio?.length || 0,
-          totalJobApplications: jobs.applications || 0,
-          totalScholarshipApplications: scholarships.applications || 0
+          totalServices: Number(services.total) || 0,
+          totalJobs: Number(jobs.total) || 0,
+          totalScholarships: Number(scholarships.total) || 0,
+          activeJobs: Number(jobs.total) || 0,
+          totalTeamMembers: Number(team.team?.length) || 0,
+          totalProjects: Number(portfolio.portfolio?.length) || 0,
+          totalJobApplications: Number(jobs.applications) || 0,
+          totalScholarshipApplications: Number(scholarships.applications) || 0,
+          totalAnnouncements: Number(announcements.total || announcements.recent?.length) || 0,
+          totalOrganizations: Number(organizations.total || organizations.recent?.length) || 0,
+          totalTools: Number(tools.total || tools.recent?.length) || 0,
+          uniqueVisitors: Number(typeof analytics?.unique_visitors === 'number' ? analytics.unique_visitors : (analytics?.visitors?.total || 0)),
+          pageViews: Number(typeof analytics?.page_views === 'number' ? analytics.page_views : (analytics?.pageviews?.total || 0)),
+          bounceRate: Number(typeof analytics?.bounce_rate === 'number' ? analytics.bounce_rate : (analytics?.bounce_rate?.rate || 0))
         }
       });
     } catch (err) {
@@ -126,6 +353,13 @@ const Admin = () => {
       fetchDashboardData();
     }
   }, [isAuthenticated, isAdmin]);
+
+  // Redirect regular users to home page if they try to access admin
+  useEffect(() => {
+    if (!authLoading && isAuthenticated() && !isAdmin()) {
+      navigate('/', { replace: true });
+    }
+  }, [authLoading, isAuthenticated, isAdmin, navigate]);
 
   // Show loading screen while checking authentication
   if (authLoading) {
@@ -297,8 +531,9 @@ const Admin = () => {
 
   const DashboardOverview = () => (
     <div className="space-y-6">
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+      {/* Enhanced Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {/* Core Content Stats */}
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
@@ -338,6 +573,43 @@ const Admin = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
+              <Folder className="h-8 w-8 text-orange-600" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Projects</p>
+                <p className="text-2xl font-bold">{dashboardData?.stats?.totalProjects || 0}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Additional Admin Stats */}
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <Megaphone className="h-8 w-8 text-pink-600" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Announcements</p>
+                <p className="text-2xl font-bold">{dashboardData?.stats?.totalAnnouncements || 0}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <Building2 className="h-8 w-8 text-cyan-600" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Organizations</p>
+                <p className="text-2xl font-bold">{dashboardData?.stats?.totalOrganizations || 0}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center">
               <User className="h-8 w-8 text-indigo-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Team Members</p>
@@ -350,10 +622,26 @@ const Admin = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <Folder className="h-8 w-8 text-orange-600" />
+              <Wrench className="h-8 w-8 text-gray-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Projects</p>
-                <p className="text-2xl font-bold">{dashboardData?.stats?.totalProjects || 0}</p>
+                <p className="text-sm font-medium text-gray-600">Tools</p>
+                <p className="text-2xl font-bold">{dashboardData?.stats?.totalTools || 0}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Analytics Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <Eye className="h-8 w-8 text-blue-600" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Unique Visitors</p>
+                <p className="text-2xl font-bold">{dashboardData?.stats?.uniqueVisitors || 0}</p>
+                <p className="text-xs text-gray-500">Last 30 days</p>
               </div>
             </div>
           </CardContent>
@@ -362,18 +650,32 @@ const Admin = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <BarChart3 className="h-8 w-8 text-red-600" />
+              <MousePointer className="h-8 w-8 text-green-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Jobs</p>
-                <p className="text-2xl font-bold">{dashboardData?.stats?.totalJobs || 0}</p>
+                <p className="text-sm font-medium text-gray-600">Page Views</p>
+                <p className="text-2xl font-bold">{dashboardData?.stats?.pageViews || 0}</p>
+                <p className="text-xs text-gray-500">Last 30 days</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <TrendingUp className="h-8 w-8 text-purple-600" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Bounce Rate</p>
+                <p className="text-2xl font-bold">{dashboardData?.stats?.bounceRate || 0}%</p>
+                <p className="text-xs text-gray-500">Last 30 days</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Recent Items */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Recent Items Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         <Card>
           <CardHeader>
             <CardTitle>Recent Services</CardTitle>
@@ -415,27 +717,94 @@ const Admin = () => {
             </div>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Announcements</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {dashboardData?.announcements?.slice(0, 5).map((announcement, index) => (
+                <div key={index} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
+                  <div>
+                    <p className="font-medium">{announcement.title}</p>
+                    <p className="text-sm text-gray-600">{announcement.content?.substring(0, 50)}...</p>
+                  </div>
+                  <span className={`px-2 py-1 rounded-full text-xs ${announcement.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                    {announcement.active ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+              )) || <p className="text-gray-500">No announcements found</p>}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Organizations</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {dashboardData?.organizations?.slice(0, 5).map((org, index) => (
+                <div key={index} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
+                  <div>
+                    <p className="font-medium">{org.name}</p>
+                    <p className="text-sm text-gray-600">{org.location}</p>
+                  </div>
+                  <span className={`px-2 py-1 rounded-full text-xs ${org.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                    {org.status}
+                  </span>
+                </div>
+              )) || <p className="text-gray-500">No organizations found</p>}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Team Members</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {dashboardData?.team?.slice(0, 5).map((member, index) => (
+                <div key={index} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
+                  <div>
+                    <p className="font-medium">{member.name}</p>
+                    <p className="text-sm text-gray-600">{member.role}</p>
+                  </div>
+                  <span className={`px-2 py-1 rounded-full text-xs ${member.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                    {member.active ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+              )) || <p className="text-gray-500">No team members found</p>}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Available Tools</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {dashboardData?.tools?.slice(0, 5).map((tool, index) => (
+                <div key={index} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
+                  <div>
+                    <p className="font-medium">{tool.name}</p>
+                    <p className="text-sm text-gray-600">{tool.description?.substring(0, 50)}...</p>
+                  </div>
+                  <span className={`px-2 py-1 rounded-full text-xs ${tool.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                    {tool.active ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+              )) || <p className="text-gray-500">No tools found</p>}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
 
-  const tabs = [
-    { id: 'overview', label: 'Overview', icon: BarChart3, category: 'dashboard' },
-    { id: 'content', label: 'Content', icon: Globe, category: 'content' },
-    { id: 'services', label: 'Services', icon: Database, category: 'content' },
-    { id: 'portfolio', label: 'Portfolio', icon: Folder, category: 'content' },
-    { id: 'about', label: 'About', icon: FileText, category: 'content' },
-    { id: 'team', label: 'Team', icon: User, category: 'content' },
-    { id: 'announcements', label: 'Announcements', icon: Megaphone, category: 'content' },
-    { id: 'jobs', label: 'Jobs', icon: Briefcase, category: 'management' },
-    { id: 'scholarships', label: 'Scholarships', icon: GraduationCap, category: 'management' },
-    { id: 'organizations', label: 'Organizations', icon: Database, category: 'management' },
-    { id: 'analytics', label: 'Analytics', icon: TrendingUp, category: 'tools' },
-    { id: 'newsletter', label: 'Newsletter', icon: Mail, category: 'tools' },
-    { id: 'roles', label: 'User Roles', icon: Users, category: 'system' },
-    { id: 'routes', label: 'Navigation', icon: Navigation, category: 'system' },
-    { id: 'settings', label: 'Settings', icon: Settings, category: 'system' }
-  ];
 
   const tabCategories = {
     dashboard: { label: 'Dashboard', color: 'blue' },
@@ -471,6 +840,8 @@ const Admin = () => {
         return <AnalyticsManager />;
       case 'newsletter':
         return <NewsletterEditor />;
+      case 'tools-management':
+        return <ToolsManagement />;
       case 'roles':
         return <UserRoleManagement />;
       case 'routes':
@@ -499,34 +870,43 @@ const Admin = () => {
         {/* Improved Navigation Tabs with Categories */}
         <div className="bg-white rounded-lg shadow-sm border mb-6 relative z-40">
           <div className="px-6 py-4">
-            <div className="flex flex-wrap gap-4">
-              {Object.entries(tabCategories).map(([categoryKey, category]) => (
-                <div key={categoryKey} className="min-w-0">
-                  <h3 className={`text-xs font-semibold uppercase tracking-wide text-${category.color}-600 mb-2`}>
-                    {category.label}
-                  </h3>
-                  <div className="flex flex-wrap gap-1">
-                    {tabs
-                      .filter(tab => tab.category === categoryKey)
-                      .map((tab) => {
-                        const Icon = tab.icon;
-                        return (
-                          <Button
-                            key={tab.id}
-                            variant={activeTab === tab.id ? 'default' : 'ghost'}
-                            size="sm"
-                            onClick={() => setActiveTab(tab.id)}
-                            className="flex items-center gap-2"
-                          >
-                            <Icon className="h-4 w-4" />
-                            {tab.label}
-                          </Button>
-                        );
-                      })}
-                  </div>
-                </div>
-              ))}
-            </div>
+            {accessibleTabs && accessibleTabs.length > 0 ? (
+              <div className="flex flex-wrap gap-4">
+                {Object.entries(tabCategories).map(([categoryKey, category]) => {
+                  const categoryTabs = accessibleTabs.filter(tab => tab.category === categoryKey);
+                  if (categoryTabs.length === 0) return null;
+
+                  return (
+                    <div key={categoryKey} className="min-w-0">
+                      <h3 className={`text-xs font-semibold uppercase tracking-wide text-${category.color}-600 mb-2`}>
+                        {category.label}
+                      </h3>
+                      <div className="flex flex-wrap gap-1">
+                        {categoryTabs.map((tab) => {
+                          const Icon = tab.icon;
+                          return (
+                            <Button
+                              key={tab.id}
+                              variant={activeTab === tab.id ? 'default' : 'ghost'}
+                              size="sm"
+                              onClick={() => setActiveTab(tab.id)}
+                              className="flex items-center gap-2"
+                            >
+                              <Icon className="h-4 w-4" />
+                              {tab.label}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500">No accessible tabs available. Please contact your administrator.</p>
+              </div>
+            )}
           </div>
         </div>
 

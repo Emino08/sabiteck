@@ -71,8 +71,8 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
         gpa_requirement: '',
         language_requirements: '',
         other_requirements: '',
-        category_id: '',
-        education_level_id: '',
+        category_ids: [],
+        education_level_ids: [],
         study_fields: [''],
         status: 'draft',
         featured: false,
@@ -80,7 +80,8 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
         meta_title: '',
         meta_description: '',
         tags: [''],
-        regions: []
+        regions: [],
+        countries: []
     });
 
     // Lookup data
@@ -88,6 +89,32 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
     const [regions, setRegions] = useState([]);
     const [educationLevels, setEducationLevels] = useState([]);
     const [fundingTypes, setFundingTypes] = useState([]);
+    const [countries, setCountries] = useState([]);
+
+    // Comprehensive countries by region
+    const countriesByRegion = {
+        'North America': [
+            'United States', 'Canada', 'Mexico', 'Guatemala', 'Belize', 'El Salvador', 'Honduras', 'Nicaragua', 'Costa Rica', 'Panama'
+        ],
+        'South America': [
+            'Brazil', 'Argentina', 'Chile', 'Colombia', 'Peru', 'Venezuela', 'Ecuador', 'Bolivia', 'Paraguay', 'Uruguay', 'Guyana', 'Suriname', 'French Guiana'
+        ],
+        'Europe': [
+            'United Kingdom', 'Germany', 'France', 'Italy', 'Spain', 'Netherlands', 'Belgium', 'Switzerland', 'Austria', 'Portugal', 'Greece', 'Poland', 'Czech Republic', 'Hungary', 'Romania', 'Bulgaria', 'Croatia', 'Serbia', 'Slovakia', 'Slovenia', 'Estonia', 'Latvia', 'Lithuania', 'Finland', 'Sweden', 'Norway', 'Denmark', 'Iceland', 'Ireland', 'Luxembourg', 'Malta', 'Cyprus'
+        ],
+        'Asia': [
+            'China', 'India', 'Japan', 'South Korea', 'Indonesia', 'Pakistan', 'Bangladesh', 'Philippines', 'Vietnam', 'Turkey', 'Iran', 'Iraq', 'Saudi Arabia', 'Malaysia', 'Nepal', 'Afghanistan', 'Uzbekistan', 'Yemen', 'North Korea', 'Sri Lanka', 'Kazakhstan', 'Myanmar', 'Azerbaijan', 'Jordan', 'United Arab Emirates', 'Tajikistan', 'Israel', 'Laos', 'Lebanon', 'Singapore', 'Oman', 'Kuwait', 'Georgia', 'Mongolia', 'Armenia', 'Qatar', 'Bahrain', 'East Timor', 'Palestine', 'Cyprus', 'Brunei', 'Bhutan', 'Maldives'
+        ],
+        'Africa': [
+            'Nigeria', 'Ethiopia', 'Egypt', 'Democratic Republic of the Congo', 'Tanzania', 'South Africa', 'Kenya', 'Uganda', 'Algeria', 'Sudan', 'Morocco', 'Angola', 'Ghana', 'Mozambique', 'Madagascar', 'Cameroon', 'Côte d\'Ivoire', 'Niger', 'Burkina Faso', 'Mali', 'Malawi', 'Zambia', 'Senegal', 'Somalia', 'Chad', 'Zimbabwe', 'Guinea', 'Rwanda', 'Benin', 'Tunisia', 'Burundi', 'South Sudan', 'Togo', 'Sierra Leone', 'Libya', 'Liberia', 'Central African Republic', 'Mauritania', 'Eritrea', 'Gambia', 'Botswana', 'Namibia', 'Gabon', 'Lesotho', 'Guinea-Bissau', 'Equatorial Guinea', 'Mauritius', 'Eswatini', 'Djibouti', 'Comoros', 'Cape Verde', 'São Tomé and Príncipe', 'Seychelles'
+        ],
+        'Oceania': [
+            'Australia', 'Papua New Guinea', 'New Zealand', 'Fiji', 'Solomon Islands', 'Vanuatu', 'Samoa', 'Micronesia', 'Tonga', 'Kiribati', 'Palau', 'Marshall Islands', 'Tuvalu', 'Nauru'
+        ],
+        'Middle East': [
+            'Turkey', 'Iran', 'Iraq', 'Saudi Arabia', 'Yemen', 'Syria', 'Jordan', 'United Arab Emirates', 'Israel', 'Lebanon', 'Palestine', 'Oman', 'Kuwait', 'Qatar', 'Bahrain'
+        ]
+    };
 
     // Rich text editor setup
     const [editorInitialized, setEditorInitialized] = useState(false);
@@ -156,29 +183,33 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
         try {
             setIsLoading(true);
 
-            // Find category ID by name - fallback to using the name directly if no categories loaded yet
-            let categoryId = '';
-            if (scholarshipData.category) {
+            // Handle category IDs - convert to array for multi-select
+            let categoryIds = [];
+            if (scholarshipData.category_ids) {
+                categoryIds = Array.isArray(scholarshipData.category_ids) ? scholarshipData.category_ids : [scholarshipData.category_ids];
+            } else if (scholarshipData.category_id) {
+                categoryIds = [scholarshipData.category_id];
+            } else if (scholarshipData.category) {
                 if (categories.length > 0) {
-                    const foundCategory = categories.find(cat =>
-                        cat.name === scholarshipData.category || cat.id === scholarshipData.category_id
-                    );
-                    categoryId = foundCategory ? (foundCategory.id || foundCategory.name) : scholarshipData.category;
+                    const foundCategory = categories.find(cat => cat.name === scholarshipData.category);
+                    categoryIds = foundCategory ? [foundCategory.id || foundCategory.name] : [scholarshipData.category];
                 } else {
-                    categoryId = scholarshipData.category;
+                    categoryIds = [scholarshipData.category];
                 }
             }
 
-            // Find education level ID by name - fallback to using the name directly if no levels loaded yet
-            let educationLevelId = '';
-            if (scholarshipData.education_level) {
+            // Handle education level IDs - convert to array for multi-select
+            let educationLevelIds = [];
+            if (scholarshipData.education_level_ids) {
+                educationLevelIds = Array.isArray(scholarshipData.education_level_ids) ? scholarshipData.education_level_ids : [scholarshipData.education_level_ids];
+            } else if (scholarshipData.education_level_id) {
+                educationLevelIds = [scholarshipData.education_level_id];
+            } else if (scholarshipData.education_level) {
                 if (educationLevels.length > 0) {
-                    const foundLevel = educationLevels.find(level =>
-                        level.name === scholarshipData.education_level || level.id === scholarshipData.education_level_id
-                    );
-                    educationLevelId = foundLevel ? (foundLevel.id || foundLevel.name) : scholarshipData.education_level;
+                    const foundLevel = educationLevels.find(level => level.name === scholarshipData.education_level);
+                    educationLevelIds = foundLevel ? [foundLevel.id || foundLevel.name] : [scholarshipData.education_level];
                 } else {
-                    educationLevelId = scholarshipData.education_level;
+                    educationLevelIds = [scholarshipData.education_level];
                 }
             }
 
@@ -210,8 +241,8 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                 gpa_requirement: scholarshipData.gpa_requirement || '',
                 language_requirements: scholarshipData.language_requirements || '',
                 other_requirements: scholarshipData.eligibility_criteria || '',
-                category_id: categoryId,
-                education_level_id: educationLevelId,
+                category_ids: categoryIds,
+                education_level_ids: educationLevelIds,
                 status: scholarshipData.status || 'active',
                 featured: Boolean(scholarshipData.featured),
                 verified: Boolean(scholarshipData.verified),
@@ -236,6 +267,12 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                         scholarshipData.regions :
                         (typeof scholarshipData.regions === 'string' ?
                             scholarshipData.regions.split(',').map(r => r.trim()) : [scholarshipData.regions]))
+                    : [],
+                countries: scholarshipData.countries
+                    ? (Array.isArray(scholarshipData.countries) ?
+                        scholarshipData.countries :
+                        (typeof scholarshipData.countries === 'string' ?
+                            scholarshipData.countries.split(',').map(c => c.trim()) : [scholarshipData.countries]))
                     : []
             }));
         } catch (err) {
@@ -296,6 +333,33 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
             regions: prev.regions.includes(regionName)
                 ? prev.regions.filter(r => r !== regionName)
                 : [...prev.regions, regionName]
+        }));
+    };
+
+    const handleCountryToggle = (countryName) => {
+        setFormData(prev => ({
+            ...prev,
+            countries: prev.countries.includes(countryName)
+                ? prev.countries.filter(c => c !== countryName)
+                : [...prev.countries, countryName]
+        }));
+    };
+
+    const handleCategoryToggle = (categoryId) => {
+        setFormData(prev => ({
+            ...prev,
+            category_ids: prev.category_ids.includes(categoryId)
+                ? prev.category_ids.filter(c => c !== categoryId)
+                : [...prev.category_ids, categoryId]
+        }));
+    };
+
+    const handleEducationLevelToggle = (levelId) => {
+        setFormData(prev => ({
+            ...prev,
+            education_level_ids: prev.education_level_ids.includes(levelId)
+                ? prev.education_level_ids.filter(l => l !== levelId)
+                : [...prev.education_level_ids, levelId]
         }));
     };
 
@@ -424,8 +488,8 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
         if (!formData.slug.trim()) errors.push('Slug is required');
         if (!formData.short_description.trim()) errors.push('Short description is required');
         if (!formData.provider.trim()) errors.push('Provider is required');
-        if (!formData.category_id) errors.push('Category is required');
-        if (!formData.education_level_id) errors.push('Education level is required');
+        if (formData.category_ids.length === 0) errors.push('At least one category is required');
+        if (formData.education_level_ids.length === 0) errors.push('At least one education level is required');
         if (!formData.funding_type_id) errors.push('Funding type is required');
         if (formData.regions.length === 0) errors.push('At least one region is required');
         
@@ -448,6 +512,9 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                 study_fields: JSON.stringify(formData.study_fields.filter(f => f.trim())),
                 tags: JSON.stringify(formData.tags.filter(t => t.trim())),
                 regions: formData.regions.join(', '),
+                countries: formData.countries.join(', '),
+                category_ids: JSON.stringify(formData.category_ids),
+                education_level_ids: JSON.stringify(formData.education_level_ids),
                 status: publish ? 'active' : formData.status,
                 published_at: publish ? new Date().toISOString() : formData.published_at
             };
@@ -1421,50 +1488,54 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                             
                             <div className="space-y-6">
                                 <div>
-                                    <label className="block text-sm font-bold text-white mb-3">
-                                        Elite Category *
+                                    <label className="block text-sm font-bold text-white mb-3 flex items-center">
+                                        <Target className="w-5 h-5 mr-2 text-blue-400" />
+                                        Elite Categories * (Select multiple)
                                     </label>
-                                    <div className="relative">
-                                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 pointer-events-none z-10">
-                                            <Target className="w-5 h-5 text-blue-400" />
-                                        </div>
-                                        <select
-                                            name="category_id"
-                                            value={formData.category_id}
-                                            onChange={handleInputChange}
-                                            className="w-full pl-12 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-400 text-white transition-all duration-300 relative z-20"
-                                        >
-                                            <option value="">Select Elite Category</option>
-                                            {Array.isArray(categories) && categories.map((category, index) => (
-                                                <option key={category.id || category.name || `category-${index}`} value={category.id || category.name}>
+                                    <div className="bg-black/50 border border-white/20 rounded-2xl p-4 max-h-48 overflow-y-auto">
+                                        {Array.isArray(categories) && categories.map((category, index) => (
+                                            <div key={category.id || category.name || `category-${index}`} className="flex items-center space-x-3 py-2">
+                                                <input
+                                                    type="checkbox"
+                                                    id={`category-${category.id || category.name || index}`}
+                                                    checked={formData.category_ids.includes(category.id || category.name)}
+                                                    onChange={() => handleCategoryToggle(category.id || category.name)}
+                                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                                />
+                                                <label htmlFor={`category-${category.id || category.name || index}`} className="text-white text-sm flex items-center cursor-pointer">
                                                     ⭐ {category.name || category}
-                                                </option>
-                                            ))}
-                                        </select>
+                                                </label>
+                                            </div>
+                                        ))}
+                                        {(!categories || categories.length === 0) && (
+                                            <p className="text-gray-400 text-sm">Loading categories...</p>
+                                        )}
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-bold text-white mb-3">
-                                        Elite Education Level *
+                                    <label className="block text-sm font-bold text-white mb-3 flex items-center">
+                                        <GraduationCap className="w-5 h-5 mr-2 text-blue-400" />
+                                        Elite Education Levels * (Select multiple)
                                     </label>
-                                    <div className="relative">
-                                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 pointer-events-none z-10">
-                                            <GraduationCap className="w-5 h-5 text-blue-400" />
-                                        </div>
-                                        <select
-                                            name="education_level_id"
-                                            value={formData.education_level_id}
-                                            onChange={handleInputChange}
-                                            className="w-full pl-12 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-400 text-white transition-all duration-300 relative z-20"
-                                        >
-                                            <option value="">Select Elite Level</option>
-                                            {educationLevels.map((level, index) => (
-                                                <option key={level.id || level.name || `level-${index}`} value={level.id || level.name}>
+                                    <div className="bg-black/50 border border-white/20 rounded-2xl p-4 max-h-48 overflow-y-auto">
+                                        {educationLevels.map((level, index) => (
+                                            <div key={level.id || level.name || `level-${index}`} className="flex items-center space-x-3 py-2">
+                                                <input
+                                                    type="checkbox"
+                                                    id={`level-${level.id || level.name || index}`}
+                                                    checked={formData.education_level_ids.includes(level.id || level.name)}
+                                                    onChange={() => handleEducationLevelToggle(level.id || level.name)}
+                                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                                />
+                                                <label htmlFor={`level-${level.id || level.name || index}`} className="text-white text-sm flex items-center cursor-pointer">
                                                     🎓 {level.name}
-                                                </option>
-                                            ))}
-                                        </select>
+                                                </label>
+                                            </div>
+                                        ))}
+                                        {(!educationLevels || educationLevels.length === 0) && (
+                                            <p className="text-gray-400 text-sm">Loading education levels...</p>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -1574,28 +1645,81 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                             </div>
                         </div>
 
-                        {/* Eligible Regions */}
+                        {/* Eligible Regions & Countries */}
                         <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl">
-                            <h3 className="text-2xl font-black text-white mb-6">Eligible Regions *</h3>
-                            
-                            <div className="space-y-2 max-h-64 overflow-y-auto">
-                                {regions.map((region, index) => (
-                                    <div key={region.id || region.name || `region-${index}`} className="flex items-center space-x-3">
-                                        <input
-                                            type="checkbox"
-                                            id={`region-${region.id || region.name || index}`}
-                                            checked={formData.regions.includes(region.name)}
-                                            onChange={() => handleRegionToggle(region.name)}
-                                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                        />
-                                        <label htmlFor={`region-${region.id || region.name || index}`} className="text-sm text-gray-700">
-                                            {region.name}
-                                            {region.continent && region.continent !== region.name && (
-                                                <span className="text-gray-500"> ({region.continent})</span>
-                                            )}
-                                        </label>
+                            <div className="flex items-center mb-6">
+                                <div className="p-3 bg-gradient-to-r from-green-500 to-blue-500 rounded-2xl mr-4">
+                                    <Globe className="w-6 h-6 text-white" />
+                                </div>
+                                <div>
+                                    <h3 className="text-2xl font-black text-white mb-2">Geographic Eligibility *</h3>
+                                    <p className="text-gray-300">Select regions and specific countries for this scholarship</p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                {/* Regions Selection */}
+                                <div>
+                                    <h4 className="text-lg font-bold text-white mb-4 flex items-center">
+                                        🌍 Select Regions
+                                    </h4>
+                                    <div className="bg-black/50 border border-white/20 rounded-2xl p-4 max-h-64 overflow-y-auto">
+                                        {Object.keys(countriesByRegion).map((regionName, index) => (
+                                            <div key={`region-${regionName}-${index}`} className="flex items-center space-x-3 py-2">
+                                                <input
+                                                    type="checkbox"
+                                                    id={`region-${regionName}-${index}`}
+                                                    checked={formData.regions.includes(regionName)}
+                                                    onChange={() => handleRegionToggle(regionName)}
+                                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                                />
+                                                <label htmlFor={`region-${regionName}-${index}`} className="text-white text-sm flex items-center cursor-pointer">
+                                                    🌎 {regionName} ({countriesByRegion[regionName].length} countries)
+                                                </label>
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
+                                    <div className="mt-2 text-xs text-gray-400">
+                                        Selected regions: {formData.regions.join(', ') || 'None'}
+                                    </div>
+                                </div>
+
+                                {/* Countries Selection */}
+                                <div>
+                                    <h4 className="text-lg font-bold text-white mb-4 flex items-center">
+                                        🏳️ Select Specific Countries
+                                    </h4>
+                                    <div className="bg-black/50 border border-white/20 rounded-2xl p-4 max-h-64 overflow-y-auto">
+                                        {formData.regions.length > 0 ? (
+                                            formData.regions.map(selectedRegion => (
+                                                <div key={selectedRegion} className="mb-4">
+                                                    <h5 className="text-sm font-semibold text-blue-300 mb-2">{selectedRegion}</h5>
+                                                    <div className="pl-4 space-y-1">
+                                                        {countriesByRegion[selectedRegion]?.map((country, index) => (
+                                                            <div key={`${selectedRegion}-${country}-${index}`} className="flex items-center space-x-2 py-1">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    id={`country-${selectedRegion}-${country}-${index}`}
+                                                                    checked={formData.countries.includes(country)}
+                                                                    onChange={() => handleCountryToggle(country)}
+                                                                    className="w-3 h-3 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                                                                />
+                                                                <label htmlFor={`country-${selectedRegion}-${country}-${index}`} className="text-gray-200 text-xs cursor-pointer">
+                                                                    {country}
+                                                                </label>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <p className="text-gray-400 text-sm">Select regions first to see available countries</p>
+                                        )}
+                                    </div>
+                                    <div className="mt-2 text-xs text-gray-400">
+                                        Selected countries: {formData.countries.length > 0 ? `${formData.countries.length} selected` : 'None'}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
