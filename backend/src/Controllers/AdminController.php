@@ -2481,19 +2481,309 @@ class AdminController extends BaseController
                 $stmt = $this->db->prepare("SELECT * FROM about_page WHERE id = 1");
                 $stmt->execute();
                 $about = $stmt->fetch();
+
+                // Decode JSON fields and map old column names to new ones
+                if ($about) {
+                    // Map old column names to new format if needed
+                    if (!isset($about['company_overview']) && isset($about['story'])) {
+                        $about['company_overview'] = $about['story'];
+                    }
+                    if (!isset($about['mission_statement']) && isset($about['mission'])) {
+                        $about['mission_statement'] = $about['mission'];
+                    }
+                    if (!isset($about['vision_statement']) && isset($about['vision'])) {
+                        $about['vision_statement'] = $about['vision'];
+                    }
+                    if (!isset($about['core_values']) && isset($about['company_values'])) {
+                        $about['core_values'] = $about['company_values'];
+                    }
+
+                    // Decode JSON fields
+                    if (isset($about['core_values']) && is_string($about['core_values'])) {
+                        $about['core_values'] = json_decode($about['core_values'], true);
+                    }
+                    if (isset($about['company_stats']) && is_string($about['company_stats'])) {
+                        $about['company_stats'] = json_decode($about['company_stats'], true);
+                    }
+                    // Ensure company_stats is an object/associative array, not a plain array
+                    if (isset($about['company_stats']) && is_array($about['company_stats']) && !empty($about['company_stats']) && array_keys($about['company_stats']) === range(0, count($about['company_stats']) - 1)) {
+                        // It's a plain array (numeric keys), convert to object structure
+                        $about['company_stats'] = [
+                            'clients_served' => '',
+                            'success_rate' => '',
+                            'years_experience' => '',
+                            'team_members' => '',
+                            'countries_served' => '',
+                            'awards_won' => ''
+                        ];
+                    }
+                    if (isset($about['achievements']) && is_string($about['achievements'])) {
+                        $about['achievements'] = json_decode($about['achievements'], true);
+                    }
+                    if (isset($about['company_history']) && is_string($about['company_history'])) {
+                        $about['company_history'] = json_decode($about['company_history'], true);
+                    }
+                    if (isset($about['certifications']) && is_string($about['certifications'])) {
+                        $about['certifications'] = json_decode($about['certifications'], true);
+                    }
+                    if (isset($about['partnerships']) && is_string($about['partnerships'])) {
+                        $about['partnerships'] = json_decode($about['partnerships'], true);
+                    }
+                    if (isset($about['office_locations']) && is_string($about['office_locations'])) {
+                        $about['office_locations'] = json_decode($about['office_locations'], true);
+                    }
+                    if (isset($about['about_images']) && is_string($about['about_images'])) {
+                        $about['about_images'] = json_decode($about['about_images'], true);
+                    }
+
+                    // Ensure all expected fields exist with defaults
+                    $about['company_overview'] = $about['company_overview'] ?? '';
+                    $about['mission_statement'] = $about['mission_statement'] ?? '';
+                    $about['vision_statement'] = $about['vision_statement'] ?? '';
+                    $about['core_values'] = $about['core_values'] ?? [];
+                    $about['founding_year'] = $about['founding_year'] ?? '';
+                    $about['company_stats'] = $about['company_stats'] ?? [
+                        'clients_served' => '',
+                        'success_rate' => '',
+                        'years_experience' => '',
+                        'team_members' => '',
+                        'countries_served' => '',
+                        'awards_won' => ''
+                    ];
+                    $about['achievements'] = $about['achievements'] ?? [];
+                    $about['company_history'] = $about['company_history'] ?? [];
+                    $about['leadership_message'] = $about['leadership_message'] ?? '';
+                    $about['company_culture'] = $about['company_culture'] ?? '';
+                    $about['certifications'] = $about['certifications'] ?? [];
+                    $about['partnerships'] = $about['partnerships'] ?? [];
+                    $about['office_locations'] = $about['office_locations'] ?? [];
+                    $about['hero_image'] = $about['hero_image'] ?? '';
+                    $about['about_images'] = $about['about_images'] ?? [];
+                }
             } else {
                 $about = [
                     'id' => 1,
-                    'mission' => 'To deliver innovative technology solutions that empower businesses to thrive in the digital age.',
-                    'vision' => 'To be the leading technology partner for businesses seeking digital transformation.',
-                    'story' => 'Founded in 2020, Sabiteck Limited has been at the forefront of technology innovation...',
-                    'company_values' => json_encode(['Innovation', 'Quality', 'Integrity', 'Customer Focus'])
+                    'company_overview' => '',
+                    'mission_statement' => 'To deliver innovative technology solutions that empower businesses to thrive in the digital age.',
+                    'vision_statement' => 'To be the leading technology partner for businesses seeking digital transformation.',
+                    'core_values' => ['Innovation', 'Quality', 'Integrity', 'Customer Focus'],
+                    'founding_year' => '2020',
+                    'company_stats' => [
+                        'clients_served' => '100+',
+                        'success_rate' => '95%',
+                        'years_experience' => '5+',
+                        'team_members' => '50+',
+                        'countries_served' => '10+',
+                        'awards_won' => '5+'
+                    ],
+                    'achievements' => [],
+                    'company_history' => [],
+                    'leadership_message' => 'At Sabiteck, we believe technology and creativity are the twin engines of progress. Since our founding, our mission has been clear — to build digital solutions that empower people, tell powerful stories, and drive meaningful change. Every project we take on is more than just work; it\'s a chance to inspire innovation, spark creativity, and leave a lasting impact.\n\nAs we continue to grow, our promise remains the same: to deliver excellence, embrace innovation, and put people at the heart of everything we do.\n\n— The Sabiteck Leadership Team',
+                    'company_culture' => '',
+                    'certifications' => [],
+                    'partnerships' => [],
+                    'office_locations' => [],
+                    'hero_image' => '',
+                    'about_images' => []
                 ];
             }
 
-            $this->dataResponse($about);
+            $this->successResponse('ABOUT_RETRIEVED', ['data' => $about]);
         } catch (Exception $e) {
             $this->handleDatabaseException($e, 'getAbout');
+        }
+    }
+
+    /**
+     * Update about information
+     */
+    public function updateAbout(): void
+    {
+        try {
+            $input = json_decode(file_get_contents('php://input'), true);
+            $input = $this->sanitizeInput($input);
+
+            // Check if about_page table exists, create if not
+            $stmt = $this->db->prepare("SHOW TABLES LIKE 'about_page'");
+            $stmt->execute();
+
+            if ($stmt->rowCount() === 0) {
+                // Create the table
+                $this->db->exec("
+                    CREATE TABLE IF NOT EXISTS about_page (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        company_overview TEXT,
+                        mission_statement TEXT,
+                        vision_statement TEXT,
+                        core_values JSON,
+                        founding_year VARCHAR(10),
+                        company_stats JSON,
+                        achievements JSON,
+                        company_history JSON,
+                        leadership_message TEXT,
+                        company_culture TEXT,
+                        certifications JSON,
+                        partnerships JSON,
+                        office_locations JSON,
+                        hero_image VARCHAR(500),
+                        about_images JSON,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                    )
+                ");
+            } else {
+                // Table exists, check and add/modify columns
+                $columnsToAdd = [
+                    'company_overview' => 'TEXT',
+                    'mission_statement' => 'TEXT',
+                    'vision_statement' => 'TEXT',
+                    'core_values' => 'JSON',
+                    'founding_year' => 'VARCHAR(10)',
+                    'company_stats' => 'JSON',
+                    'achievements' => 'JSON',
+                    'company_history' => 'JSON',
+                    'leadership_message' => 'TEXT',
+                    'company_culture' => 'TEXT',
+                    'certifications' => 'JSON',
+                    'partnerships' => 'JSON',
+                    'office_locations' => 'JSON',
+                    'hero_image' => 'VARCHAR(500)',
+                    'about_images' => 'JSON'
+                ];
+
+                // Get existing columns with their types
+                $stmt = $this->db->prepare("SHOW COLUMNS FROM about_page");
+                $stmt->execute();
+                $existingColumnsData = $stmt->fetchAll();
+                $existingColumns = [];
+                foreach ($existingColumnsData as $col) {
+                    $existingColumns[$col['Field']] = $col['Type'];
+                }
+
+                // Add missing columns or modify existing ones if type is wrong
+                foreach ($columnsToAdd as $columnName => $columnType) {
+                    if (!isset($existingColumns[$columnName])) {
+                        // Column doesn't exist, add it
+                        try {
+                            $this->db->exec("ALTER TABLE about_page ADD COLUMN `{$columnName}` {$columnType}");
+                            error_log("Added missing column: {$columnName}");
+                        } catch (Exception $e) {
+                            error_log("Failed to add column {$columnName}: " . $e->getMessage());
+                        }
+                    } else {
+                        // Column exists but check if type needs updating
+                        $currentType = strtolower($existingColumns[$columnName]);
+                        $expectedType = strtolower($columnType);
+
+                        // If column is TEXT but should be JSON, modify it
+                        if ($currentType === 'text' && $expectedType === 'json') {
+                            try {
+                                $this->db->exec("ALTER TABLE about_page MODIFY COLUMN `{$columnName}` {$columnType}");
+                                error_log("Modified column type: {$columnName} from TEXT to JSON");
+                            } catch (Exception $e) {
+                                error_log("Failed to modify column {$columnName}: " . $e->getMessage());
+                            }
+                        }
+                    }
+                }
+
+                // Add updated_at column if not exists
+                if (!isset($existingColumns['updated_at'])) {
+                    try {
+                        $this->db->exec("ALTER TABLE about_page ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+                    } catch (Exception $e) {
+                        error_log("Failed to add updated_at column: " . $e->getMessage());
+                    }
+                }
+            }
+
+            // Check if record exists
+            $stmt = $this->db->prepare("SELECT id FROM about_page WHERE id = 1");
+            $stmt->execute();
+            $exists = $stmt->fetch();
+
+            // Prepare data for insertion/update
+            $companyOverview = $input['company_overview'] ?? '';
+            $missionStatement = $input['mission_statement'] ?? '';
+            $visionStatement = $input['vision_statement'] ?? '';
+            $coreValues = isset($input['core_values']) ? json_encode($input['core_values']) : json_encode([]);
+            $foundingYear = $input['founding_year'] ?? '';
+            $companyStats = isset($input['company_stats']) ? json_encode($input['company_stats']) : json_encode([]);
+            $achievements = isset($input['achievements']) ? json_encode($input['achievements']) : json_encode([]);
+            $companyHistory = isset($input['company_history']) ? json_encode($input['company_history']) : json_encode([]);
+            $leadershipMessage = $input['leadership_message'] ?? '';
+            $companyCulture = $input['company_culture'] ?? '';
+            $certifications = isset($input['certifications']) ? json_encode($input['certifications']) : json_encode([]);
+            $partnerships = isset($input['partnerships']) ? json_encode($input['partnerships']) : json_encode([]);
+            $officeLocations = isset($input['office_locations']) ? json_encode($input['office_locations']) : json_encode([]);
+            $heroImage = $input['hero_image'] ?? '';
+            $aboutImages = isset($input['about_images']) ? json_encode($input['about_images']) : json_encode([]);
+
+            if ($exists) {
+                // Update existing record
+                $stmt = $this->db->prepare("
+                    UPDATE about_page SET
+                        company_overview = ?,
+                        mission_statement = ?,
+                        vision_statement = ?,
+                        core_values = ?,
+                        founding_year = ?,
+                        company_stats = ?,
+                        achievements = ?,
+                        company_history = ?,
+                        leadership_message = ?,
+                        company_culture = ?,
+                        certifications = ?,
+                        partnerships = ?,
+                        office_locations = ?,
+                        hero_image = ?,
+                        about_images = ?,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = 1
+                ");
+
+                $stmt->execute([
+                    $companyOverview, $missionStatement, $visionStatement, $coreValues,
+                    $foundingYear, $companyStats, $achievements, $companyHistory,
+                    $leadershipMessage, $companyCulture, $certifications, $partnerships,
+                    $officeLocations, $heroImage, $aboutImages
+                ]);
+            } else {
+                // Insert new record
+                $stmt = $this->db->prepare("
+                    INSERT INTO about_page (
+                        company_overview, mission_statement, vision_statement, core_values,
+                        founding_year, company_stats, achievements, company_history,
+                        leadership_message, company_culture, certifications, partnerships,
+                        office_locations, hero_image, about_images
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ");
+
+                $stmt->execute([
+                    $companyOverview, $missionStatement, $visionStatement, $coreValues,
+                    $foundingYear, $companyStats, $achievements, $companyHistory,
+                    $leadershipMessage, $companyCulture, $certifications, $partnerships,
+                    $officeLocations, $heroImage, $aboutImages
+                ]);
+            }
+
+            $this->successResponse('ABOUT_UPDATED', ['id' => 1]);
+        } catch (Exception $e) {
+            error_log("UpdateAbout Error: " . $e->getMessage());
+            error_log("UpdateAbout Stack: " . $e->getTraceAsString());
+
+            // Return detailed error for debugging
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Failed to update about page',
+                'error_code' => 'UPDATE_FAILED',
+                'error_details' => [
+                    'message' => $e->getMessage(),
+                    'operation' => 'updateAbout',
+                    'timestamp' => date('Y-m-d H:i:s')
+                ]
+            ]);
         }
     }
 
@@ -2580,8 +2870,56 @@ class AdminController extends BaseController
             // Do not insert sample data - use real data only
             // $this->insertSampleAnalyticsData();
 
+            // Migrate existing tables - add missing columns if they don't exist
+            $this->migrateAnalyticsTables();
+
         } catch (Exception $e) {
             error_log("Error creating analytics tables: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Migrate analytics tables - add missing columns
+     */
+    private function migrateAnalyticsTables(): void
+    {
+        try {
+            // Check if analytics_events table has visit_id column
+            $stmt = $this->db->prepare("SHOW COLUMNS FROM analytics_events LIKE 'visit_id'");
+            $stmt->execute();
+
+            if ($stmt->rowCount() === 0) {
+                // Add visit_id column
+                $this->db->exec("ALTER TABLE analytics_events ADD COLUMN visit_id INT AFTER id");
+                error_log("Added visit_id column to analytics_events table");
+
+                // Try to add foreign key (may fail if there are existing rows)
+                try {
+                    $this->db->exec("ALTER TABLE analytics_events ADD FOREIGN KEY (visit_id) REFERENCES analytics_visits(id) ON DELETE CASCADE");
+                } catch (Exception $e) {
+                    error_log("Could not add foreign key for visit_id: " . $e->getMessage());
+                }
+            }
+
+            // Check if analytics_pageviews table has visit_id column
+            $stmt = $this->db->prepare("SHOW COLUMNS FROM analytics_pageviews LIKE 'visit_id'");
+            $stmt->execute();
+
+            if ($stmt->rowCount() === 0) {
+                // Add visit_id column
+                $this->db->exec("ALTER TABLE analytics_pageviews ADD COLUMN visit_id INT AFTER id");
+                error_log("Added visit_id column to analytics_pageviews table");
+
+                // Try to add foreign key
+                try {
+                    $this->db->exec("ALTER TABLE analytics_pageviews ADD FOREIGN KEY (visit_id) REFERENCES analytics_visits(id) ON DELETE CASCADE");
+                } catch (Exception $e) {
+                    error_log("Could not add foreign key for visit_id in pageviews: " . $e->getMessage());
+                }
+            }
+
+        } catch (Exception $e) {
+            error_log("Error migrating analytics tables: " . $e->getMessage());
         }
     }
 
@@ -4420,7 +4758,7 @@ class AdminController extends BaseController
             }
 
             // Send invitation email with temporary password
-            $this->sendInvitationEmail($email, $username, $tempPassword);
+            $this->sendInvitationEmail($email, $username, $tempPassword, $roleId);
 
             $this->successResponse('User invitation sent successfully', [
                 'user_id' => $userId,
@@ -4436,7 +4774,7 @@ class AdminController extends BaseController
     /**
      * Send invitation email to new user
      */
-    private function sendInvitationEmail(string $email, string $username, string $tempPassword): void
+    private function sendInvitationEmail(string $email, string $username, string $tempPassword, int $roleId): void
     {
         try {
             // Use authentication email configuration for invitations
@@ -4452,8 +4790,24 @@ class AdminController extends BaseController
 
             $emailService = new EmailService($emailConfig);
 
+            // Determine login URL based on role
+            // Get role information to check if it's an admin role
+            $stmt = $this->db->prepare("SELECT slug FROM roles WHERE id = ?");
+            $stmt->execute([$roleId]);
+            $role = $stmt->fetch();
+
+            $baseUrl = $_ENV['FRONTEND_URL'] ?? 'http://localhost:5173';
+
+            // If role is admin or super-admin, send to /admin, otherwise send to /login
+            if ($role && in_array($role['slug'], ['admin', 'super-admin'])) {
+                $loginUrl = $baseUrl . '/admin';
+                $accountType = 'Admin';
+            } else {
+                $loginUrl = $baseUrl . '/login';
+                $accountType = 'User';
+            }
+
             $subject = 'Welcome to Sabiteck Limited - Your Account Invitation';
-            $loginUrl = ($_ENV['FRONTEND_URL'] ?? 'http://localhost:5173') . '/login';
 
             $body = "
             <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
@@ -4463,16 +4817,17 @@ class AdminController extends BaseController
                 <div style='padding: 30px; background: #f8f9fa;'>
                     <h2>You've been invited to join our platform!</h2>
                     <p>Hello,</p>
-                    <p>You have been invited to create an account on Sabiteck Limited. Here are your login credentials:</p>
+                    <p>You have been invited to create an <strong>{$accountType} account</strong> on Sabiteck Limited. Here are your login credentials:</p>
 
                     <div style='background: #fff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #007bff;'>
+                        <p><strong>Account Type:</strong> {$accountType}</p>
                         <p><strong>Username:</strong> {$username}</p>
                         <p><strong>Email:</strong> {$email}</p>
                         <p><strong>Temporary Password:</strong> <code style='background: #e9ecef; padding: 4px 8px; border-radius: 4px; font-family: monospace;'>{$tempPassword}</code></p>
                     </div>
 
                     <div style='text-align: center; margin: 30px 0;'>
-                        <a href='{$loginUrl}' style='background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;'>Login to Your Account</a>
+                        <a href='{$loginUrl}' style='background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;'>Login to Your {$accountType} Account</a>
                     </div>
 
                     <div style='background: #fff3cd; padding: 15px; border-radius: 6px; border-left: 4px solid #ffc107; margin: 20px 0;'>

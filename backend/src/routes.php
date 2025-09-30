@@ -135,6 +135,13 @@ function handleRoutes($method, $path, $db) {
         case ($path === '/api/admin/scholarships/generate' && $method === 'POST'):
             return $adminController->generateScholarshipDocument();
 
+        // About page routes
+        case ($path === '/api/admin/about' && $method === 'GET'):
+            return $adminController->getAbout();
+
+        case ($path === '/api/admin/about' && $method === 'PUT'):
+            return $adminController->updateAbout();
+
         default:
             return false; // Route not handled by this system
     }

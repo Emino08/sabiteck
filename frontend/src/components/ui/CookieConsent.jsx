@@ -133,9 +133,13 @@ const CookieConsent = () => {
   const applyConsentPreferences = (prefs) => {
     // Initialize analytics based on consent
     if (prefs.analytics && window.SabiteckAnalytics) {
-      window.SabiteckAnalytics.optIn()
+      if (typeof window.SabiteckAnalytics.enableTracking === 'function') {
+        window.SabiteckAnalytics.enableTracking()
+      }
     } else if (window.SabiteckAnalytics) {
-      window.SabiteckAnalytics.optOut()
+      if (typeof window.SabiteckAnalytics.disableTracking === 'function') {
+        window.SabiteckAnalytics.disableTracking()
+      }
     }
 
     // Apply other preferences as needed

@@ -19,23 +19,28 @@ export default defineConfig({
       }
     },
     headers: {
-      'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: *; style-src 'self' 'unsafe-inline' *; font-src 'self' *; img-src 'self' data: blob: *; connect-src 'self' *; frame-src *; object-src 'none';"
+      'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data:; script-src-elem 'self' 'unsafe-inline' blob: data:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; connect-src 'self' http://localhost:* https://localhost:*; frame-src 'self'; object-src 'none'; worker-src 'self' blob:; form-action 'self'; manifest-src 'self';"
     }
   },
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
     sourcemap: false,
+    target: 'es2015',
     rollupOptions: {
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
           router: ['react-router-dom'],
           ui: ['lucide-react', '@radix-ui/react-slot'],
-        }
+        },
+        format: 'es',
+        inlineDynamicImports: false
       }
     },
-    minify: 'esbuild'
+    minify: 'esbuild',
+    chunkSizeWarningLimit: 1000,
+    copyPublicDir: true
   },
   esbuild: {
     drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : []
