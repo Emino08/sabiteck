@@ -934,27 +934,27 @@ const NewsletterEditor = () => {
     <div className={`min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}>
       {/* Elite Header */}
       <div className="relative z-10 border-b border-white/10 bg-black/20 backdrop-blur-xl">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
+        <div className="container mx-auto px-4 md:px-6 py-4">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-3">
                 <div className="relative">
                   <div className="absolute -inset-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full blur opacity-75 animate-pulse"></div>
-                  <div className="relative p-3 bg-black/50 backdrop-blur-lg rounded-full border border-white/20">
-                    <Crown className="w-8 h-8 text-yellow-400" />
+                  <div className="relative p-2 md:p-3 bg-black/50 backdrop-blur-lg rounded-full border border-white/20">
+                    <Crown className="w-6 h-6 md:w-8 md:h-8 text-yellow-400" />
                   </div>
                 </div>
                 <div>
-                  <h1 className="text-3xl font-black bg-gradient-to-r from-white via-purple-200 to-cyan-200 bg-clip-text text-transparent">
+                  <h1 className="text-xl md:text-3xl font-black bg-gradient-to-r from-white via-purple-200 to-cyan-200 bg-clip-text text-transparent">
                     Elite Newsletter Studio
                   </h1>
-                  <p className="text-gray-300 text-sm">Professional-grade email marketing platform</p>
+                  <p className="text-gray-300 text-xs md:text-sm">Professional-grade email marketing platform</p>
                 </div>
               </div>
             </div>
 
             {/* Elite Navigation */}
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1 md:space-x-2 overflow-x-auto scrollbar-hide">
               {[
                 { id: 'composer', label: 'Composer', icon: Edit, gradient: 'from-violet-500 to-purple-500' },
                 { id: 'content', label: 'Content', icon: FileText, gradient: 'from-emerald-500 to-teal-500' },
@@ -967,16 +967,16 @@ const NewsletterEditor = () => {
                   key={tab.id}
                   onClick={() => setActiveView(tab.id)}
                   className={`
-                    group relative px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105
+                    group relative px-3 py-2 md:px-6 md:py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 whitespace-nowrap
                     ${activeView === tab.id
                       ? `bg-gradient-to-r ${tab.gradient} text-white shadow-2xl shadow-${tab.gradient.split('-')[1]}-500/25`
                       : 'bg-black/30 backdrop-blur-lg text-gray-300 border border-white/20 hover:bg-black/40 hover:border-white/30'
                     }
                   `}
                 >
-                  <div className="flex items-center space-x-2 relative z-10">
-                    <tab.icon className="w-5 h-5" />
-                    <span className="text-sm font-bold">{tab.label}</span>
+                  <div className="flex items-center space-x-1 md:space-x-2 relative z-10">
+                    <tab.icon className="w-4 h-4 md:w-5 md:h-5" />
+                    <span className="text-xs md:text-sm font-bold hidden sm:inline">{tab.label}</span>
                   </div>
                   {activeView === tab.id && (
                     <div className={`absolute -inset-1 bg-gradient-to-r ${tab.gradient} rounded-xl blur opacity-50 animate-pulse`}></div>
@@ -985,13 +985,13 @@ const NewsletterEditor = () => {
               ))}
 
               {/* Settings & Tools */}
-              <div className="flex items-center space-x-2 ml-4 pl-4 border-l border-white/20">
+              <div className="flex items-center space-x-2 lg:ml-4 lg:pl-4 lg:border-l border-white/20">
                 <button
                   onClick={() => setIsFullscreen(!isFullscreen)}
                   className="p-2 bg-black/30 backdrop-blur-lg rounded-lg border border-white/20 hover:bg-black/40 transition-all"
                   title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
                 >
-                  {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
+                  {isFullscreen ? <Minimize2 className="w-4 h-4 md:w-5 md:h-5" /> : <Maximize2 className="w-4 h-4 md:w-5 md:h-5" />}
                 </button>
                 <button
                   onClick={() => setAiAssistant(!aiAssistant)}
@@ -1001,7 +1001,7 @@ const NewsletterEditor = () => {
                   }`}
                   title="AI Writing Assistant"
                 >
-                  <Sparkles className="w-5 h-5" />
+                  <Sparkles className="w-4 h-4 md:w-5 md:h-5" />
                 </button>
               </div>
             </div>
@@ -2921,9 +2921,9 @@ Type here to begin your elite newsletter...`
       {activeView === 'audience' && (
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <CardTitle>Newsletter Subscribers ({subscribers.length})</CardTitle>
-              <div className="flex space-x-2">
+              <div className="flex flex-wrap gap-2">
                 <label className="cursor-pointer">
                   <Button size="sm" variant="outline">
                     <Upload className="h-4 w-4 mr-2" />
@@ -2945,7 +2945,7 @@ Type here to begin your elite newsletter...`
           <CardContent>
             <div className="space-y-4">
               {/* Subscriber Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <div className="text-2xl font-bold text-blue-600">{subscribers.filter(s => s.active).length}</div>
                   <div className="text-sm text-blue-600">Active Subscribers</div>
@@ -2968,9 +2968,9 @@ Type here to begin your elite newsletter...`
               </div>
 
               {/* Subscribers List */}
-              <div className="border rounded-lg">
+              <div className="border rounded-lg overflow-x-auto">
                 <div className="bg-gray-50 px-4 py-3 border-b">
-                  <div className="grid grid-cols-5 gap-4 text-sm font-medium text-gray-700">
+                  <div className="grid grid-cols-5 gap-4 text-sm font-medium text-gray-700 min-w-[600px]">
                     <div>Email</div>
                     <div>Name</div>
                     <div>Status</div>
@@ -2988,9 +2988,9 @@ Type here to begin your elite newsletter...`
                   ) : (
                     subscribers.map((subscriber) => (
                       <div key={subscriber.id} className="px-4 py-3 border-b last:border-b-0 hover:bg-gray-50">
-                        <div className="grid grid-cols-5 gap-4 items-center text-sm">
-                          <div className="font-medium">{subscriber.email}</div>
-                          <div>{subscriber.name || 'N/A'}</div>
+                        <div className="grid grid-cols-5 gap-4 items-center text-sm min-w-[600px]">
+                          <div className="font-medium truncate">{subscriber.email}</div>
+                          <div className="truncate">{subscriber.name || 'N/A'}</div>
                           <div>
                             <span className={`inline-flex px-2 py-1 text-xs rounded-full ${
                               subscriber.active 
@@ -3158,24 +3158,25 @@ Type here to begin your elite newsletter...`
 
       {/* Email Dialog */}
       {showEmailDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-bold mb-4">Send Email to {selectedSubscriber?.email}</h3>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg font-bold mb-4 text-gray-900">Send Email to {selectedSubscriber?.email}</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Subject</label>
+                <label className="block text-sm font-medium mb-2 text-gray-700">Subject</label>
                 <Input
                   value={emailForm.subject}
                   onChange={(e) => setEmailForm({...emailForm, subject: e.target.value})}
                   placeholder="Email subject"
+                  className="text-gray-900"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Content</label>
+                <label className="block text-sm font-medium mb-2 text-gray-700">Content</label>
                 <textarea
                   value={emailForm.content}
                   onChange={(e) => setEmailForm({...emailForm, content: e.target.value})}
-                  className="w-full h-64 p-3 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full h-64 p-3 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900"
                   placeholder="Email content (HTML supported)"
                 />
               </div>

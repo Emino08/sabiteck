@@ -228,9 +228,9 @@ const Header = () => {
 
                         <button
                           onClick={() => {
-                            logout();
+                            const redirectPath = logout();
                             setShowUserMenu(false);
-                            navigate('/');
+                            navigate(redirectPath);
                           }}
                           className="w-full flex items-center space-x-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors group"
                         >
@@ -286,8 +286,8 @@ const Header = () => {
 
         {/* Elite Mobile Menu Dropdown */}
         {isMenuOpen && (
-          <div className="lg:hidden animate-slide-up">
-            <div className="relative mt-4 mx-4 mb-6">
+          <div className="lg:hidden animate-slide-up max-h-[calc(100vh-5rem)] overflow-y-auto mobile-menu-scrollbar scroll-smooth">
+            <div className="relative mt-4 mx-4 mb-6 min-h-0">
               {/* Premium mobile menu background */}
               <div className="absolute inset-0 bg-white/95 backdrop-blur-xl rounded-3xl shadow-premium border border-slate-200/50"></div>
 
@@ -400,9 +400,9 @@ const Header = () => {
                       {/* Logout Button */}
                       <button
                         onClick={() => {
-                          logout();
+                          const redirectPath = logout();
                           setIsMenuOpen(false);
-                          navigate('/');
+                          navigate(redirectPath);
                         }}
                         className="w-full flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-2xl transition-colors"
                       >

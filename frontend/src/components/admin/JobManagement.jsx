@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     Plus,
     Search,
@@ -38,6 +38,8 @@ import { apiRequest } from '../../utils/api';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import ErrorMessage from '../ui/ErrorMessage';
 import JobEditor from './JobEditor';
+import EnhancedSearchBar, { AdvancedFiltersPanel } from '../ui/EnhancedSearchBar';
+import FilterBasedSearch, { jobFilters } from '../ui/FilterBasedSearch';
 import { toast } from 'sonner';
 
 const JobManagement = () => {
@@ -56,6 +58,34 @@ const JobManagement = () => {
     const [showEditor, setShowEditor] = useState(false);
     const [editingJob, setEditingJob] = useState(null);
     const [selectedJobForApplications, setSelectedJobForApplications] = useState(null);
+    
+    // Enhanced search features
+    const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+    const [advancedFilters, setAdvancedFilters] = useState({
+        salary_min: '',
+        salary_max: '',
+        location: '',
+        experience_level: '',
+        job_type: '',
+        posted_after: ''
+    });
+    const [searchSuggestions, setSearchSuggestions] = useState([]);
+    
+    // Filter-based search
+    const [filterBasedFilters, setFilterBasedFilters] = useState({
+        status: '',
+        category: '',
+        salary_min: '',
+        salary_max: '',
+        location: '',
+        job_type: [],
+        experience_level: '',
+        posted_from: '',
+        posted_to: '',
+        remote: false,
+        featured: false
+    });
+    const [showFilterPanel, setShowFilterPanel] = useState(false);
 
     // Lookup data
     const [categories, setCategories] = useState([]);
@@ -74,7 +104,7 @@ const JobManagement = () => {
         loadJobs();
         loadCategories();
         loadStats();
-    }, [currentPage, searchTerm, selectedStatus, selectedCategory]);
+    }, [currentPage, searchTerm, selectedStatus, selectedCategory, advancedFilters, filterBasedFilters]);
 
     const loadJobs = async () => {
         try {
@@ -90,13 +120,42 @@ const JobManagement = () => {
             if (searchTerm) params.append('search', searchTerm);
             if (selectedStatus) params.append('status', selectedStatus);
             if (selectedCategory) params.append('category', selectedCategory);
+            
+            // Add advanced filters if active
+            if (advancedFilters.salary_min) params.append('salary_min', advancedFilters.salary_min);
+            if (advancedFilters.salary_max) params.append('salary_max', advancedFilters.salary_max);
+            if (advancedFilters.location) params.append('location', advancedFilters.location);
+            if (advancedFilters.experience_level) params.append('experience_level', advancedFilters.experience_level);
+            if (advancedFilters.job_type) params.append('job_type', advancedFilters.job_type);
+            if (advancedFilters.posted_after) params.append('posted_after', advancedFilters.posted_after);
+            
+            // Add filter-based search parameters
+            Object.entries(filterBasedFilters).forEach(([key, value]) => {
+                if (value && value !== '' && value !== false && (!Array.isArray(value) || value.length > 0)) {
+                    if (Array.isArray(value)) {
+                        params.append(key, value.join(','));
+                    } else {
+                        params.append(key, value);
+                    }
+                }
+            });
 
             const response = await apiRequest(`/api/admin/jobs?${params.toString()}`);
             
             if (response.success) {
-                setJobs(response.data.jobs || response.data || []);
+                const jobsData = response.data.jobs || response.data || [];
+                setJobs(jobsData);
                 setTotalPages(response.data.pagination?.pages || 1);
-                setTotalCount(response.data.pagination?.total || response.data.length || 0);
+                setTotalCount(response.data.pagination?.total || jobsData.length || 0);
+                
+                // Generate search suggestions from job titles
+                if (jobsData.length > 0) {
+                    const suggestions = jobsData
+                        .slice(0, 5)
+                        .map(j => j.title)
+                        .filter(Boolean);
+                    setSearchSuggestions(suggestions);
+                }
             } else {
                 setError(response.message || 'Failed to load jobs');
             }
@@ -136,20 +195,83 @@ const JobManagement = () => {
         }
     };
 
-    const handleSearch = (e) => {
-        setSearchTerm(e.target.value);
+    const handleSearch = useCallback((value) => {
+        setSearchTerm(value);
         setCurrentPage(1);
-    };
+    }, []);
 
-    const handleStatusFilter = (status) => {
-        setSelectedStatus(status === selectedStatus ? '' : status);
+    const handleStatusFilter = useCallback((status) => {
+        setSelectedStatus(prev => prev === status ? '' : status);
         setCurrentPage(1);
-    };
+    }, []);
 
-    const handleCategoryFilter = (e) => {
+    const handleCategoryFilter = useCallback((e) => {
         setSelectedCategory(e.target.value);
         setCurrentPage(1);
-    };
+    }, []);
+    
+    const handleToggleAdvancedFilters = useCallback(() => {
+        setShowAdvancedFilters(prev => !prev);
+    }, []);
+    
+    const handleApplyAdvancedFilters = useCallback((filters) => {
+        setAdvancedFilters(filters);
+        setCurrentPage(1);
+        setShowAdvancedFilters(false);
+        toast.success('Advanced filters applied', {
+            description: 'Search results updated with your filters',
+            duration: 2000
+        });
+    }, []);
+    
+    const handleResetAdvancedFilters = useCallback(() => {
+        setAdvancedFilters({
+            salary_min: '',
+            salary_max: '',
+            location: '',
+            experience_level: '',
+            job_type: '',
+            posted_after: ''
+        });
+        setCurrentPage(1);
+        toast.info('Filters reset', {
+            description: 'All advanced filters have been cleared',
+            duration: 2000
+        });
+    }, []);
+    
+    // Filter-based search handlers
+    const handleFilterChange = useCallback((filters) => {
+        setFilterBasedFilters(filters);
+        setCurrentPage(1);
+    }, []);
+    
+    const handleResetFilters = useCallback(() => {
+        setFilterBasedFilters({
+            status: '',
+            category: '',
+            salary_min: '',
+            salary_max: '',
+            location: '',
+            job_type: [],
+            experience_level: '',
+            posted_from: '',
+            posted_to: '',
+            remote: false,
+            featured: false
+        });
+        setCurrentPage(1);
+        toast.info('All filters cleared', {
+            description: 'Filter-based search reset',
+            duration: 2000
+        });
+    }, []);
+    
+    const getActiveFiltersCount = useCallback(() => {
+        return Object.values(filterBasedFilters).filter(v => 
+            v && v !== '' && v !== false && (!Array.isArray(v) || v.length > 0)
+        ).length;
+    }, [filterBasedFilters]);
 
     const handleSelectJob = (jobId) => {
         setSelectedJobs(prev => 
@@ -168,25 +290,63 @@ const JobManagement = () => {
     };
 
     const handleDelete = async (jobId) => {
-        if (!confirm('Are you sure you want to delete this job? This will also delete all associated applications and cannot be undone.')) {
-            return;
-        }
+        const job = jobs.find(j => j.id === jobId);
+        const jobTitle = job ? job.title : 'this job';
 
-        try {
-            const response = await apiRequest(`/api/admin/jobs/${jobId}`, {
-                method: 'DELETE'
-            });
+        toast.custom((t) => (
+            <div className="bg-white rounded-lg shadow-xl border border-gray-200 p-5 max-w-md">
+                <div className="flex items-start gap-3 mb-4">
+                    <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </div>
+                    <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900 text-lg mb-1">Delete Job</h3>
+                        <p className="text-sm text-gray-600">Are you sure you want to delete <strong className="text-gray-900">{jobTitle}</strong>?</p>
+                        <p className="text-xs text-red-600 mt-2 font-medium">⚠️ This will also delete all associated applications.</p>
+                        <p className="text-xs text-gray-500 mt-1">This action cannot be undone.</p>
+                    </div>
+                </div>
+                <div className="flex gap-2 justify-end">
+                    <button
+                        onClick={() => toast.dismiss(t)}
+                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={async () => {
+                            toast.dismiss(t);
+                            try {
+                                const response = await apiRequest(`/api/admin/jobs/${jobId}`, {
+                                    method: 'DELETE'
+                                });
 
-            if (response.success) {
-                loadJobs();
-                loadStats();
-            } else {
-                setError(response.message || 'Failed to delete job');
-            }
-        } catch (err) {
-            setError('Failed to delete job');
-            console.error('Error deleting job:', err);
-        }
+                                if (response.success) {
+                                    toast.success('Job deleted successfully');
+                                    loadJobs();
+                                    loadStats();
+                                } else {
+                                    toast.error(response.message || 'Failed to delete job');
+                                    setError(response.message || 'Failed to delete job');
+                                }
+                            } catch (err) {
+                                toast.error('Failed to delete job');
+                                setError('Failed to delete job');
+                                console.error('Error deleting job:', err);
+                            }
+                        }}
+                        className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+                    >
+                        Delete
+                    </button>
+                </div>
+            </div>
+        ), {
+            duration: Infinity,
+            position: 'top-center'
+        });
     };
 
     const getStatusColor = (status) => {
@@ -285,34 +445,34 @@ const JobManagement = () => {
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse animation-delay-4000"></div>
             </div>
 
-            <div className="container mx-auto px-6 py-8 relative z-10 space-y-8">
+            <div className="container mx-auto px-4 md:px-6 py-4 md:py-8 relative z-10 space-y-4 md:space-y-8">
                 {/* Elite Header */}
-                <div className="text-center mb-12">
-                    <div className="flex justify-center mb-6">
+                <div className="text-center mb-4 md:mb-12">
+                    <div className="flex justify-center mb-4 md:mb-6">
                         <div className="relative group">
                             <div className="absolute -inset-2 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 animate-pulse"></div>
-                            <div className="relative p-4 bg-black/50 backdrop-blur-lg rounded-full border border-white/20">
-                                <Briefcase className="w-12 h-12 text-indigo-400" />
+                            <div className="relative p-3 md:p-4 bg-black/50 backdrop-blur-lg rounded-full border border-white/20">
+                                <Briefcase className="w-8 h-8 md:w-12 md:h-12 text-indigo-400" />
                             </div>
                         </div>
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-black mb-4 bg-gradient-to-r from-white via-indigo-200 to-purple-200 bg-clip-text text-transparent">
+                    <h1 className="text-2xl md:text-4xl lg:text-5xl font-black mb-3 md:mb-4 bg-gradient-to-r from-white via-indigo-200 to-purple-200 bg-clip-text text-transparent px-4">
                         Elite Job Management Studio
                     </h1>
-                    <div className="flex justify-center items-center gap-2 mb-6">
-                        <Star className="w-5 h-5 text-yellow-400 fill-current" />
-                        <span className="text-yellow-400 font-semibold">Professional Career Management Hub</span>
-                        <Star className="w-5 h-5 text-yellow-400 fill-current" />
+                    <div className="flex justify-center items-center gap-2 mb-4 md:mb-6 px-4">
+                        <Star className="w-4 h-4 md:w-5 md:h-5 text-yellow-400 fill-current" />
+                        <span className="text-yellow-400 font-semibold text-sm md:text-base">Professional Career Management Hub</span>
+                        <Star className="w-4 h-4 md:w-5 md:h-5 text-yellow-400 fill-current" />
                     </div>
-                    <p className="text-gray-300 max-w-2xl mx-auto mb-8">
+                    <p className="text-gray-300 max-w-2xl mx-auto mb-4 md:mb-8 px-4 text-sm md:text-base">
                         Orchestrate exceptional career opportunities and manage elite job listings with our premium management suite
                     </p>
 
                     {/* Elite Action Buttons */}
-                    <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-                        <button className="inline-flex items-center px-6 py-3 bg-black/30 backdrop-blur-lg border border-white/20 text-white hover:bg-white/10 font-semibold rounded-2xl transition-all duration-300 hover:scale-105">
-                            <Download className="w-5 h-5 mr-2" />
-                            Export Elite Data
+                    <div className="flex flex-col sm:flex-row justify-center items-center gap-3 md:gap-4 px-4">
+                        <button className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 md:px-6 md:py-3 bg-black/30 backdrop-blur-lg border border-white/20 text-white hover:bg-white/10 font-semibold rounded-xl md:rounded-2xl transition-all duration-300 hover:scale-105">
+                            <Download className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+                            <span className="text-sm md:text-base">Export Elite Data</span>
                         </button>
 
                         <button
@@ -320,51 +480,53 @@ const JobManagement = () => {
                                 setEditingJob(null);
                                 setShowEditor(true);
                             }}
-                            className="inline-flex items-center px-8 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-bold rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105"
+                            className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-2 md:px-8 md:py-3 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-bold rounded-xl md:rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105"
                         >
-                            <Plus className="w-5 h-5 mr-2" />
-                            Create Elite Job
+                            <Plus className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+                            <span className="text-sm md:text-base">Create Elite Job</span>
                         </button>
                     </div>
                 </div>
 
                 {/* Elite Stats Dashboard */}
-                <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl mb-8">
-                    <div className="flex items-center mb-8">
-                        <div className="p-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl mr-4">
-                            <TrendingUp className="w-6 h-6 text-white" />
+                <div className="bg-black/30 backdrop-blur-xl rounded-2xl md:rounded-3xl border border-white/10 p-4 md:p-8 shadow-2xl mb-4 md:mb-8">
+                    <div className="flex flex-col md:flex-row md:items-center mb-4 md:mb-8 gap-3 md:gap-0">
+                        <div className="flex items-center">
+                            <div className="p-2 md:p-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl md:rounded-2xl mr-3 md:mr-4">
+                                <TrendingUp className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg md:text-2xl font-black text-white mb-1 md:mb-2">Elite Analytics Dashboard</h3>
+                                <p className="text-gray-300 text-xs md:text-base hidden sm:block">Real-time insights into your premium job ecosystem</p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 className="text-2xl font-black text-white mb-2">Elite Analytics Dashboard</h3>
-                            <p className="text-gray-300">Real-time insights into your premium job ecosystem</p>
-                        </div>
-                        <div className="ml-auto">
-                            <span className="px-3 py-1 bg-gradient-to-r from-emerald-400 to-teal-400 text-black rounded-full text-xs font-black">
+                        <div className="md:ml-auto">
+                            <span className="px-2 md:px-3 py-1 bg-gradient-to-r from-emerald-400 to-teal-400 text-black rounded-full text-xs font-black">
                                 LIVE DATA
                             </span>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 md:gap-4">
                         <div
-                            className={`bg-black/40 backdrop-blur-lg overflow-hidden shadow-xl rounded-2xl cursor-pointer transition-all duration-300 hover:scale-105 border ${
+                            className={`bg-black/40 backdrop-blur-lg overflow-hidden shadow-xl rounded-xl md:rounded-2xl cursor-pointer transition-all duration-300 hover:scale-105 border ${
                                 selectedStatus === '' ? 'ring-2 ring-indigo-500 bg-indigo-500/20 border-indigo-400/50' : 'border-white/10 hover:border-white/20'
                             }`}
                             onClick={() => handleStatusFilter('')}
                         >
-                            <div className="p-6">
+                            <div className="p-3 md:p-6">
                                 <div className="flex items-center">
                                     <div className="flex-shrink-0">
-                                        <div className="p-2 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-xl">
-                                            <Briefcase className="h-6 w-6 text-white" />
+                                        <div className="p-1.5 md:p-2 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-lg md:rounded-xl">
+                                            <Briefcase className="h-4 w-4 md:h-6 md:w-6 text-white" />
                                         </div>
                                     </div>
-                                    <div className="ml-4 w-0 flex-1">
+                                    <div className="ml-2 md:ml-4 w-0 flex-1">
                                         <dl>
-                                            <dt className="text-sm font-bold text-gray-300 truncate">
-                                                Total Elite Jobs
+                                            <dt className="text-xs md:text-sm font-bold text-gray-300 truncate">
+                                                Total Jobs
                                             </dt>
-                                            <dd className="text-2xl font-black text-white">
+                                            <dd className="text-lg md:text-2xl font-black text-white">
                                                 {stats.total}
                                             </dd>
                                         </dl>
@@ -374,26 +536,26 @@ const JobManagement = () => {
                         </div>
 
                         <div
-                            className={`bg-black/40 backdrop-blur-lg overflow-hidden shadow-xl rounded-2xl cursor-pointer transition-all duration-300 hover:scale-105 border ${
+                            className={`bg-black/40 backdrop-blur-lg overflow-hidden shadow-xl rounded-xl md:rounded-2xl cursor-pointer transition-all duration-300 hover:scale-105 border ${
                                 selectedStatus === 'active' ? 'ring-2 ring-green-500 bg-green-500/20 border-green-400/50' : 'border-white/10 hover:border-white/20'
                             }`}
                             onClick={() => handleStatusFilter('active')}
                         >
-                            <div className="p-6">
+                            <div className="p-3 md:p-6">
                                 <div className="flex items-center">
                                     <div className="flex-shrink-0">
-                                        <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl">
-                                            <div className="h-6 w-6 bg-green-100/20 rounded-full flex items-center justify-center">
-                                                <div className="h-3 w-3 bg-green-400 rounded-full animate-pulse"></div>
+                                        <div className="p-1.5 md:p-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg md:rounded-xl">
+                                            <div className="h-4 w-4 md:h-6 md:w-6 bg-green-100/20 rounded-full flex items-center justify-center">
+                                                <div className="h-2 w-2 md:h-3 md:w-3 bg-green-400 rounded-full animate-pulse"></div>
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="ml-4 w-0 flex-1">
+                                    <div className="ml-2 md:ml-4 w-0 flex-1">
                                         <dl>
-                                            <dt className="text-sm font-bold text-gray-300 truncate">
-                                                Active Elite
+                                            <dt className="text-xs md:text-sm font-bold text-gray-300 truncate">
+                                                Active
                                             </dt>
-                                            <dd className="text-2xl font-black text-white">
+                                            <dd className="text-lg md:text-2xl font-black text-white">
                                                 {stats.active}
                                             </dd>
                                         </dl>
@@ -403,12 +565,12 @@ const JobManagement = () => {
                         </div>
 
                         <div
-                            className={`bg-black/40 backdrop-blur-lg overflow-hidden shadow-xl rounded-2xl cursor-pointer transition-all duration-300 hover:scale-105 border ${
+                            className={`bg-black/40 backdrop-blur-lg overflow-hidden shadow-xl rounded-xl md:rounded-2xl cursor-pointer transition-all duration-300 hover:scale-105 border ${
                                 selectedStatus === 'draft' ? 'ring-2 ring-gray-400 bg-gray-500/20 border-gray-400/50' : 'border-white/10 hover:border-white/20'
                             }`}
                             onClick={() => handleStatusFilter('draft')}
                         >
-                            <div className="p-6">
+                            <div className="p-3 md:p-6">
                                 <div className="flex items-center">
                                     <div className="flex-shrink-0">
                                         <div className="p-2 bg-gradient-to-r from-gray-500 to-slate-500 rounded-xl">
@@ -525,67 +687,155 @@ const JobManagement = () => {
                 </div>
 
                 {/* Elite Search & Filter Hub */}
-                <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl mb-8">
-                    <div className="flex items-center mb-8">
-                        <div className="p-3 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-2xl mr-4">
-                            <Search className="w-6 h-6 text-white" />
+                <div className="bg-black/30 backdrop-blur-xl rounded-2xl md:rounded-3xl border border-white/10 p-4 md:p-8 shadow-2xl mb-4 md:mb-8">
+                    <div className="flex flex-col md:flex-row md:items-center mb-4 md:mb-8 gap-3 md:gap-0">
+                        <div className="flex items-center">
+                            <div className="p-2 md:p-3 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl md:rounded-2xl mr-3 md:mr-4">
+                                <Search className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg md:text-2xl font-black text-white mb-1 md:mb-2">Enhanced Elite Search Console</h3>
+                                <p className="text-gray-300 text-xs md:text-base hidden sm:block">Advanced search with filters, suggestions & history</p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 className="text-2xl font-black text-white mb-2">Elite Search & Filter Console</h3>
-                            <p className="text-gray-300">Advanced tools for precision job discovery</p>
-                        </div>
-                        <div className="ml-auto">
-                            <span className="px-3 py-1 bg-gradient-to-r from-cyan-400 to-blue-400 text-black rounded-full text-xs font-black">
-                                SEARCH ENGINE
+                        <div className="md:ml-auto flex flex-wrap items-center gap-2 md:gap-3">
+                            {/* Active Filters Indicator */}
+                            {(searchTerm || selectedStatus || selectedCategory || Object.values(advancedFilters).some(v => v)) && (
+                                <span className="px-2 md:px-3 py-1 bg-gradient-to-r from-green-400 to-emerald-400 text-black rounded-full text-xs font-black">
+                                    {[searchTerm, selectedStatus, selectedCategory, ...Object.values(advancedFilters)].filter(Boolean).length} FILTER{[searchTerm, selectedStatus, selectedCategory, ...Object.values(advancedFilters)].filter(Boolean).length > 1 ? 'S' : ''} ACTIVE
+                                </span>
+                            )}
+                            <span className="px-2 md:px-3 py-1 bg-gradient-to-r from-cyan-400 to-blue-400 text-black rounded-full text-xs font-black">
+                                ENHANCED SEARCH
                             </span>
                         </div>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0 sm:space-x-6">
-                        {/* Elite Search */}
-                        <div className="flex-1 max-w-lg">
-                            <div className="relative">
-                                <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
-                                    <Search className="h-5 w-5 text-cyan-400" />
-                                    <Zap className="h-4 w-4 text-blue-400 animate-pulse" />
-                                </div>
-                                <input
-                                    type="text"
-                                    placeholder="Search elite opportunities..."
-                                    value={searchTerm}
-                                    onChange={handleSearch}
-                                    className="block w-full pl-16 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-400 text-white placeholder-gray-400 text-lg transition-all duration-300"
-                                />
+                    {/* Enhanced Search Bar */}
+                    <EnhancedSearchBar
+                        searchValue={searchTerm}
+                        onSearchChange={handleSearch}
+                        placeholder="Search jobs by title, company, location, salary, skills..."
+                        suggestions={searchSuggestions}
+                        resultsCount={totalCount}
+                        showAdvancedFilters={showAdvancedFilters}
+                        onToggleAdvancedFilters={handleToggleAdvancedFilters}
+                        debounceTime={500}
+                        filters={[
+                            {
+                                label: 'All Status',
+                                active: selectedStatus === '',
+                                count: stats.total,
+                                icon: Briefcase
+                            },
+                            {
+                                label: 'Active',
+                                active: selectedStatus === 'active',
+                                count: stats.active,
+                                icon: TrendingUp
+                            },
+                            {
+                                label: 'Draft',
+                                active: selectedStatus === 'draft',
+                                count: stats.draft,
+                                icon: Edit
+                            },
+                            {
+                                label: 'Closed',
+                                active: selectedStatus === 'closed',
+                                count: stats.closed,
+                                icon: Clock
+                            },
+                            {
+                                label: 'Featured',
+                                active: selectedStatus === 'featured',
+                                count: stats.featured,
+                                icon: Star
+                            }
+                        ]}
+                        onFilterChange={(filter) => {
+                            const statusMap = {
+                                'All Status': '',
+                                'Active': 'active',
+                                'Draft': 'draft',
+                                'Closed': 'closed',
+                                'Featured': 'featured'
+                            };
+                            handleStatusFilter(statusMap[filter.label]);
+                        }}
+                        className="mb-4"
+                    />
+
+                    {/* Category Filter */}
+                    <div className="flex flex-col sm:flex-row gap-2 md:gap-4">
+                        <div className="relative flex-1">
+                            <div className="absolute left-3 md:left-4 top-1/2 transform -translate-y-1/2">
+                                <Target className="w-3 h-3 md:w-4 md:h-4 text-cyan-400" />
                             </div>
+                            <select
+                                value={selectedCategory}
+                                onChange={handleCategoryFilter}
+                                className="w-full pl-10 md:pl-12 pr-3 md:pr-4 py-2.5 md:py-3 bg-black/50 border border-white/20 rounded-xl md:rounded-2xl text-white text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-400 transition-all duration-300"
+                            >
+                                <option value="">All Elite Categories</option>
+                                {Array.isArray(categories) ? categories.map((category, index) => (
+                                    <option key={category?.id || category?.name || `category-${index}`} value={category?.name || ''}>
+                                        ⭐ {category?.name || 'Unknown Category'}
+                                    </option>
+                                )) : []}
+                            </select>
                         </div>
 
-                        {/* Elite Filters */}
-                        <div className="flex items-center space-x-4">
-                            <div className="relative">
-                                <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                                    <Target className="w-4 h-4 text-cyan-400" />
-                                </div>
-                                <select
-                                    value={selectedCategory}
-                                    onChange={handleCategoryFilter}
-                                    className="pl-12 pr-4 py-3 bg-black/50 border border-white/20 rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-400 transition-all duration-300"
-                                >
-                                    <option value="">All Elite Categories</option>
-                                    {Array.isArray(categories) ? categories.map((category, index) => (
-                                        <option key={category?.id || category?.name || `category-${index}`} value={category?.name || ''}>
-                                            ⭐ {category?.name || 'Unknown Category'}
-                                        </option>
-                                    )) : []}
-                                </select>
-                            </div>
-
-                            <button className="inline-flex items-center px-6 py-3 bg-black/50 backdrop-blur-lg border border-white/20 text-white hover:bg-white/10 font-semibold rounded-2xl transition-all duration-300 hover:scale-105">
-                                <Filter className="w-5 h-5 mr-2" />
-                                Advanced Filters
+                        {/* Clear All Filters Button */}
+                        {(searchTerm || selectedStatus || selectedCategory || Object.values(advancedFilters).some(v => v)) && (
+                            <button
+                                onClick={() => {
+                                    setSearchTerm('');
+                                    setSelectedStatus('');
+                                    setSelectedCategory('');
+                                    handleResetAdvancedFilters();
+                                }}
+                                className="w-full sm:w-auto inline-flex items-center justify-center px-4 md:px-6 py-2.5 md:py-3 bg-red-500/20 backdrop-blur-lg border border-red-500/30 text-red-300 hover:bg-red-500/30 font-semibold rounded-xl md:rounded-2xl transition-all duration-300 hover:scale-105 text-xs md:text-sm"
+                            >
+                                <X className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+                                Clear All Filters
                             </button>
-                        </div>
+                        )}
                     </div>
+
+                    {/* Advanced Filters Panel */}
+                    {showAdvancedFilters && (
+                        <div className="mt-4">
+                            <AdvancedFiltersPanel
+                                filters={advancedFilters}
+                                onApply={handleApplyAdvancedFilters}
+                                onReset={handleResetAdvancedFilters}
+                            />
+                        </div>
+                    )}
                 </div>
+
+                {/* Filter-Based Search Panel */}
+                <FilterBasedSearch
+                    onFilterChange={handleFilterChange}
+                    filters={filterBasedFilters}
+                    availableFilters={jobFilters.map(filter => {
+                        // Populate category options dynamically
+                        if (filter.key === 'category') {
+                            return {
+                                ...filter,
+                                options: categories.map(cat => ({
+                                    value: cat.name || '',
+                                    label: cat.name || 'Unknown Category'
+                                }))
+                            };
+                        }
+                        return filter;
+                    })}
+                    activeFiltersCount={getActiveFiltersCount()}
+                    onReset={handleResetFilters}
+                    className="mb-4 md:mb-8"
+                />
 
                 {/* Elite Jobs Table */}
                 <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl overflow-hidden">

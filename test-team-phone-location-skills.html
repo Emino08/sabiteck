@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team API - Phone, Location & Skills Validation Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #6366f1;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #6366f1;
+            margin-top: 30px;
+        }
+        .test-section {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .test-case {
+            background: white;
+            border-left: 4px solid #6366f1;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .test-case.success {
+            border-left-color: #10b981;
+        }
+        .test-case.error {
+            border-left-color: #ef4444;
+        }
+        button {
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #4f46e5;
+        }
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        pre {
+            background: #1f2937;
+            color: #10b981;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 14px;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .result.success {
+            background: #d1fae5;
+            border: 1px solid #10b981;
+            color: #065f46;
+        }
+        .result.error {
+            background: #fee2e2;
+            border: 1px solid #ef4444;
+            color: #991b1b;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .badge.valid {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .badge.invalid {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .info-box {
+            background: #dbeafe;
+            border: 1px solid #3b82f6;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .info-box h3 {
+            margin-top: 0;
+            color: #1e40af;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Team API - Phone, Location & Skills Validation Test</h1>
+        
+        <div class="info-box">
+            <h3>ℹ️ Test Information</h3>
+            <p><strong>Purpose:</strong> Verify phone number, location fields and strict skills validation</p>
+            <p><strong>API Endpoint:</strong> <code>http://localhost:8002/api/admin/team</code></p>
+            <p><strong>Required Skills Format:</strong> <code>["Leadership", "Mentorship", "Strategy"]</code></p>
+        </div>
+
+        <h2>📋 Valid Test Cases</h2>
+        <div class="test-section">
+            <div class="test-case">
+                <h3>✅ Test 1: Valid Array Format <span class="badge valid">SHOULD PASS</span></h3>
+                <pre>{
+  "name": "Test User 1",
+  "position": "Software Engineer",
+  "phone": "+1 555 123 4567",
+  "location": "New York, USA",
+  "skills": ["React", "Node.js", "TypeScript"]
+}</pre>
+                <button onclick="testValidArray()">Run Test 1</button>
+                <div id="result1" class="result" style="display:none;"></div>
+            </div>
+
+            <div class="test-case">
+                <h3>✅ Test 2: Comma-Separated String <span class="badge valid">SHOULD PASS</span></h3>
+                <pre>{
+  "name": "Test User 2",
+  "position": "Product Manager",
+  "phone": "+44 20 7946 0958",
+  "location": "London, UK",
+  "skills": "Leadership, Project Management, Agile"
+}</pre>
+                <button onclick="testCommaSeparated()">Run Test 2</button>
+                <div id="result2" class="result" style="display:none;"></div>
+            </div>
+
+            <div class="test-case">
+                <h3>✅ Test 3: Empty Skills <span class="badge valid">SHOULD PASS</span></h3>
+                <pre>{
+  "name": "Test User 3",
+  "position": "Designer",
+  "phone": "+232 78 618435",
+  "location": "Sierra Leone",
+  "skills": []
+}</pre>
+                <button onclick="testEmptySkills()">Run Test 3</button>
+                <div id="result3" class="result" style="display:none;"></div>
+            </div>
+        </div>
+
+        <h2>❌ Invalid Test Cases</h2>
+        <div class="test-section">
+            <div class="test-case">
+                <h3>❌ Test 4: Associative Array <span class="badge invalid">SHOULD FAIL</span></h3>
+                <pre>{
+  "name": "Test User 4",
+  "position": "Manager",
+  "phone": "+1 555 987 6543",
+  "location": "San Francisco, USA",
+  "skills": {"0": "Leadership", "1": "Management"}
+}</pre>
+                <button onclick="testAssociativeArray()">Run Test 4</button>
+                <div id="result4" class="result" style="display:none;"></div>
+            </div>
+
+            <div class="test-case">
+                <h3>❌ Test 5: Mixed Types in Array <span class="badge invalid">SHOULD FAIL</span></h3>
+                <pre>{
+  "name": "Test User 5",
+  "position": "Developer",
+  "phone": "+44 7911 123456",
+  "location": "Manchester, UK",
+  "skills": ["JavaScript", 123, null, true]
+}</pre>
+                <button onclick="testMixedTypes()">Run Test 5</button>
+                <div id="result5" class="result" style="display:none;"></div>
+            </div>
+        </div>
+
+        <h2>🔍 Field Validation Tests</h2>
+        <div class="test-section">
+            <div class="test-case">
+                <h3>✅ Test 6: Complete Data with Phone & Location</h3>
+                <pre>{
+  "name": "Complete Test User",
+  "position": "Chief Technology Officer",
+  "department": "Executive",
+  "bio": "Experienced technology leader",
+  "email": "cto@company.com",
+  "phone": "+1 555 000 1111",
+  "location": "Seattle, Washington, USA",
+  "skills": ["Leadership", "Architecture", "Cloud Computing"],
+  "years_experience": 15,
+  "active": true,
+  "featured": true
+}</pre>
+                <button onclick="testCompleteData()">Run Test 6</button>
+                <div id="result6" class="result" style="display:none;"></div>
+            </div>
+        </div>
+
+        <div style="margin-top: 30px; padding: 20px; background: #fef3c7; border-radius: 8px; border: 1px solid #f59e0b;">
+            <h3>⚠️ Important Notes</h3>
+            <ul>
+                <li>Ensure your backend server is running on <code>http://localhost:8002</code></li>
+                <li>Make sure the database migration has been run</li>
+                <li>Tests create real database records (you may want to clean up after)</li>
+                <li>Phone and location fields are now saved to the database</li>
+                <li>Skills validation is strict - only array format accepted</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8002/api/admin/team';
+
+        async function testAPI(testNum, data, shouldPass) {
+            const resultDiv = document.getElementById(`result${testNum}`);
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = 'Testing...';
+            resultDiv.className = 'result';
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    if (shouldPass) {
+                        resultDiv.className = 'result success';
+                        resultDiv.innerHTML = `<strong>✅ PASS - Test succeeded as expected</strong><br>` +
+                            `Response: ${JSON.stringify(result, null, 2)}`;
+                    } else {
+                        resultDiv.className = 'result error';
+                        resultDiv.innerHTML = `<strong>⚠️ UNEXPECTED - Test should have failed</strong><br>` +
+                            `Response: ${JSON.stringify(result, null, 2)}`;
+                    }
+                } else {
+                    if (!shouldPass) {
+                        resultDiv.className = 'result success';
+                        resultDiv.innerHTML = `<strong>✅ PASS - Test failed as expected</strong><br>` +
+                            `Error: ${result.error || 'Unknown error'}`;
+                    } else {
+                        resultDiv.className = 'result error';
+                        resultDiv.innerHTML = `<strong>❌ FAIL - Test should have passed</strong><br>` +
+                            `Error: ${result.error || 'Unknown error'}`;
+                    }
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<strong>❌ ERROR - Network or server error</strong><br>` +
+                    `Details: ${error.message}`;
+            }
+        }
+
+        // Valid Tests
+        function testValidArray() {
+            testAPI(1, {
+                name: "Test User 1",
+                position: "Software Engineer",
+                phone: "+1 555 123 4567",
+                location: "New York, USA",
+                skills: ["React", "Node.js", "TypeScript"]
+            }, true);
+        }
+
+        function testCommaSeparated() {
+            testAPI(2, {
+                name: "Test User 2",
+                position: "Product Manager",
+                phone: "+44 20 7946 0958",
+                location: "London, UK",
+                skills: "Leadership, Project Management, Agile"
+            }, true);
+        }
+
+        function testEmptySkills() {
+            testAPI(3, {
+                name: "Test User 3",
+                position: "Designer",
+                phone: "+232 78 618435",
+                location: "Sierra Leone",
+                skills: []
+            }, true);
+        }
+
+        // Invalid Tests
+        function testAssociativeArray() {
+            testAPI(4, {
+                name: "Test User 4",
+                position: "Manager",
+                phone: "+1 555 987 6543",
+                location: "San Francisco, USA",
+                skills: {"0": "Leadership", "1": "Management"}
+            }, false);
+        }
+
+        function testMixedTypes() {
+            testAPI(5, {
+                name: "Test User 5",
+                position: "Developer",
+                phone: "+44 7911 123456",
+                location: "Manchester, UK",
+                skills: ["JavaScript", 123, null, true]
+            }, false);
+        }
+
+        // Complete Data Test
+        function testCompleteData() {
+            testAPI(6, {
+                name: "Complete Test User",
+                position: "Chief Technology Officer",
+                department: "Executive",
+                bio: "Experienced technology leader with extensive background in cloud architecture",
+                email: "cto@company.com",
+                phone: "+1 555 000 1111",
+                location: "Seattle, Washington, USA",
+                skills: ["Leadership", "Architecture", "Cloud Computing", "Team Building"],
+                years_experience: 15,
+                active: true,
+                featured: true
+            }, true);
+        }
+    </script>
+</body>
+</html>

@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import admin mobile responsive styles */
+@import './admin-mobile.css';
+
 @layer utilities {
   /* Enhanced animations */
   .animate-blob {
@@ -271,6 +274,7 @@
   /* Improved scrollbar */
   ::-webkit-scrollbar {
     width: 8px;
+    height: 8px;
   }
   
   ::-webkit-scrollbar-track {
@@ -283,6 +287,58 @@
   
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-gray-400;
+  }
+
+  /* Custom scrollbar for dark backgrounds */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-gray-800/20 rounded-full;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-gray-600/50 rounded-full;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-600/70;
+  }
+
+  /* Modal scrollbar styling */
+  .modal-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .modal-scrollbar::-webkit-scrollbar-track {
+    @apply bg-gray-50 rounded-full;
+  }
+  
+  .modal-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-blue-300 rounded-full;
+  }
+  
+  .modal-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-blue-400;
+  }
+
+  /* Mobile menu scrollbar styling */
+  .mobile-menu-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  .mobile-menu-scrollbar::-webkit-scrollbar-track {
+    @apply bg-slate-100 rounded-full;
+  }
+  
+  .mobile-menu-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-blue-400 rounded-full;
+  }
+  
+  .mobile-menu-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-blue-500;
   }
   
   /* Focus states */
@@ -324,5 +380,182 @@
 
   .container-responsive {
     @apply mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl;
+  }
+
+  /* Mobile-first utilities */
+  .mobile-padding {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+
+  .mobile-text {
+    @apply text-sm sm:text-base;
+  }
+
+  .mobile-heading {
+    @apply text-2xl sm:text-3xl md:text-4xl;
+  }
+
+  .mobile-subheading {
+    @apply text-xl sm:text-2xl md:text-3xl;
+  }
+
+  /* Touch-friendly targets */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+
+  /* Responsive grid utilities */
+  .grid-responsive {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6;
+  }
+
+  .grid-responsive-4 {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6;
+  }
+
+  /* Responsive flex utilities */
+  .flex-responsive {
+    @apply flex flex-col sm:flex-row gap-4;
+  }
+
+  /* Mobile-optimized cards */
+  .card-mobile {
+    @apply rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8;
+  }
+
+  /* Safe area for notched devices */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Prevent text selection on mobile taps */
+  .no-tap-highlight {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    user-select: none;
+  }
+
+  /* Smooth scrolling for mobile */
+  @media (max-width: 768px) {
+    html {
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+
+  /* Hide scrollbar utility */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+  }
+
+  /* Additional mobile-specific utilities for admin pages */
+  @media (max-width: 768px) {
+    /* Admin page container */
+    .admin-container {
+      padding: 0.5rem !important;
+      max-width: 100% !important;
+    }
+
+    /* Admin card compact */
+    .admin-card {
+      margin: 0.5rem 0 !important;
+      border-radius: 0.5rem !important;
+    }
+
+    /* Text wrapping for long content */
+    .mobile-wrap {
+      word-wrap: break-word !important;
+      overflow-wrap: break-word !important;
+      white-space: normal !important;
+    }
+
+    /* Compact stats display */
+    .stat-compact {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 0.5rem;
+    }
+
+    /* Icon-only buttons on mobile */
+    .btn-responsive span:not(.sr-only) {
+      @apply hidden;
+    }
+
+    .btn-responsive svg {
+      @apply mx-auto;
+    }
+
+    /* Responsive table scroll */
+    .table-responsive {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Mobile menu item sizing */
+    .mobile-menu-item {
+      min-height: 44px;
+      padding: 0.75rem 1rem;
+      font-size: 0.875rem;
+    }
+
+    /* Stacked form buttons */
+    .form-button-group {
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 0.5rem;
+      width: 100%;
+    }
+
+    .form-button-group button {
+      width: 100%;
+    }
+  }
+
+  /* Very small screens (phones in portrait) */
+  @media (max-width: 480px) {
+    body {
+      font-size: 14px !important;
+    }
+
+    h1 {
+      font-size: 1.25rem !important;
+    }
+
+    h2 {
+      font-size: 1.125rem !important;
+    }
+
+    h3 {
+      font-size: 1rem !important;
+    }
+
+    /* Even more compact spacing */
+    .p-6, .p-8 {
+      padding: 0.5rem !important;
+    }
+
+    /* Smaller icons on very small screens */
+    svg {
+      width: 0.875rem !important;
+      height: 0.875rem !important;
+    }
+
+    /* Single column everything */
+    .grid {
+      grid-template-columns: 1fr !important;
+    }
   }
 }

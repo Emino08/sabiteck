@@ -30,8 +30,11 @@ class UserController
 
             $sql = "
                 SELECT u.id, u.username, u.email, u.first_name, u.last_name,
-                       u.role, u.status, u.email_verified, u.last_login, u.created_at
+                       r.name as role_name, r.display_name as role_display_name,
+                       u.status, u.email_verified, u.last_login, u.created_at
                 FROM users u
+                LEFT JOIN user_roles ur ON u.id = ur.user_id
+                LEFT JOIN roles r ON ur.role_id = r.id
                 {$searchCondition}
                 ORDER BY u.created_at DESC
                 LIMIT ? OFFSET ?
@@ -79,9 +82,12 @@ class UserController
             $this->ensureTableExists($db);
 
             $stmt = $db->prepare("
-                SELECT u.id, u.username, u.email, u.first_name, u.last_name, 
-                       u.role, u.status, u.email_verified, u.last_login, u.created_at
+                SELECT u.id, u.username, u.email, u.first_name, u.last_name,
+                       r.name as role_name, r.display_name as role_display_name,
+                       u.status, u.email_verified, u.last_login, u.created_at
                 FROM users u
+                LEFT JOIN user_roles ur ON u.id = ur.user_id
+                LEFT JOIN roles r ON ur.role_id = r.id
                 WHERE u.id = ?
             ");
             $stmt->execute([$userId]);
@@ -134,20 +140,36 @@ class UserController
             }
             
             $stmt = $db->prepare("
-                INSERT INTO users (username, email, password_hash, first_name, last_name, role, status, email_verified)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO users (username, email, password_hash, first_name, last_name, status, email_verified)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
             ");
-            
+
             $stmt->execute([
                 $data['username'],
                 $data['email'],
                 password_hash($data['password'], PASSWORD_DEFAULT),
                 $data['first_name'] ?? null,
                 $data['last_name'] ?? null,
-                $data['role'] ?? 'user',
                 $data['status'] ?? 'active',
                 $data['email_verified'] ?? 0
             ]);
+
+            $userId = $db->lastInsertId();
+
+            // Assign role via user_roles table
+            if (isset($data['role_id'])) {
+                $roleStmt = $db->prepare("INSERT INTO user_roles (user_id, role_id, created_at) VALUES (?, ?, NOW())");
+                $roleStmt->execute([$userId, $data['role_id']]);
+            } else {
+                // Default to 'user' role (ID 6 typically)
+                $defaultRoleStmt = $db->prepare("SELECT id FROM roles WHERE name = 'user' LIMIT 1");
+                $defaultRoleStmt->execute();
+                $defaultRole = $defaultRoleStmt->fetch();
+                if ($defaultRole) {
+                    $roleStmt = $db->prepare("INSERT INTO user_roles (user_id, role_id, created_at) VALUES (?, ?, NOW())");
+                    $roleStmt->execute([$userId, $defaultRole['id']]);
+                }
+            }
 
             $response->getBody()->write(json_encode([
                 'success' => true,
@@ -192,9 +214,15 @@ class UserController
                 $updateFields[] = "last_name = ?";
                 $params[] = $data['last_name'];
             }
-            if (isset($data['role'])) {
-                $updateFields[] = "role = ?";
-                $params[] = $data['role'];
+            // Handle role update via user_roles table
+            if (isset($data['role_id'])) {
+                // Delete existing role
+                $deleteRoleStmt = $db->prepare("DELETE FROM user_roles WHERE user_id = ?");
+                $deleteRoleStmt->execute([$id]);
+
+                // Insert new role
+                $insertRoleStmt = $db->prepare("INSERT INTO user_roles (user_id, role_id, created_at) VALUES (?, ?, NOW())");
+                $insertRoleStmt->execute([$id, $data['role_id']]);
             }
             if (isset($data['status'])) {
                 $updateFields[] = "status = ?";

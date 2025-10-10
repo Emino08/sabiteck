@@ -163,9 +163,9 @@ const Contact = () => {
         url="/contact"
         schema={contactSchema}
       />
-      <div className="min-h-screen pt-20">
+      <div className="min-h-screen">
       {/* Enhanced Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 pt-24">
         <div className="absolute inset-0 opacity-20">
           <div className="w-full h-full bg-repeat bg-[length:60px_60px]"
                style={{
@@ -181,38 +181,38 @@ const Contact = () => {
           <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl animate-pulse" style={{animationDelay: '4s'}}></div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 text-white">
-          <div className="inline-flex items-center px-6 py-3 bg-blue-600/20 backdrop-blur-sm rounded-full text-blue-200 text-sm font-medium mb-8 border border-blue-400/20">
-            <Heart className="h-4 w-4 mr-2" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 text-white py-12 md:py-20">
+          <div className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 bg-blue-600/20 backdrop-blur-sm rounded-full text-blue-200 text-xs sm:text-sm font-medium mb-6 sm:mb-8 border border-blue-400/20">
+            <Heart className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
             Let's Connect
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-4 sm:mb-6 leading-tight px-4">
             Ready to Transform
             <span className="block bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
               Your Vision?
             </span>
           </h1>
 
-          <p className="text-xl md:text-2xl text-blue-100 mb-12 leading-relaxed max-w-4xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-blue-100 mb-8 sm:mb-12 leading-relaxed max-w-4xl mx-auto px-4">
             We'd love to hear from you! Whether you have a project in mind, need expert advice,
             or just want to say hello – we're here and ready to help.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center mb-12 sm:mb-16 px-4">
             <button
-              className="bg-white text-blue-900 hover:bg-blue-50 px-10 py-5 rounded-2xl font-bold text-lg shadow-2xl hover:scale-105 transition-all duration-300 group flex items-center"
+              className="w-full sm:w-auto bg-white text-blue-900 hover:bg-blue-50 px-8 sm:px-10 py-4 sm:py-5 rounded-2xl font-bold text-base sm:text-lg shadow-2xl hover:scale-105 transition-all duration-300 group flex items-center justify-center"
               onClick={handleSendMessage}
             >
-              <MessageSquare className="mr-3 h-6 w-6" />
+              <MessageSquare className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
               Send Message
-              <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="ml-2 sm:ml-3 h-5 w-5 sm:h-6 sm:w-6 group-hover:translate-x-1 transition-transform" />
             </button>
             <button
-              className="border-2 border-white/30 text-white hover:bg-white/10 px-10 py-5 rounded-2xl font-bold text-lg backdrop-blur-sm hover:scale-105 transition-all duration-300 flex items-center"
+              className="w-full sm:w-auto border-2 border-white text-white hover:bg-white hover:text-blue-600 px-8 sm:px-10 py-4 sm:py-5 rounded-2xl font-bold text-base sm:text-lg backdrop-blur-sm bg-white/5 hover:scale-105 transition-all duration-300 flex items-center justify-center"
               onClick={handleScheduleCall}
             >
-              <Calendar className="mr-3 h-6 w-6" />
+              <Calendar className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
               Schedule Call
             </button>
           </div>
@@ -513,7 +513,7 @@ const Contact = () => {
                       View in Google Maps
                     </button>
                     <button
-                      className="border-2 border-white/30 text-white hover:bg-white/10 px-8 py-4 rounded-2xl font-bold backdrop-blur-sm hover:scale-105 transition-all duration-300 flex items-center justify-center"
+                      className="border-2 border-white text-white hover:bg-white hover:text-blue-600 px-8 py-4 rounded-2xl font-bold backdrop-blur-sm bg-white/5 hover:scale-105 transition-all duration-300 flex items-center justify-center"
                       onClick={() => handleGetDirections(currentOffice)}
                     >
                       <Navigation className="h-5 w-5 mr-2" />
@@ -615,7 +615,7 @@ const Contact = () => {
                     Ask a Question
                   </button>
                   <button
-                    className="border-2 border-white/30 text-white hover:bg-white/10 px-8 py-4 rounded-xl font-bold backdrop-blur-sm hover:scale-105 transition-all duration-300 flex items-center justify-center"
+                    className="border-2 border-white text-white hover:bg-white hover:text-blue-600 px-8 py-4 rounded-xl font-bold backdrop-blur-sm bg-white/5 hover:scale-105 transition-all duration-300 flex items-center justify-center"
                     onClick={handleScheduleCall}
                   >
                     <Video className="mr-2 h-5 w-5" />
@@ -669,7 +669,7 @@ const Contact = () => {
               <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
             </button>
             <button
-              className="border-2 border-white/30 text-white hover:bg-white/10 px-10 py-5 rounded-2xl font-bold text-lg backdrop-blur-sm hover:scale-105 transition-all duration-300 flex items-center justify-center"
+              className="border-2 border-white text-white hover:bg-white hover:text-blue-600 px-10 py-5 rounded-2xl font-bold text-lg backdrop-blur-sm bg-white/5 hover:scale-105 transition-all duration-300 flex items-center justify-center"
               onClick={handleScheduleCall}
             >
               <Calendar className="mr-3 h-6 w-6" />

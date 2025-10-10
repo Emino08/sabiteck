@@ -347,7 +347,7 @@ const EnhancedNewsletterEditor = () => {
           </div>
 
           {/* Enhanced Navigation Tabs */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1 md:space-x-2 overflow-x-auto scrollbar-hide">
             {[
               { id: 'composer', label: 'Visual Composer', icon: Edit, gradient: 'from-violet-500 to-purple-500' },
               { id: 'content', label: 'Content Library', icon: FileText, gradient: 'from-emerald-500 to-teal-500' },
@@ -360,16 +360,16 @@ const EnhancedNewsletterEditor = () => {
                 key={tab.id}
                 onClick={() => setActiveView(tab.id)}
                 className={`
-                  group relative px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105
+                  group relative px-3 py-2 md:px-6 md:py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 whitespace-nowrap
                   ${activeView === tab.id
                     ? `bg-gradient-to-r ${tab.gradient} text-white shadow-2xl`
                     : 'bg-black/30 backdrop-blur-lg text-gray-300 border border-white/20 hover:bg-black/40'
                   }
                 `}
               >
-                <div className="flex items-center space-x-2 relative z-10">
-                  <tab.icon className="w-5 h-5" />
-                  <span className="text-sm font-bold">{tab.label}</span>
+                <div className="flex items-center space-x-1 md:space-x-2 relative z-10">
+                  <tab.icon className="w-4 h-4 md:w-5 md:h-5" />
+                  <span className="text-xs md:text-sm font-bold hidden sm:inline">{tab.label}</span>
                 </div>
               </button>
             ))}
@@ -845,8 +845,8 @@ const EnhancedNewsletterEditor = () => {
 
       {/* Enhanced Link Editor Modal */}
       {showLinkEditor && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-black/90 backdrop-blur-xl border border-white/20 rounded-2xl p-6 w-full max-w-md mx-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-black/90 backdrop-blur-xl border border-white/20 rounded-2xl p-6 w-full max-w-md">
             <h3 className="text-xl font-bold text-white mb-4">Insert Link</h3>
             <div className="space-y-4">
               <div>
@@ -909,10 +909,10 @@ const EnhancedNewsletterEditor = () => {
 
       {/* Preview Modal */}
       {previewMode && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-full max-h-[90vh] mx-4 overflow-hidden">
-            <div className="bg-gray-100 border-b px-6 py-4 flex items-center justify-between">
-              <h3 className="text-xl font-bold text-gray-800">Newsletter Preview</h3>
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-full max-h-[90vh] overflow-hidden">
+            <div className="bg-gray-100 border-b px-4 md:px-6 py-4 flex items-center justify-between">
+              <h3 className="text-lg md:text-xl font-bold text-gray-800">Newsletter Preview</h3>
               <Button
                 onClick={() => setPreviewMode(false)}
                 variant="outline"
@@ -920,7 +920,7 @@ const EnhancedNewsletterEditor = () => {
                 Close Preview
               </Button>
             </div>
-            <div className="p-6 overflow-auto h-full">
+            <div className="p-4 md:p-6 overflow-auto h-full">
               <div
                 className="prose prose-lg max-w-none"
                 dangerouslySetInnerHTML={{

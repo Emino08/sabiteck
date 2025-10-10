@@ -9,6 +9,7 @@ import { Input } from '../ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { apiRequest } from '../../utils/api';
 import { toast } from 'sonner';
+import { getErrorMessage, formatErrorMessage } from '../../utils/errorHandler';
 
 const ServicesManagement = () => {
   const [services, setServices] = useState([]);
@@ -82,11 +83,11 @@ const ServicesManagement = () => {
 
         setStats({ total, active, featured, draft });
       } else {
-        toast.error('Failed to load services');
+        toast.error(response.message || response.error || 'Failed to load services');
       }
     } catch (error) {
       console.error('Error loading services:', error);
-      toast.error('Failed to load services');
+      toast.error(formatErrorMessage(error, 'Failed to load services'));
     } finally {
       setLoading(false);
     }
@@ -123,34 +124,70 @@ const ServicesManagement = () => {
         loadServices();
         setShowModal(false);
       } else {
-        toast.error(response.message || 'Failed to save service');
+        toast.error(response.message || response.error || 'Failed to save service');
       }
     } catch (error) {
-      toast.error('Failed to save service');
+      toast.error(formatErrorMessage(error, 'Failed to save service'));
     } finally {
       setLoading(false);
     }
   };
 
   const deleteService = async (serviceId) => {
-    if (!confirm('Are you sure you want to delete this service?')) return;
+    const service = services.find(s => s.id === serviceId);
+    const serviceName = service ? service.title : 'this service';
 
-    try {
-      const token = localStorage.getItem('auth_token');
-      const response = await apiRequest(`/api/admin/services/${serviceId}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+    toast.custom((t) => (
+      <div className="bg-white rounded-lg shadow-xl border border-gray-200 p-5 max-w-md">
+        <div className="flex items-start gap-3 mb-4">
+          <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-gray-900 text-lg mb-1">Delete Service</h3>
+            <p className="text-sm text-gray-600">Are you sure you want to delete <strong className="text-gray-900">{serviceName}</strong>?</p>
+            <p className="text-xs text-gray-500 mt-2">This action cannot be undone.</p>
+          </div>
+        </div>
+        <div className="flex gap-2 justify-end">
+          <button
+            onClick={() => toast.dismiss(t)}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={async () => {
+              toast.dismiss(t);
+              try {
+                const token = localStorage.getItem('auth_token');
+                const response = await apiRequest(`/api/admin/services/${serviceId}`, {
+                  method: 'DELETE',
+                  headers: { 'Authorization': `Bearer ${token}` }
+                });
 
-      if (response.success) {
-        toast.success('Service deleted successfully!');
-        loadServices();
-      } else {
-        toast.error('Failed to delete service');
-      }
-    } catch (error) {
-      toast.error('Failed to delete service');
-    }
+                if (response.success) {
+                  toast.success('Service deleted successfully!');
+                  loadServices();
+                } else {
+                  toast.error(response.message || response.error || 'Failed to delete service');
+                }
+              } catch (error) {
+                toast.error(formatErrorMessage(error, 'Failed to delete service'));
+              }
+            }}
+            className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    ), {
+      duration: Infinity,
+      position: 'top-center'
+    });
   };
 
   const editService = (service) => {
@@ -202,7 +239,7 @@ const ServicesManagement = () => {
       toast.success('Service updated successfully!');
       loadServices();
     } catch (error) {
-      toast.error('Failed to update service');
+      toast.error(formatErrorMessage(error, 'Failed to update service'));
     }
   };
 

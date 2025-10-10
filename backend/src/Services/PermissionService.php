@@ -22,10 +22,11 @@ class PermissionService
         try {
             // Get user's role
             $stmt = $this->db->prepare("
-                SELECT r.name as role_name, u.permissions_json
+                SELECT r.name as role_name
                 FROM users u
-                LEFT JOIN roles r ON u.role_id = r.id
-                WHERE u.id = ? AND u.status = 'active'
+                LEFT JOIN user_roles ur ON u.id = ur.user_id
+                LEFT JOIN roles r ON ur.role_id = r.id
+                WHERE u.id = ? AND (u.status = 'active' OR u.status IS NULL)
             ");
             $stmt->execute([$userId]);
             $user = $stmt->fetch();
@@ -34,32 +35,29 @@ class PermissionService
                 return false;
             }
 
-            // Check if it's a super admin (has all permissions)
-            if ($user['role_name'] === 'super-admin' || $user['role_name'] === 'admin') {
+            // Check if user's role is 'admin' (administrators have all permissions)
+            if ($user['role_name'] === 'admin') {
                 return true;
             }
 
-            // Check individual permissions JSON (if exists)
-            if ($user['permissions_json']) {
-                $userPermissions = json_decode($user['permissions_json'], true);
-                if (is_array($userPermissions) && in_array($permission, $userPermissions)) {
-                    return true;
-                }
-            }
-
-            // Check role-based permissions
+            // Check role permissions and direct user permissions
             $stmt = $this->db->prepare("
-                SELECT COUNT(*) as has_permission
-                FROM users u
-                LEFT JOIN roles r ON u.role_id = r.id
-                LEFT JOIN role_permissions rp ON r.id = rp.role_id
-                LEFT JOIN permissions p ON rp.permission_id = p.id
-                WHERE u.id = ? AND (p.name = ? OR p.display_name = ?)
+                SELECT COUNT(*) as count
+                FROM permissions p
+                LEFT JOIN role_permissions rp ON p.id = rp.permission_id
+                LEFT JOIN user_roles ur ON rp.role_id = ur.role_id AND ur.user_id = ?
+                LEFT JOIN user_permissions up ON p.id = up.permission_id AND up.user_id = ?
+                WHERE p.name = ?
+                AND (ur.user_id IS NOT NULL OR (up.user_id IS NOT NULL AND up.granted = 1))
+                AND NOT EXISTS (
+                    SELECT 1 FROM user_permissions up2
+                    WHERE up2.user_id = ? AND up2.permission_id = p.id AND up2.granted = 0
+                )
             ");
-            $stmt->execute([$userId, $permission, $permission]);
+            $stmt->execute([$userId, $userId, $permission, $userId]);
             $result = $stmt->fetch();
 
-            return $result['has_permission'] > 0;
+            return $result['count'] > 0;
 
         } catch (Exception $e) {
             error_log("Permission check error: " . $e->getMessage());
@@ -99,27 +97,78 @@ class PermissionService
     public function getUserPermissions(int $userId): array
     {
         try {
-            $stmt = $this->db->prepare("
-                SELECT DISTINCT p.name, p.display_name, p.category, p.description
+            // Get user's role via user_roles table
+            $roleStmt = $this->db->prepare("
+                SELECT r.name as role_name, r.id as role_id
                 FROM users u
-                LEFT JOIN roles r ON u.role_id = r.id
-                LEFT JOIN role_permissions rp ON r.id = rp.role_id
-                LEFT JOIN permissions p ON rp.permission_id = p.id
+                LEFT JOIN user_roles ur ON u.id = ur.user_id
+                LEFT JOIN roles r ON ur.role_id = r.id
                 WHERE u.id = ?
-                UNION
-                SELECT DISTINCT p.name, p.display_name, p.category, p.description
-                FROM users u
-                LEFT JOIN user_permissions up ON u.id = up.user_id
-                LEFT JOIN permissions p ON up.permission_id = p.id
-                WHERE u.id = ? AND up.granted = 1 AND (up.expires_at IS NULL OR up.expires_at > NOW())
-                ORDER BY category, name
             ");
-            $stmt->execute([$userId, $userId]);
+            $roleStmt->execute([$userId]);
+            $userRole = $roleStmt->fetch();
+
+            // If user has 'admin' role, return ALL permissions
+            if ($userRole && $userRole['role_name'] === 'admin') {
+                $allPermsStmt = $this->db->query("
+                    SELECT name, display_name, category, description, module
+                    FROM permissions
+                    ORDER BY category, name
+                ");
+                return $allPermsStmt->fetchAll();
+            }
+
+            // For other roles, get permissions from role_permissions and user_permissions
+            $stmt = $this->db->prepare("
+                SELECT DISTINCT p.name, p.display_name, p.category, p.description, p.module
+                FROM permissions p
+                LEFT JOIN role_permissions rp ON p.id = rp.permission_id
+                LEFT JOIN user_roles ur ON rp.role_id = ur.role_id AND ur.user_id = ?
+                LEFT JOIN user_permissions up ON p.id = up.permission_id AND up.user_id = ?
+                WHERE (ur.user_id IS NOT NULL OR (up.user_id IS NOT NULL AND up.granted = 1))
+                AND NOT EXISTS (
+                    SELECT 1 FROM user_permissions up2
+                    WHERE up2.user_id = ? AND up2.permission_id = p.id AND up2.granted = 0
+                )
+                ORDER BY p.category, p.name
+            ");
+            $stmt->execute([$userId, $userId, $userId]);
             return $stmt->fetchAll();
 
         } catch (Exception $e) {
             error_log("Get user permissions error: " . $e->getMessage());
             return [];
+        }
+    }
+
+    /**
+     * Get user permissions as simple array of permission names
+     */
+    public function getUserPermissionNames(int $userId): array
+    {
+        $permissions = $this->getUserPermissions($userId);
+        return array_column($permissions, 'name');
+    }
+
+    /**
+     * Get user's role information
+     */
+    public function getUserRole(int $userId): ?array
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT r.id, r.name, r.display_name, r.description
+                FROM users u
+                LEFT JOIN user_roles ur ON u.id = ur.user_id
+                LEFT JOIN roles r ON ur.role_id = r.id
+                WHERE u.id = ?
+            ");
+            $stmt->execute([$userId]);
+            return $stmt->fetch() ?: null;
+
+        } catch (Exception $e) {
+            error_log("Get user role error: " . $e->getMessage());
+            return null;
         }
     }
 
@@ -132,13 +181,66 @@ class PermissionService
         $modules = [];
 
         foreach ($permissions as $permission) {
-            $category = $permission['category'] ?? 'general';
-            if (!in_array($category, $modules)) {
-                $modules[] = $category;
+            $module = $permission['module'] ?? $permission['category'] ?? 'general';
+            if (!in_array($module, $modules)) {
+                $modules[] = $module;
             }
         }
 
         return $modules;
+    }
+
+    /**
+     * Assign all role permissions to a user in the user_permissions table
+     * This is called when a user is created with a specific role via invite
+     */
+    public function assignRolePermissionsToUser(int $userId, int $roleId, int $grantedBy): bool
+    {
+        try {
+            // Get all permissions for the role
+            $stmt = $this->db->prepare("
+                SELECT DISTINCT p.id
+                FROM role_permissions rp
+                JOIN permissions p ON rp.permission_id = p.id
+                WHERE rp.role_id = ?
+            ");
+            $stmt->execute([$roleId]);
+            $rolePermissions = $stmt->fetchAll();
+
+            if (empty($rolePermissions)) {
+                error_log("No permissions found for role ID: $roleId");
+                return false;
+            }
+
+            // Insert all role permissions into user_permissions table
+            $stmt = $this->db->prepare("
+                INSERT INTO user_permissions (user_id, permission_id, granted, granted_by, granted_at)
+                VALUES (?, ?, 1, ?, NOW())
+                ON DUPLICATE KEY UPDATE
+                granted = 1, granted_by = ?, updated_at = NOW()
+            ");
+
+            $success = true;
+            foreach ($rolePermissions as $permission) {
+                $result = $stmt->execute([
+                    $userId,
+                    $permission['id'],
+                    $grantedBy,
+                    $grantedBy
+                ]);
+                
+                if (!$result) {
+                    $success = false;
+                    error_log("Failed to assign permission ID {$permission['id']} to user ID $userId");
+                }
+            }
+
+            return $success;
+
+        } catch (Exception $e) {
+            error_log("Assign role permissions error: " . $e->getMessage());
+            return false;
+        }
     }
 
     /**
@@ -205,13 +307,27 @@ class PermissionService
     public function updateUserRole(int $userId, string $roleName): bool
     {
         try {
+            // Get role ID
+            $stmt = $this->db->prepare("SELECT id FROM roles WHERE name = ? OR display_name = ?");
+            $stmt->execute([$roleName, $roleName]);
+            $role = $stmt->fetch();
+
+            if (!$role) {
+                error_log("Role not found: $roleName");
+                return false;
+            }
+
+            // Delete existing role assignment
+            $stmt = $this->db->prepare("DELETE FROM user_roles WHERE user_id = ?");
+            $stmt->execute([$userId]);
+
+            // Insert new role assignment
             $stmt = $this->db->prepare("
-                UPDATE users SET role_id = (
-                    SELECT id FROM roles WHERE name = ? OR display_name = ?
-                ) WHERE id = ?
+                INSERT INTO user_roles (user_id, role_id, created_at)
+                VALUES (?, ?, NOW())
             ");
 
-            return $stmt->execute([$roleName, $roleName, $userId]);
+            return $stmt->execute([$userId, $role['id']]);
 
         } catch (Exception $e) {
             error_log("Update user role error: " . $e->getMessage());
@@ -226,9 +342,11 @@ class PermissionService
     {
         try {
             $stmt = $this->db->query("
-                SELECT id, name, display_name, category, description
+                SELECT id, name, display_name, 
+                       COALESCE(module, category) as category, 
+                       description
                 FROM permissions
-                ORDER BY category, name
+                ORDER BY COALESCE(module, category), name
             ");
             return $stmt->fetchAll();
 
@@ -266,7 +384,7 @@ class PermissionService
             $stmt = $this->db->prepare("
                 SELECT id, name, display_name, description
                 FROM permissions
-                WHERE category = ?
+                WHERE COALESCE(module, category) = ?
                 ORDER BY name
             ");
             $stmt->execute([$module]);
@@ -275,6 +393,38 @@ class PermissionService
         } catch (Exception $e) {
             error_log("Get permissions by module error: " . $e->getMessage());
             return [];
+        }
+    }
+
+    /**
+     * Sync existing user's permissions from their role
+     * This is useful for migrating existing users to the new permission system
+     */
+    public function syncUserPermissionsFromRole(int $userId): bool
+    {
+        try {
+            // Get user's role ID from user_roles table
+            $stmt = $this->db->prepare("
+                SELECT role_id FROM user_roles WHERE user_id = ?
+            ");
+            $stmt->execute([$userId]);
+            $userRole = $stmt->fetch();
+
+            if (!$userRole || !$userRole['role_id']) {
+                error_log("User not found or has no role: $userId");
+                return false;
+            }
+
+            // Clear existing permissions
+            $stmt = $this->db->prepare("DELETE FROM user_permissions WHERE user_id = ?");
+            $stmt->execute([$userId]);
+
+            // Assign role permissions
+            return $this->assignRolePermissionsToUser($userId, $userRole['role_id'], $userId);
+
+        } catch (Exception $e) {
+            error_log("Sync user permissions error: " . $e->getMessage());
+            return false;
         }
     }
 }

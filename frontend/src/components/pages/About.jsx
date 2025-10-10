@@ -201,9 +201,9 @@ const About = () => {
         keywords="about Sabiteck, Sierra Leone tech company, software development team, technology solutions Bo, Emmanuel Koroma CEO"
       />
 
-      <div className="min-h-screen pt-24 bg-white">
+      <div className="min-h-screen bg-white">
         {/* Ultra-Modern Hero Section */}
-        <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900">
+        <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900 pt-24">
           {/* Enhanced Background Pattern */}
           <div className="absolute inset-0 opacity-10">
             <div className="w-full h-full bg-repeat bg-[length:120px_120px]"
@@ -226,19 +226,19 @@ const About = () => {
             <div className="absolute top-60 left-1/4 w-4 h-4 bg-cyan-400/30 rotate-12 animate-bounce" style={{animationDelay: '3s', animationDuration: '5s'}}></div>
           </div>
 
-          <div className="container-responsive relative z-10 text-white">
+          <div className="container-responsive relative z-10 text-white py-12 md:py-20">
             <div className="text-center max-w-5xl mx-auto">
               <ScrollReveal>
-                <div className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-indigo-600/20 backdrop-blur-lg rounded-full text-blue-200 text-sm font-bold mb-12 border border-blue-400/30 shadow-2xl hover:scale-105 transition-all duration-500">
-                  <div className="w-6 h-6 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full flex items-center justify-center mr-3">
-                    <Star className="h-3 w-3 text-white" />
+                <div className="inline-flex items-center px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-indigo-600/20 backdrop-blur-lg rounded-full text-blue-200 text-xs sm:text-sm font-bold mb-8 sm:mb-12 border border-blue-400/30 shadow-2xl hover:scale-105 transition-all duration-500">
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full flex items-center justify-center mr-2 sm:mr-3">
+                    <Star className="h-2 w-2 sm:h-3 sm:w-3 text-white" />
                   </div>
                   ✨ Discover Our Journey
                 </div>
               </ScrollReveal>
 
               <ScrollReveal delay={200}>
-                <h1 className="text-6xl md:text-8xl font-black mb-8 leading-[0.9] tracking-tight">
+                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black mb-6 sm:mb-8 leading-[0.9] tracking-tight px-4">
                   <span className="block text-white mb-4">Meet</span>
                   <span className="block bg-gradient-to-r from-cyan-400 via-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent animate-pulse">
                     {displayCompanyInfo.name}
@@ -775,7 +775,7 @@ const About = () => {
                   <Button
                     size="lg"
                     variant="outline"
-                    className="border-2 border-white/30 text-white hover:bg-white/10 px-10 py-5 rounded-2xl font-bold text-lg backdrop-blur-sm hover:scale-105 transition-all duration-300"
+                    className="border-2 border-white text-white hover:bg-white hover:text-blue-600 px-10 py-5 rounded-2xl font-bold text-lg backdrop-blur-sm bg-white/5 hover:scale-105 transition-all duration-300"
                     onClick={() => navigate('/services')}
                   >
                     <Globe className="mr-3 h-6 w-6" />

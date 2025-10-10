@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blogger Role Tab Visibility Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .test-step {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        
+        .test-step h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .credentials {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .credentials h3 {
+            color: #856404;
+            margin-bottom: 15px;
+        }
+        
+        .credential-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: white;
+            margin: 8px 0;
+            border-radius: 5px;
+        }
+        
+        .credential-label {
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .credential-value {
+            font-family: 'Courier New', monospace;
+            background: #e9ecef;
+            padding: 5px 10px;
+            border-radius: 3px;
+            color: #212529;
+        }
+        
+        .tabs-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .tab-item {
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid;
+        }
+        
+        .tab-allowed {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+        
+        .tab-blocked {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+        
+        .tab-item .icon {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+        
+        .tab-item .label {
+            font-weight: bold;
+            display: block;
+        }
+        
+        .tab-item .reason {
+            font-size: 0.85em;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+        
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        
+        .button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .button-secondary {
+            background: #6c757d;
+        }
+        
+        .button-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #e83e8c;
+        }
+        
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .checklist li {
+            padding: 10px;
+            margin: 8px 0;
+            background: #f8f9fa;
+            border-left: 4px solid #28a745;
+            border-radius: 5px;
+        }
+        
+        .checklist li:before {
+            content: "✓ ";
+            color: #28a745;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔒 Blogger Role Tab Visibility Test</h1>
+            <p>Comprehensive Testing Guide for Role-Based Access Control</p>
+        </div>
+        
+        <div class="content">
+            <!-- Fixed Issue -->
+            <div class="section">
+                <h2>✅ Issue Fixed</h2>
+                <div class="alert alert-success">
+                    <strong>Problem Resolved!</strong> The blogger user had an inconsistent role configuration 
+                    (<code>role='admin'</code> but <code>role_id=12 (blogger)</code>). This has been corrected 
+                    and permission checking logic has been strengthened.
+                </div>
+            </div>
+            
+            <!-- Test Credentials -->
+            <div class="section">
+                <div class="credentials">
+                    <h3>🔑 Test Blogger Credentials</h3>
+                    <div class="credential-item">
+                        <span class="credential-label">Username:</span>
+                        <span class="credential-value">encictyear1</span>
+                    </div>
+                    <div class="credential-item">
+                        <span class="credential-label">Email:</span>
+                        <span class="credential-value">encictyear1@gmail.com</span>
+                    </div>
+                    <div class="credential-item">
+                        <span class="credential-label">Role:</span>
+                        <span class="credential-value">blogger</span>
+                    </div>
+                    <div class="credential-item">
+                        <span class="credential-label">Password:</span>
+                        <span class="credential-value">(Use existing password or reset if needed)</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Expected Behavior -->
+            <div class="section">
+                <h2>📋 Expected Behavior</h2>
+                
+                <h3 style="color: #28a745; margin-top: 20px;">✓ Tabs Blogger SHOULD See (5 tabs)</h3>
+                <div class="tabs-list">
+                    <div class="tab-item tab-allowed">
+                        <div class="icon">📊</div>
+                        <span class="label">Overview</span>
+                        <div class="reason">Has: dashboard.view</div>
+                    </div>
+                    <div class="tab-item tab-allowed">
+                        <div class="icon">📝</div>
+                        <span class="label">Content</span>
+                        <div class="reason">Has: content.view</div>
+                    </div>
+                    <div class="tab-item tab-allowed">
+                        <div class="icon">💼</div>
+                        <span class="label">Jobs</span>
+                        <div class="reason">Has: jobs.view</div>
+                    </div>
+                    <div class="tab-item tab-allowed">
+                        <div class="icon">🎓</div>
+                        <span class="label">Scholarships</span>
+                        <div class="reason">Has: scholarships.view</div>
+                    </div>
+                    <div class="tab-item tab-allowed">
+                        <div class="icon">📧</div>
+                        <span class="label">Newsletter</span>
+                        <div class="reason">Has: newsletter.view</div>
+                    </div>
+                </div>
+                
+                <h3 style="color: #dc3545; margin-top: 30px;">✗ Tabs Blogger SHOULD NOT See (11 tabs)</h3>
+                <div class="tabs-list">
+                    <div class="tab-item tab-blocked">
+                        <div class="icon">🛠️</div>
+                        <span class="label">Services</span>
+                        <div class="reason">Missing: services.view</div>
+                    </div>
+                    <div class="tab-item tab-blocked">
+                        <div class="icon">📁</div>
+                        <span class="label">Portfolio</span>
+                        <div class="reason">Missing: portfolio.view</div>
+                    </div>
+                    <div class="tab-item tab-blocked">
+                        <div class="icon">ℹ️</div>
+                        <span class="label">About</span>
+                        <div class="reason">Missing: about.view</div>
+                    </div>
+                    <div class="tab-item tab-blocked">
+                        <div class="icon">👥</div>
+                        <span class="label">Team</span>
+                        <div class="reason">Missing: team.view</div>
+                    </div>
+                    <div class="tab-item tab-blocked">
+                        <div class="icon">📢</div>
+                        <span class="label">Announcements</span>
+                        <div class="reason">Missing: announcements.view</div>
+                    </div>
+                    <div class="tab-item tab-blocked">
+                        <div class="icon">🏢</div>
+                        <span class="label">Organizations</span>
+                        <div class="reason">Missing: organizations.view</div>
+                    </div>
+                    <div class="tab-item tab-blocked">
+                        <div class="icon">📈</div>
+                        <span class="label">Analytics</span>
+                        <div class="reason">Missing: analytics.view</div>
+                    </div>
+                    <div class="tab-item tab-blocked">
+                        <div class="icon">🔧</div>
+                        <span class="label">Tools & Curriculum</span>
+                        <div class="reason">Missing: tools.use, system.settings</div>
+                    </div>
+                    <div class="tab-item tab-blocked">
+                        <div class="icon">👤</div>
+                        <span class="label">User Roles</span>
+                        <div class="reason">Missing: users.create, roles.manage</div>
+                    </div>
+                    <div class="tab-item tab-blocked">
+                        <div class="icon">🧭</div>
+                        <span class="label">Navigation</span>
+                        <div class="reason">Missing: system.settings</div>
+                    </div>
+                    <div class="tab-item tab-blocked">
+                        <div class="icon">⚙️</div>
+                        <span class="label">Settings</span>
+                        <div class="reason">Missing: settings.edit, system.settings</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Testing Steps -->
+            <div class="section">
+                <h2>🧪 Testing Steps</h2>
+                
+                <div class="test-step">
+                    <h3>Step 1: Logout Current User</h3>
+                    <p>If you're currently logged in, logout completely to clear the session.</p>
+                    <button class="button button-secondary" onclick="localStorage.clear(); alert('LocalStorage cleared! Please close this tab and go to /admin');">
+                        Clear LocalStorage
+                    </button>
+                </div>
+                
+                <div class="test-step">
+                    <h3>Step 2: Login with Blogger Account</h3>
+                    <p>Navigate to <code>/admin</code> and login using the credentials above.</p>
+                    <a href="/admin" class="button" target="_blank">Go to Admin Login</a>
+                </div>
+                
+                <div class="test-step">
+                    <h3>Step 3: Verify Tab Visibility</h3>
+                    <p>After logging in, check that ONLY these 5 tabs are visible:</p>
+                    <ul class="checklist">
+                        <li>Overview</li>
+                        <li>Content</li>
+                        <li>Jobs</li>
+                        <li>Scholarships</li>
+                        <li>Newsletter</li>
+                    </ul>
+                </div>
+                
+                <div class="test-step">
+                    <h3>Step 4: Check Browser Console</h3>
+                    <p>Open browser DevTools (F12) and run these commands:</p>
+                    <code style="display: block; margin: 10px 0; padding: 10px; background: #2d2d2d; color: #f8f8f2; border-radius: 5px;">
+                        // Check stored user data<br>
+                        console.log(JSON.parse(localStorage.getItem('user')));<br><br>
+                        // Verify role and permissions<br>
+                        const user = JSON.parse(localStorage.getItem('user'));<br>
+                        console.log('Role:', user.role);<br>
+                        console.log('Role Name:', user.role_name);<br>
+                        console.log('Permissions:', user.permissions);
+                    </code>
+                </div>
+                
+                <div class="test-step">
+                    <h3>Step 5: Test Functionality</h3>
+                    <p>Verify that the blogger can:</p>
+                    <ul class="checklist">
+                        <li>View and edit content in Content tab</li>
+                        <li>Create and manage jobs in Jobs tab</li>
+                        <li>Create and manage scholarships in Scholarships tab</li>
+                        <li>Send newsletters in Newsletter tab</li>
+                        <li>Cannot access blocked tabs (returns error or hidden)</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- What Was Fixed -->
+            <div class="section">
+                <h2>🔧 What Was Fixed</h2>
+                
+                <div class="alert alert-info">
+                    <h4 style="margin-bottom: 10px;">Database Fix</h4>
+                    <ul style="margin-left: 20px;">
+                        <li>Corrected user role from <code>role='admin'</code> to <code>role='blogger'</code></li>
+                        <li>Ensured <code>role_id</code> matches the blogger role ID (12)</li>
+                    </ul>
+                </div>
+                
+                <div class="alert alert-info">
+                    <h4 style="margin-bottom: 10px;">Frontend Permission Checks (3 files)</h4>
+                    <ul style="margin-left: 20px;">
+                        <li><strong>Admin.jsx:</strong> Strengthened tab filtering to require BOTH <code>role</code> and <code>role_name</code> to match for admin access</li>
+                        <li><strong>AuthContext.jsx:</strong> Updated <code>isAdmin()</code> to verify role consistency</li>
+                        <li><strong>permissionUtils.js:</strong> Enhanced <code>hasPermission()</code> and <code>hasModuleAccess()</code> functions</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Additional Notes -->
+            <div class="section">
+                <h2>📝 Additional Notes</h2>
+                
+                <div class="alert alert-warning">
+                    <strong>Important:</strong> If you create new users with the blogger role, ensure:
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Both <code>role</code> and <code>role_id</code> fields are set correctly</li>
+                        <li>The user has the appropriate blogger permissions assigned</li>
+                        <li>Users logout and login again after any role changes</li>
+                    </ul>
+                </div>
+                
+                <div class="alert alert-info">
+                    <strong>For Developers:</strong> The permission system now uses a strict matching algorithm:
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Admin access requires BOTH <code>role</code> AND <code>role_name</code> to be 'admin'</li>
+                        <li>All other users (bloggers, editors, etc.) strictly follow permissions array</li>
+                        <li>This prevents role mismatches from granting unintended access</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

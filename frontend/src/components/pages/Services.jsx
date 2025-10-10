@@ -256,7 +256,7 @@ const Services = () => {
     {
       name: 'Sarah Johnson',
       company: 'TechStart Inc.',
-      text: 'DevCo transformed our business with their exceptional web development. The platform they built increased our conversions by 300%.',
+      text: 'Sabiteck transformed our business with their exceptional web development. The platform they built increased our conversions by 300%.',
       service: 'Web Development'
     },
     {
@@ -274,11 +274,11 @@ const Services = () => {
   ]
 
   return (
-    <div className="min-h-screen pt-20">
+    <div className="min-h-screen">
       <SEOHead title="Our Services - Sabiteck" description="Explore our comprehensive technology services designed to transform your business." />
 
       {/* Enhanced Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 pt-24">
         <div className="absolute inset-0 opacity-20">
           <div className="w-full h-full bg-repeat bg-[length:60px_60px]"
                style={{
@@ -294,25 +294,25 @@ const Services = () => {
           <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl animate-pulse" style={{animationDelay: '4s'}}></div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 text-white py-12 md:py-20">
           <ScrollReveal>
-            <div className="inline-flex items-center px-6 py-3 bg-blue-600/20 backdrop-blur-sm rounded-full text-blue-200 text-sm font-medium mb-8 border border-blue-400/20">
-              <Star className="h-4 w-4 mr-2" />
+            <div className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 bg-blue-600/20 backdrop-blur-sm rounded-full text-blue-200 text-xs sm:text-sm font-medium mb-6 sm:mb-8 border border-blue-400/20">
+              <Star className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
               Premium Technology Services
             </div>
           </ScrollReveal>
 
           <ScrollReveal delay={200}>
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-4 sm:mb-6 leading-tight px-4">
               Transform Your Business with
-              <span className="block bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
+              <span className="block bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent mt-2">
                 Expert Solutions
               </span>
             </h1>
           </ScrollReveal>
 
           <ScrollReveal delay={300}>
-            <p className="text-xl md:text-2xl text-blue-100 mb-12 leading-relaxed max-w-4xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-blue-100 mb-8 sm:mb-12 leading-relaxed max-w-4xl mx-auto px-4">
               Comprehensive software development services to help your business thrive
               in the digital age. From web applications to mobile apps and cloud solutions.
             </p>
@@ -329,7 +329,7 @@ const Services = () => {
                 <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
               </button>
               <button
-                className="border-2 border-white/30 text-white hover:bg-white/10 px-10 py-5 rounded-2xl font-bold text-lg backdrop-blur-sm hover:scale-105 transition-all duration-300 flex items-center"
+                className="border-2 border-white text-white hover:bg-white hover:text-blue-600 px-10 py-5 rounded-2xl font-bold text-lg backdrop-blur-sm bg-white/5 hover:scale-105 transition-all duration-300 flex items-center"
                 onClick={handleScheduleConsultation}
               >
                 <Play className="mr-3 h-6 w-6" />
@@ -706,7 +706,7 @@ const Services = () => {
                 <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
               </button>
               <button
-                className="border-2 border-white/30 text-white hover:bg-white/10 px-10 py-5 rounded-2xl font-bold text-lg backdrop-blur-sm hover:scale-105 transition-all duration-300 flex items-center justify-center"
+                className="border-2 border-white text-white hover:bg-white hover:text-blue-600 px-10 py-5 rounded-2xl font-bold text-lg backdrop-blur-sm bg-white/5 hover:scale-105 transition-all duration-300 flex items-center justify-center"
                 onClick={handleScheduleConsultation}
               >
                 <Phone className="mr-3 h-6 w-6" />

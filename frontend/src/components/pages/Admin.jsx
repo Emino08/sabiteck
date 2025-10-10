@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from 'sonner';
 import { useAuth } from '../../contexts/AuthContext';
 import { getAccessibleTabs, hasPermission, PermissionWrapper } from '../../utils/permissionUtils';
+import ForcePasswordChange from '../auth/ForcePasswordChange';
 import {
   Briefcase,
   GraduationCap,
@@ -23,6 +24,7 @@ import {
   Megaphone,
   Building2,
   Eye,
+  EyeOff,
   MousePointer,
   Clock,
   Shield,
@@ -48,12 +50,13 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8002';
 
 const Admin = () => {
   const navigate = useNavigate();
-  const { user, token, loading: authLoading, isAuthenticated, isAdmin, logout, login } = useAuth();
+  const { user, token, loading: authLoading, isAuthenticated, isAdmin, isSuperAdmin, logout, login, mustChangePassword } = useAuth();
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [dashboardData, setDashboardData] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
+  const [showPassword, setShowPassword] = useState(false);
 
   // Tab definitions (moved before useMemo to ensure consistent hook order)
   const tabs = [
@@ -62,128 +65,128 @@ const Admin = () => {
       label: 'Overview',
       icon: BarChart3,
       category: 'dashboard',
-      permissions: ['view-dashboard'],
-      modules: ['dashboard']
+      permissions: ['dashboard.view'],
+      requireAll: false
     },
     {
       id: 'content',
       label: 'Content',
       icon: Globe,
       category: 'content',
-      permissions: ['view-content'],
-      modules: ['content']
+      permissions: ['content.view'],
+      requireAll: false
     },
     {
       id: 'services',
       label: 'Services',
       icon: Database,
       category: 'content',
-      permissions: ['view-services'],
-      modules: ['services']
+      permissions: ['services.view'], // Content editors only, NOT bloggers
+      requireAll: false
     },
     {
       id: 'portfolio',
       label: 'Portfolio',
       icon: Folder,
       category: 'content',
-      permissions: ['view-portfolio'],
-      modules: ['portfolio']
+      permissions: ['portfolio.view'], // Content editors only, NOT bloggers
+      requireAll: false
     },
     {
       id: 'about',
       label: 'About',
       icon: FileText,
       category: 'content',
-      permissions: ['view-content'],
-      modules: ['content']
+      permissions: ['about.view'], // Content editors only, NOT bloggers
+      requireAll: false
     },
     {
       id: 'team',
       label: 'Team',
       icon: User,
       category: 'content',
-      permissions: ['view-team'],
-      modules: ['team']
+      permissions: ['team.view'],
+      requireAll: false
     },
     {
       id: 'announcements',
       label: 'Announcements',
       icon: Megaphone,
       category: 'content',
-      permissions: ['view-announcements'],
-      modules: ['announcements']
+      permissions: ['announcements.view'],
+      requireAll: false
     },
     {
       id: 'jobs',
       label: 'Jobs',
       icon: Briefcase,
       category: 'management',
-      permissions: ['view-jobs'],
-      modules: ['jobs']
+      permissions: ['jobs.view'],
+      requireAll: false
     },
     {
       id: 'scholarships',
       label: 'Scholarships',
       icon: GraduationCap,
       category: 'management',
-      permissions: ['view-scholarships'],
-      modules: ['scholarships']
+      permissions: ['scholarships.view'],
+      requireAll: false
     },
     {
       id: 'organizations',
       label: 'Organizations',
-      icon: Database,
+      icon: Building2,
       category: 'management',
-      permissions: ['view-organizations'],
-      modules: ['organizations']
+      permissions: ['organizations.view'],
+      requireAll: false
     },
     {
       id: 'analytics',
       label: 'Analytics',
       icon: TrendingUp,
       category: 'tools',
-      permissions: ['view-analytics'],
-      modules: ['dashboard']
+      permissions: ['analytics.view'],
+      requireAll: false
     },
     {
       id: 'newsletter',
       label: 'Newsletter',
       icon: Mail,
       category: 'tools',
-      permissions: ['view-newsletter'],
-      modules: ['newsletter']
+      permissions: ['newsletter.view'],
+      requireAll: false
     },
     {
       id: 'tools-management',
       label: 'Tools & Curriculum',
-      icon: Settings,
+      icon: Wrench,
       category: 'tools',
-      permissions: ['view-tools'],
-      modules: ['tools']
+      permissions: ['tools.view', 'curriculum.view'], // Content editors and program managers
+      requireAll: false
     },
     {
       id: 'roles',
       label: 'User Roles',
       icon: Users,
       category: 'system',
-      permissions: ['view-users', 'manage-user-permissions'],
-      modules: ['users']
+      permissions: ['users.view', 'roles.manage'], // Only users with user management
+      requireAll: false
     },
     {
       id: 'routes',
       label: 'Navigation',
       icon: Navigation,
       category: 'system',
-      permissions: ['edit-settings'],
-      modules: ['settings']
+      permissions: ['routes.manage'], // Only admins
+      requireAll: false
     },
     {
       id: 'settings',
       label: 'Settings',
       icon: Settings,
       category: 'system',
-      permissions: ['view-settings'],
-      modules: ['settings']
+      permissions: ['settings.view', 'settings.edit'], // Only admins
+      requireAll: false
     }
   ];
 
@@ -193,25 +196,32 @@ const Admin = () => {
 
     return tabs.filter(tab => {
       // If no permissions required, show the tab
-      if (!tab.permissions && !tab.modules) return true;
+      if (!tab.permissions || tab.permissions.length === 0) return true;
 
-      // Check permissions
-      if (tab.permissions) {
-        const hasRequiredPermission = tab.permissions.some(permission =>
-          hasPermission(user, permission)
-        );
-        if (!hasRequiredPermission) return false;
-      }
+      // Check if user has the required permissions
+      const userPermissions = user.permissions || [];
+      
+      // Helper function to check if user has a permission
+      const userHasPermission = (permissionName) => {
+        return userPermissions.some(p => {
+          if (typeof p === 'string') return p === permissionName;
+          if (typeof p === 'object' && p.name) return p.name === permissionName;
+          return false;
+        });
+      };
 
-      // Check modules (if user has modules data)
-      if (tab.modules && user.modules) {
-        const hasRequiredModule = tab.modules.some(module =>
-          user.modules.includes(module)
-        );
-        if (!hasRequiredModule) return false;
-      }
+      // CRITICAL FIX: Check permissions strictly for ALL users
+      // Super admins (role_name='admin') have ALL permissions granted by backend
+      // Other staff (blogger, content_editor, etc.) have specific permissions
+      // The backend already handles giving admin role ALL permissions
+      // So we just need to check if user has ANY of the required permissions
+      
+      // Check if user has ANY of the required permissions (OR logic)
+      const hasRequiredPermission = tab.permissions.some(permission => 
+        userHasPermission(permission)
+      );
 
-      return true;
+      return hasRequiredPermission;
     });
   }, [user, tabs]);
 
@@ -231,7 +241,7 @@ const Admin = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/login`, {
+      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(loginForm)
@@ -241,18 +251,47 @@ const Admin = () => {
         throw new Error(data?.error || data?.message || 'Login failed');
       }
 
-      // Use the main AuthContext login function
-      login(data.data.user, data.data.token);
+      // Check if user has dashboard access (admin panel access)
+      // All staff users should have role='admin' in the database
+      const userRole = data.data.user.role;
+      const userPermissions = data.data.permissions || [];
+      
+      // Check for dashboard access:
+      // 1. User has role='admin' (all staff users) OR
+      // 2. User has dashboard.view permission
+      const hasDashboardAccess = 
+        userRole === 'admin' || 
+        userPermissions.some(p => 
+          (typeof p === 'string' && p === 'dashboard.view') ||
+          (typeof p === 'object' && p.name === 'dashboard.view')
+        );
+      
+      if (!hasDashboardAccess) {
+        setError('Access denied. Only staff users with dashboard access can login here.');
+        toast.error('Regular users should login at /login');
+        setLoading(false);
+        return;
+      }
+
+      // Use the main AuthContext login function with permissions and modules
+      login(
+        data.data.user, 
+        data.data.token,
+        data.data.permissions,
+        data.data.modules
+      );
       toast.success('Admin login successful!');
     } catch (err) {
       setError(err.message);
+      toast.error(err.message || 'Login failed');
     } finally {
       setLoading(false);
     }
   };
 
   const handleLogout = () => {
-    logout();
+    const redirectPath = logout();
+    navigate(redirectPath);
   };
 
   const fetchDashboardData = async () => {
@@ -466,14 +505,26 @@ const Admin = () => {
                   <input
                     id="password"
                     name="password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
                     required
                     value={loginForm.password}
                     onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                    className="w-full pl-16 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400 text-white placeholder-gray-400 text-lg transition-all duration-500 hover:border-white/30 hover:bg-black/60 focus:scale-[1.02] focus:shadow-lg"
+                    className="w-full pl-16 pr-14 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400 text-white placeholder-gray-400 text-lg transition-all duration-500 hover:border-white/30 hover:bg-black/60 focus:scale-[1.02] focus:shadow-lg"
                     placeholder="Enter secure password"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-indigo-300 transition-colors duration-300 focus:outline-none"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
                 </div>
               </div>
 
@@ -501,6 +552,16 @@ const Admin = () => {
                     </>
                   )}
                 </button>
+              </div>
+
+              <div className="text-center">
+                <Link
+                  to="/admin/forgot-password"
+                  className="inline-flex items-center text-gray-300 hover:text-indigo-300 transition-colors text-sm font-medium"
+                >
+                  <Shield className="w-4 h-4 mr-2" />
+                  Forgot Password?
+                </Link>
               </div>
             </form>
 
@@ -852,6 +913,30 @@ const Admin = () => {
         return <DashboardOverview />;
     }
   };
+
+  // Handle password change requirement
+  const handlePasswordChanged = () => {
+    toast.success('Password changed successfully! Logging you out...');
+    setTimeout(() => {
+      const redirectPath = logout();
+      navigate(redirectPath);
+    }, 1500);
+  };
+
+  // Check if user must change password before showing dashboard
+  if (isAuthenticated() && mustChangePassword) {
+    return (
+      <ForcePasswordChange
+        user={user}
+        token={token}
+        onPasswordChanged={handlePasswordChanged}
+        onLogout={() => {
+          const redirectPath = logout();
+          navigate(redirectPath);
+        }}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen pt-24 bg-gray-50 relative z-40">

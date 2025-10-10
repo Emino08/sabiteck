@@ -80,15 +80,15 @@ class AuthController
             $passwordHash = password_hash($passwordToHash, PASSWORD_DEFAULT);
 
             // Determine role
-            $role = $data['role'] ?? 'user';
-            $roleId = $this->getRoleId($db, $role);
+            $requestedRole = $data['role'] ?? 'user';
+            $roleId = $this->getRoleId($db, $requestedRole);
 
-            // Create user
+            // Create user (without role columns - we'll use user_roles table)
             $stmt = $db->prepare("
                 INSERT INTO users (
                     first_name, last_name, email, username, password_hash,
-                    phone, organization, role, role_id, status, must_change_password, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, NOW())
+                    phone, organization, status, must_change_password, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, 'active', ?, NOW())
             ");
 
             $stmt->execute([
@@ -99,22 +99,33 @@ class AuthController
                 $passwordHash,
                 $data['phone'] ?? null,
                 $data['organization'] ?? null,
-                $role,
-                $roleId,
                 $isAdminCreated ? 1 : 0  // Must change password if admin created
             ]);
 
             $userId = $db->lastInsertId();
+
+            // Assign role via user_roles table
+            if ($roleId) {
+                $roleStmt = $db->prepare("
+                    INSERT INTO user_roles (user_id, role_id, created_at)
+                    VALUES (?, ?, NOW())
+                ");
+                $roleStmt->execute([$userId, $roleId]);
+            }
 
             // Send password email if it was generated
             if ($generatedPassword) {
                 $this->sendPasswordEmail($data['email'], $data['first_name'] . ' ' . $data['last_name'], $generatedPassword, $isAdminCreated);
             }
 
-            // Get the created user
+            // Get the created user with role info
             $userStmt = $db->prepare("
-                SELECT id, first_name, last_name, email, username, role, status
-                FROM users WHERE id = ?
+                SELECT u.id, u.first_name, u.last_name, u.email, u.username, u.status,
+                       r.name as role_name, r.display_name as role_display_name
+                FROM users u
+                LEFT JOIN user_roles ur ON u.id = ur.user_id
+                LEFT JOIN roles r ON ur.role_id = r.id
+                WHERE u.id = ?
             ");
             $userStmt->execute([$userId]);
             $user = $userStmt->fetch();
@@ -154,11 +165,12 @@ class AuthController
             
             // Find user by username or email
             $stmt = $db->prepare("
-                SELECT u.id, u.username, u.password_hash, u.role, u.role_id, u.first_name, u.last_name,
+                SELECT u.id, u.username, u.password_hash, u.first_name, u.last_name,
                        u.email, u.status, u.failed_login_attempts, u.locked_until, u.must_change_password,
                        r.name as role_name, r.display_name as role_display_name
                 FROM users u
-                LEFT JOIN roles r ON u.role_id = r.id
+                LEFT JOIN user_roles ur ON u.id = ur.user_id
+                LEFT JOIN roles r ON ur.role_id = r.id
                 WHERE (u.username = ? OR u.email = ?) AND u.status IN ('active', 'pending')
             ");
             $stmt->execute([$data['username'], $data['username']]);
@@ -200,12 +212,12 @@ class AuthController
             $userModules = $permissionService->getUserModules($user['id']);
 
             // Generate JWT token with permissions
+            $permissionNames = array_column($userPermissions, 'name');
             $payload = [
                 'user_id' => $user['id'],
                 'username' => $user['username'],
-                'role' => $user['role'],
                 'role_name' => $user['role_name'],
-                'permissions' => array_column($userPermissions, 'name'),
+                'permissions' => $permissionNames,
                 'modules' => $userModules,
                 'iat' => time(),
                 'exp' => time() + (24 * 60 * 60) // 24 hours
@@ -224,11 +236,11 @@ class AuthController
                         'first_name' => $user['first_name'],
                         'last_name' => $user['last_name'],
                         'email' => $user['email'],
-                        'role' => $user['role'],
                         'role_name' => $user['role_name'],
+                        'role_display_name' => $user['role_display_name'],
                         'must_change_password' => (bool)$user['must_change_password']
                     ],
-                    'permissions' => $userPermissions,
+                    'permissions' => $permissionNames,
                     'modules' => $userModules
                 ]
             ];
@@ -285,8 +297,8 @@ class AuthController
                 $insertStmt = $db->prepare("
                     INSERT INTO users (
                         first_name, last_name, email, username, password_hash, google_id,
-                        profile_image, role, status, created_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, 'user', 'active', NOW())
+                        profile_image, status, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, 'active', NOW())
                 ");
                 
                 $username = strtolower($googleUserInfo['given_name'] . '_' . $googleUserInfo['family_name']);
@@ -594,8 +606,8 @@ class AuthController
                 $insertStmt = $db->prepare("
                     INSERT INTO users (
                         first_name, last_name, email, username, password_hash, google_id,
-                        profile_image, role, status, created_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, 'user', 'active', NOW())
+                        profile_image, status, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, 'active', NOW())
                 ");
                 
                 $username = strtolower($userInfo['given_name'] . '_' . $userInfo['family_name']);
@@ -785,8 +797,8 @@ class AuthController
             $stmt = $db->prepare("
                 INSERT INTO users (
                     first_name, last_name, email, username, password_hash,
-                    phone, organization, role, status, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, 'admin', 'active', NOW())
+                    phone, organization, status, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, 'active', NOW())
             ");
 
             $stmt->execute([
@@ -801,10 +813,21 @@ class AuthController
 
             $userId = $db->lastInsertId();
 
+            // Assign admin role via user_roles table
+            $adminRoleStmt = $db->prepare("
+                INSERT INTO user_roles (user_id, role_id, created_at)
+                SELECT ?, id, NOW() FROM roles WHERE name = 'admin'
+            ");
+            $adminRoleStmt->execute([$userId]);
+
             // Get the created admin user
             $userStmt = $db->prepare("
-                SELECT id, first_name, last_name, email, username, role, status
-                FROM users WHERE id = ?
+                SELECT u.id, u.first_name, u.last_name, u.email, u.username, u.status,
+                       r.name as role_name, r.display_name as role_display_name
+                FROM users u
+                LEFT JOIN user_roles ur ON u.id = ur.user_id
+                LEFT JOIN roles r ON ur.role_id = r.id
+                WHERE u.id = ?
             ");
             $userStmt->execute([$userId]);
             $user = $userStmt->fetch();
@@ -982,6 +1005,169 @@ class AuthController
             error_log("Reset password error: " . $e->getMessage());
             $response->getBody()->write(json_encode([
                 'error' => 'Unable to reset password. Please try again.'
+            ]));
+            return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
+        }
+    }
+
+    /**
+     * Invite a new user (Admin only) with automatic password generation and email
+     */
+    public function inviteUser(Request $request, Response $response, $args)
+    {
+        $data = json_decode($request->getBody()->getContents(), true);
+
+        // Validate required fields
+        $required = ['first_name', 'last_name', 'email', 'username', 'role'];
+        foreach ($required as $field) {
+            if (empty($data[$field])) {
+                $response->getBody()->write(json_encode([
+                    'success' => false,
+                    'error' => ucfirst(str_replace('_', ' ', $field)) . ' is required'
+                ]));
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            }
+        }
+
+        // Validate email format
+        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            $response->getBody()->write(json_encode([
+                'success' => false,
+                'error' => 'Please provide a valid email address'
+            ]));
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+        }
+
+        try {
+            $db = Database::getInstance();
+            
+            // Get the current user (admin who is inviting)
+            $currentUserId = $this->getUserIdFromToken($request);
+            if (!$currentUserId) {
+                $response->getBody()->write(json_encode([
+                    'success' => false,
+                    'error' => 'Authentication required'
+                ]));
+                return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
+            }
+
+            // Check if email already exists
+            $emailStmt = $db->prepare("SELECT id FROM users WHERE email = ?");
+            $emailStmt->execute([$data['email']]);
+            if ($emailStmt->fetch()) {
+                $response->getBody()->write(json_encode([
+                    'success' => false,
+                    'error' => 'Email address is already registered'
+                ]));
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            }
+
+            // Check if username already exists
+            $usernameStmt = $db->prepare("SELECT id FROM users WHERE username = ?");
+            $usernameStmt->execute([$data['username']]);
+            if ($usernameStmt->fetch()) {
+                $response->getBody()->write(json_encode([
+                    'success' => false,
+                    'error' => 'Username is already taken'
+                ]));
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            }
+
+            // Generate a secure random password
+            $generatedPassword = $this->generateSecurePassword();
+            $passwordHash = password_hash($generatedPassword, PASSWORD_DEFAULT);
+
+            // Get role ID from role name
+            $roleStmt = $db->prepare("SELECT id, name FROM roles WHERE name = ? OR display_name = ?");
+            $roleStmt->execute([$data['role'], $data['role']]);
+            $role = $roleStmt->fetch();
+
+            if (!$role) {
+                $response->getBody()->write(json_encode([
+                    'success' => false,
+                    'error' => 'Invalid role specified'
+                ]));
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            }
+
+            $roleId = $role['id'];
+            $roleName = $role['name'];
+
+            // Start transaction
+            $db->beginTransaction();
+
+            try {
+                // Create user (without role columns - we'll use user_roles table)
+                $stmt = $db->prepare("
+                    INSERT INTO users (
+                        first_name, last_name, email, username, password_hash,
+                        phone, organization, status, must_change_password, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, 'active', 1, NOW())
+                ");
+
+                $stmt->execute([
+                    $data['first_name'],
+                    $data['last_name'],
+                    $data['email'],
+                    $data['username'],
+                    $passwordHash,
+                    $data['phone'] ?? null,
+                    $data['organization'] ?? null
+                ]);
+
+                $userId = $db->lastInsertId();
+
+                // Assign role to user in user_roles table
+                $stmt = $db->prepare("INSERT INTO user_roles (user_id, role_id, created_at) VALUES (?, ?, NOW())");
+                $stmt->execute([$userId, $roleId]);
+
+                // Get role permissions and assign them to user
+                $permissionService = new PermissionService($db);
+                $userPermissions = $permissionService->getUserPermissions($userId);
+                $userModules = $permissionService->getUserModules($userId);
+
+                // Commit transaction
+                $db->commit();
+
+                // Send invitation email with credentials and permissions
+                $this->sendInvitationEmail(
+                    $data['email'],
+                    $data['first_name'] . ' ' . $data['last_name'],
+                    $generatedPassword,
+                    $data['username'],
+                    $role['name'],
+                    $userPermissions
+                );
+
+                // Get the created user
+                $userStmt = $db->prepare("
+                    SELECT u.id, u.first_name, u.last_name, u.email, u.username, u.status,
+                           r.name as role_name, r.display_name as role_display_name
+                    FROM users u
+                    LEFT JOIN user_roles ur ON u.id = ur.user_id
+                    LEFT JOIN roles r ON ur.role_id = r.id
+                    WHERE u.id = ?
+                ");
+                $userStmt->execute([$userId]);
+                $user = $userStmt->fetch();
+
+                $response->getBody()->write(json_encode([
+                    'success' => true,
+                    'message' => 'User invited successfully. Login credentials sent to their email.',
+                    'user' => $user
+                ]));
+                return $response->withStatus(201)->withHeader('Content-Type', 'application/json');
+
+            } catch (\Exception $e) {
+                $db->rollBack();
+                throw $e;
+            }
+
+        } catch (\Exception $e) {
+            error_log("User invitation error: " . $e->getMessage());
+            $response->getBody()->write(json_encode([
+                'success' => false,
+                'error' => 'Failed to invite user. Please try again.'
             ]));
             return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
         }
@@ -1212,6 +1398,107 @@ class AuthController
 
         } catch (\Exception $e) {
             error_log("Failed to send password reset email: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Send invitation email with credentials and role/permissions details
+     */
+    private function sendInvitationEmail(string $email, string $name, string $password, string $username, string $roleName, array $permissions): void
+    {
+        try {
+            // Use authentication email configuration for user account emails
+            $emailConfig = [
+                'smtp_host' => $_ENV['AUTH_SMTP_HOST'] ?? 'smtp.gmail.com',
+                'smtp_port' => $_ENV['AUTH_SMTP_PORT'] ?? 587,
+                'smtp_user' => $_ENV['AUTH_SMTP_USER'] ?? 'auth@sabiteck.com',
+                'smtp_password' => $_ENV['AUTH_SMTP_PASS'] ?? '',
+                'smtp_encryption' => $_ENV['AUTH_SMTP_ENCRYPTION'] ?? 'tls',
+                'from_email' => $_ENV['AUTH_FROM_EMAIL'] ?? 'auth@sabiteck.com',
+                'from_name' => $_ENV['AUTH_FROM_NAME'] ?? 'Sabitech Authentication'
+            ];
+
+            $emailService = new EmailService($emailConfig);
+
+            // Group permissions by category for better presentation
+            $groupedPermissions = [];
+            foreach ($permissions as $permission) {
+                $category = $permission['category'] ?? 'General';
+                if (!isset($groupedPermissions[$category])) {
+                    $groupedPermissions[$category] = [];
+                }
+                $groupedPermissions[$category][] = $permission['display_name'] ?? $permission['name'];
+            }
+
+            // Build permissions HTML
+            $permissionsHtml = '';
+            foreach ($groupedPermissions as $category => $perms) {
+                $permissionsHtml .= "<h4 style='margin: 15px 0 5px; color: #007bff;'>" . ucfirst($category) . "</h4>";
+                $permissionsHtml .= "<ul style='margin: 5px 0; padding-left: 20px;'>";
+                foreach ($perms as $perm) {
+                    $permissionsHtml .= "<li style='margin: 3px 0;'>$perm</li>";
+                }
+                $permissionsHtml .= "</ul>";
+            }
+
+            $subject = 'Welcome to Sabiteck Limited - Your Account Details';
+
+            $body = "
+            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center;'>
+                    <h1 style='margin: 0;'>Welcome to Sabiteck Limited</h1>
+                </div>
+                <div style='padding: 30px; background: #f8f9fa;'>
+                    <h2>Hello $name,</h2>
+                    <p>An account has been created for you in the Sabiteck Limited Admin System. Below are your login credentials and assigned permissions.</p>
+                    
+                    <div style='background: white; padding: 20px; border-radius: 8px; border-left: 4px solid #007bff; margin: 20px 0;'>
+                        <h3 style='margin-top: 0;'>Your Login Details:</h3>
+                        <p><strong>Username:</strong> $username</p>
+                        <p><strong>Email:</strong> $email</p>
+                        <p><strong>Temporary Password:</strong> <code style='background: #f4f4f4; padding: 5px 10px; border-radius: 4px; color: #d63384;'>$password</code></p>
+                        <p><strong>Role:</strong> <span style='background: #28a745; color: white; padding: 3px 10px; border-radius: 4px;'>" . ucwords(str_replace('_', ' ', $roleName)) . "</span></p>
+                    </div>
+                    
+                    <div style='background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 4px;'>
+                        <p style='margin: 0;'><strong>⚠️ Important Security Notice:</strong></p>
+                        <p style='margin: 5px 0 0;'>You will be required to change this temporary password when you first log in for security purposes.</p>
+                    </div>
+                    
+                    <div style='background: white; padding: 20px; border-radius: 8px; margin: 20px 0;'>
+                        <h3 style='margin-top: 0;'>Your Permissions & Access:</h3>
+                        <p>Based on your role, you have been granted access to the following modules:</p>
+                        $permissionsHtml
+                    </div>
+                    
+                    <div style='text-align: center; margin: 30px 0;'>
+                        <a href='" . ($_ENV['FRONTEND_URL'] ?? 'http://localhost:5173') . "/admin/login' style='background: #007bff; color: white; padding: 15px 40px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;'>Login to Your Account</a>
+                    </div>
+                    
+                    <div style='background: #e7f3ff; border-left: 4px solid #007bff; padding: 15px; margin: 20px 0; border-radius: 4px;'>
+                        <p style='margin: 0;'><strong>📋 Next Steps:</strong></p>
+                        <ol style='margin: 10px 0 0; padding-left: 20px;'>
+                            <li>Click the login button above to access the admin panel</li>
+                            <li>Enter your username and temporary password</li>
+                            <li>Create a new secure password when prompted</li>
+                            <li>Start managing your assigned modules</li>
+                        </ol>
+                    </div>
+                    
+                    <p style='margin-top: 30px;'>If you have any questions or need assistance, please don't hesitate to contact our support team.</p>
+                    
+                    <p style='color: #6c757d; font-size: 14px; margin-top: 20px;'>Please keep your login credentials secure and do not share them with anyone.</p>
+                </div>
+                <div style='background: #343a40; color: white; padding: 20px; text-align: center; font-size: 12px;'>
+                    <p style='margin: 0;'>&copy; " . date('Y') . " Sabiteck Limited. All rights reserved.</p>
+                    <p style='margin: 10px 0 0;'>This is an automated message, please do not reply to this email.</p>
+                </div>
+            </div>";
+
+            $emailService->sendEmail($email, $subject, $body, true, $name);
+
+        } catch (\Exception $e) {
+            error_log("Failed to send invitation email: " . $e->getMessage());
         }
     }
 

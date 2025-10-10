@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete JWT Fix Test & Debug</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #1e3c72;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-weight: 600;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .alert.error { background: #fee; color: #c33; border: 2px solid #fcc; }
+        .alert.success { background: #efe; color: #3c3; border: 2px solid #cfc; }
+        .alert.warning { background: #ffeaa7; color: #d63031; border: 2px solid #fdcb6e; }
+        .alert.info { background: #e3f2fd; color: #1976d2; border: 2px solid #90caf9; }
+        
+        .step {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border-left: 5px solid #1e3c72;
+        }
+        
+        .step h3 {
+            color: #1e3c72;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .step-number {
+            background: #1e3c72;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        button.danger {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        button.success {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            margin: 8px 0;
+            transition: border 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        pre {
+            background: #2c3e50;
+            color: #2ecc71;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 10px 0;
+            font-size: 12px;
+        }
+        
+        .token-box {
+            background: #f1f3f5;
+            padding: 15px;
+            border-radius: 8px;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            font-size: 11px;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+        
+        .card:hover {
+            border-color: #667eea;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        
+        .status-indicator.green { background: #2ecc71; }
+        .status-indicator.red { background: #e74c3c; }
+        .status-indicator.yellow { background: #f39c12; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Complete JWT Authentication Test Suite</h1>
+        <p class="subtitle">Comprehensive testing for Services, Portfolio, and Announcements routes</p>
+
+        <div class="alert warning">
+            <strong>⚠️ CRITICAL:</strong> You must clear localStorage FIRST before testing! Old tokens will cause failures.
+        </div>
+
+        <!-- Step 0: Clear Everything -->
+        <div class="step">
+            <h3><div class="step-number">0</div> Clear All Tokens & Cache</h3>
+            <button class="danger" onclick="clearEverything()">🗑️ FORCE CLEAR EVERYTHING</button>
+            <button onclick="checkStorage()">📋 Check Current Storage</button>
+            <div id="storageResult"></div>
+        </div>
+
+        <!-- Step 1: Create Test User -->
+        <div class="step">
+            <h3><div class="step-number">1</div> Create Test Admin User</h3>
+            <input type="text" id="newUsername" placeholder="Username (e.g., testadmin)" value="testadmin">
+            <input type="email" id="newEmail" placeholder="Email" value="testadmin@test.com">
+            <input type="password" id="newPassword" placeholder="Password (min 6 chars)" value="Test123456">
+            <input type="text" id="newFirstName" placeholder="First Name" value="Test">
+            <input type="text" id="newLastName" placeholder="Last Name" value="Admin">
+            <button class="success" onclick="createAdminUser()">➕ Create Admin User</button>
+            <div id="createUserResult"></div>
+        </div>
+
+        <!-- Step 2: Login -->
+        <div class="step">
+            <h3><div class="step-number">2</div> Login & Get JWT Token</h3>
+            <input type="text" id="loginUsername" placeholder="Username" value="testadmin">
+            <input type="password" id="loginPassword" placeholder="Password" value="Test123456">
+            <button onclick="testLogin()">🔑 Login & Analyze Token</button>
+            <div id="loginResult"></div>
+        </div>
+
+        <!-- Step 3: Test Routes -->
+        <div class="step">
+            <h3><div class="step-number">3</div> Test Protected Routes</h3>
+            <div class="grid">
+                <div class="card">
+                    <h4>📋 Services Routes</h4>
+                    <button onclick="testRoute('GET', '/api/admin/services')">GET Services</button>
+                    <button onclick="testRoute('POST', '/api/admin/services', {title: 'Test Service', description: 'Test'})">POST Service</button>
+                </div>
+                <div class="card">
+                    <h4>💼 Portfolio Routes</h4>
+                    <button onclick="testRoute('GET', '/api/admin/portfolio')">GET Portfolio</button>
+                    <button onclick="testRoute('POST', '/api/admin/portfolio', {title: 'Test Portfolio', description: 'Test'})">POST Portfolio</button>
+                </div>
+                <div class="card">
+                    <h4>📢 Announcements Routes</h4>
+                    <button onclick="testRoute('GET', '/api/admin/announcements')">GET Announcements</button>
+                    <button onclick="testRoute('POST', '/api/admin/announcements', {title: 'Test Announcement', message: 'Test'})">POST Announcement</button>
+                </div>
+            </div>
+            <div id="routeResult"></div>
+        </div>
+
+        <!-- Results Summary -->
+        <div class="step">
+            <h3><div class="step-number">4</div> Test Results Summary</h3>
+            <div id="summaryResult"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8002';
+        let testResults = [];
+
+        function clearEverything() {
+            // Clear all possible token locations
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            // Also clear specific items
+            ['auth_token', 'admin_token', 'token', 'user', 'userData'].forEach(key => {
+                localStorage.removeItem(key);
+                sessionStorage.removeItem(key);
+            });
+            
+            document.getElementById('storageResult').innerHTML = `
+                <div class="alert success">
+                    ✅ All storage cleared! You can now login fresh.
+                </div>
+            `;
+            
+            checkStorage();
+        }
+
+        function checkStorage() {
+            const tokens = {
+                localStorage_auth_token: localStorage.getItem('auth_token'),
+                localStorage_admin_token: localStorage.getItem('admin_token'),
+                localStorage_token: localStorage.getItem('token'),
+                localStorage_user: localStorage.getItem('user')
+            };
+            
+            const hasTokens = Object.values(tokens).some(v => v !== null);
+            
+            const resultDiv = document.getElementById('storageResult');
+            resultDiv.innerHTML = `
+                <div class="alert ${hasTokens ? 'warning' : 'success'}">
+                    ${hasTokens ? '⚠️ Tokens found in storage' : '✅ Storage is clean'}
+                </div>
+                <pre>${JSON.stringify(tokens, null, 2)}</pre>
+            `;
+        }
+
+        async function createAdminUser() {
+            const userData = {
+                username: document.getElementById('newUsername').value,
+                email: document.getElementById('newEmail').value,
+                password: document.getElementById('newPassword').value,
+                first_name: document.getElementById('newFirstName').value,
+                last_name: document.getElementById('newLastName').value,
+                role: 'admin'
+            };
+
+            const resultDiv = document.getElementById('createUserResult');
+            
+            try {
+                const response = await fetch(`${API_URL}/api/auth/admin-register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+
+                const data = await response.json();
+                
+                if (data.success || response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="alert success">
+                            ✅ Admin user created successfully!
+                        </div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                    // Pre-fill login form
+                    document.getElementById('loginUsername').value = userData.username;
+                    document.getElementById('loginPassword').value = userData.password;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="alert error">
+                            ❌ Failed to create user: ${data.error || data.message || 'Unknown error'}
+                        </div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="alert error">
+                        ❌ Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function testLogin() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            const resultDiv = document.getElementById('loginResult');
+
+            try {
+                const response = await fetch(`${API_URL}/api/admin/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+                
+                if (data.success && data.data && data.data.token) {
+                    const token = data.data.token;
+                    localStorage.setItem('auth_token', token);
+                    
+                    const parts = token.split('.');
+                    const isJWT = parts.length === 3;
+                    
+                    let payloadData = null;
+                    if (isJWT) {
+                        try {
+                            payloadData = JSON.parse(atob(parts[1]));
+                        } catch (e) {
+                            console.error('Failed to decode:', e);
+                        }
+                    }
+                    
+                    testResults.push({
+                        test: 'Login',
+                        status: isJWT ? 'PASS' : 'FAIL',
+                        message: isJWT ? 'JWT token received' : 'Invalid token format'
+                    });
+                    
+                    resultDiv.innerHTML = `
+                        <div class="alert ${isJWT ? 'success' : 'error'}">
+                            ${isJWT ? '✅ LOGIN SUCCESS - JWT TOKEN RECEIVED!' : '❌ LOGIN FAILED - INVALID TOKEN FORMAT'}
+                        </div>
+                        <div class="card">
+                            <h4>Token Analysis:</h4>
+                            <ul style="margin: 10px 0; padding-left: 20px;">
+                                <li><span class="status-indicator ${isJWT ? 'green' : 'red'}"></span>Format: ${isJWT ? 'Valid JWT (3 parts)' : 'Invalid (not JWT)'}</li>
+                                <li><span class="status-indicator ${parts.length === 3 ? 'green' : 'red'}"></span>Parts: ${parts.length} (Expected: 3)</li>
+                                <li><span class="status-indicator green"></span>Length: ${token.length} characters</li>
+                                ${payloadData ? `
+                                    <li><span class="status-indicator green"></span>User ID: ${payloadData.user_id}</li>
+                                    <li><span class="status-indicator green"></span>Username: ${payloadData.username}</li>
+                                    <li><span class="status-indicator green"></span>Role: ${payloadData.role}</li>
+                                    <li><span class="status-indicator green"></span>Expires: ${new Date(payloadData.exp * 1000).toLocaleString()}</li>
+                                ` : ''}
+                            </ul>
+                            <div class="token-box">
+                                <strong>Token:</strong><br>${token}
+                            </div>
+                            ${payloadData ? `
+                                <details>
+                                    <summary style="cursor: pointer; color: #667eea; font-weight: 600;">View Decoded Payload</summary>
+                                    <pre>${JSON.stringify(payloadData, null, 2)}</pre>
+                                </details>
+                            ` : ''}
+                        </div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                    
+                    updateSummary();
+                } else {
+                    testResults.push({
+                        test: 'Login',
+                        status: 'FAIL',
+                        message: data.error || 'Login failed'
+                    });
+                    
+                    resultDiv.innerHTML = `
+                        <div class="alert error">
+                            ❌ LOGIN FAILED
+                        </div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                    updateSummary();
+                }
+            } catch (error) {
+                testResults.push({
+                    test: 'Login',
+                    status: 'ERROR',
+                    message: error.message
+                });
+                
+                resultDiv.innerHTML = `
+                    <div class="alert error">
+                        ❌ Error: ${error.message}
+                    </div>
+                `;
+                updateSummary();
+            }
+        }
+
+        async function testRoute(method, endpoint, body = null) {
+            const token = localStorage.getItem('auth_token');
+            const resultDiv = document.getElementById('routeResult');
+
+            if (!token) {
+                resultDiv.innerHTML = `
+                    <div class="alert error">
+                        ❌ No token found. Please login first!
+                    </div>
+                `;
+                return;
+            }
+
+            const config = {
+                method: method,
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            };
+
+            if (body && (method === 'POST' || method === 'PUT')) {
+                config.body = JSON.stringify(body);
+            }
+
+            try {
+                const response = await fetch(`${API_URL}${endpoint}`, config);
+                const data = await response.json();
+                
+                const success = data.success || response.ok;
+                const testName = `${method} ${endpoint}`;
+                
+                testResults.push({
+                    test: testName,
+                    status: success ? 'PASS' : 'FAIL',
+                    message: success ? 'Success' : (data.error || data.message || 'Failed'),
+                    httpStatus: response.status
+                });
+                
+                resultDiv.innerHTML = `
+                    <div class="alert ${success ? 'success' : 'error'}">
+                        ${success ? '✅' : '❌'} ${method} ${endpoint} - ${success ? 'SUCCESS' : 'FAILED'}
+                    </div>
+                    <div class="card">
+                        <h4>Response Details:</h4>
+                        <ul style="margin: 10px 0; padding-left: 20px;">
+                            <li><span class="status-indicator ${success ? 'green' : 'red'}"></span>HTTP Status: ${response.status}</li>
+                            <li><span class="status-indicator ${success ? 'green' : 'red'}"></span>Success: ${success ? 'Yes' : 'No'}</li>
+                            <li><span class="status-indicator ${data.error ? 'red' : 'green'}"></span>Error: ${data.error || 'None'}</li>
+                        </ul>
+                    </div>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+                
+                updateSummary();
+            } catch (error) {
+                testResults.push({
+                    test: `${method} ${endpoint}`,
+                    status: 'ERROR',
+                    message: error.message
+                });
+                
+                resultDiv.innerHTML = `
+                    <div class="alert error">
+                        ❌ Error testing ${method} ${endpoint}: ${error.message}
+                    </div>
+                `;
+                updateSummary();
+            }
+        }
+
+        function updateSummary() {
+            const summaryDiv = document.getElementById('summaryResult');
+            const passed = testResults.filter(t => t.status === 'PASS').length;
+            const failed = testResults.filter(t => t.status === 'FAIL').length;
+            const errors = testResults.filter(t => t.status === 'ERROR').length;
+            const total = testResults.length;
+            
+            summaryDiv.innerHTML = `
+                <div class="card">
+                    <h3>Test Results: ${passed}/${total} Passed</h3>
+                    <div class="grid">
+                        <div style="text-align: center; padding: 20px; background: #d4edda; border-radius: 8px;">
+                            <div style="font-size: 48px; color: #155724;">${passed}</div>
+                            <div style="color: #155724; font-weight: 600;">Passed</div>
+                        </div>
+                        <div style="text-align: center; padding: 20px; background: #f8d7da; border-radius: 8px;">
+                            <div style="font-size: 48px; color: #721c24;">${failed}</div>
+                            <div style="color: #721c24; font-weight: 600;">Failed</div>
+                        </div>
+                        <div style="text-align: center; padding: 20px; background: #fff3cd; border-radius: 8px;">
+                            <div style="font-size: 48px; color: #856404;">${errors}</div>
+                            <div style="color: #856404; font-weight: 600;">Errors</div>
+                        </div>
+                    </div>
+                    <table style="width: 100%; margin-top: 20px; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f8f9fa;">
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Test</th>
+                                <th style="padding: 10px; text-align: center; border-bottom: 2px solid #dee2e6;">Status</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Message</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${testResults.map(result => `
+                                <tr style="border-bottom: 1px solid #dee2e6;">
+                                    <td style="padding: 10px;">${result.test}</td>
+                                    <td style="padding: 10px; text-align: center;">
+                                        <span class="status-indicator ${result.status === 'PASS' ? 'green' : (result.status === 'FAIL' ? 'red' : 'yellow')}"></span>
+                                        ${result.status}
+                                    </td>
+                                    <td style="padding: 10px;">${result.message}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        // Check storage on load
+        window.onload = function() {
+            checkStorage();
+        };
+    </script>
+</body>
+</html>

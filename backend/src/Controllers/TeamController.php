@@ -14,7 +14,12 @@ class TeamController
             $queryParams = $request->getQueryParams();
             $department = $queryParams['department'] ?? null;
             
-            $sql = "SELECT * FROM team_members WHERE active = 1";
+            $sql = "SELECT 
+                id, name, position, department, bio, email, phone, location,
+                photo_url, avatar, linkedin_url, twitter_url, website_url,
+                skills, years_experience, education, certifications,
+                active, featured, order_position, created_at, updated_at
+                FROM team WHERE active = 1";
             $params = [];
             
             if ($department) {
@@ -22,29 +27,58 @@ class TeamController
                 $params[] = $department;
             }
             
-            $sql .= " ORDER BY sort_order ASC, featured DESC";
+            $sql .= " ORDER BY order_position ASC, featured DESC, id ASC";
             
             $stmt = $db->prepare($sql);
             $stmt->execute($params);
             $members = $stmt->fetchAll();
             
+            // Process members to ensure proper data format
+            $processedMembers = array_map(function($member) {
+                // Ensure photo_url is set (fallback to avatar)
+                if (empty($member['photo_url']) && !empty($member['avatar'])) {
+                    $member['photo_url'] = $member['avatar'];
+                }
+                
+                // Parse social links if stored as JSON
+                if (!empty($member['linkedin_url']) || !empty($member['twitter_url']) || !empty($member['website_url'])) {
+                    $member['social_links'] = [
+                        'linkedin' => $member['linkedin_url'] ?? '',
+                        'twitter' => $member['twitter_url'] ?? '',
+                        'website' => $member['website_url'] ?? ''
+                    ];
+                }
+                
+                // Parse skills if stored as JSON string
+                if (!empty($member['skills']) && is_string($member['skills'])) {
+                    $decoded = json_decode($member['skills'], true);
+                    $member['skills'] = is_array($decoded) ? $decoded : explode(',', $member['skills']);
+                }
+                
+                // Parse certifications if stored as JSON string
+                if (!empty($member['certifications']) && is_string($member['certifications'])) {
+                    $decoded = json_decode($member['certifications'], true);
+                    $member['certifications'] = is_array($decoded) ? $decoded : explode("\n", $member['certifications']);
+                }
+                
+                // Convert boolean fields
+                $member['active'] = (bool)$member['active'];
+                $member['featured'] = (bool)$member['featured'];
+                
+                return $member;
+            }, $members);
+            
             $response->getBody()->write(json_encode([
                 'success' => true,
-                'data' => [
-                    'data' => $members,
-                    'pagination' => [
-                        'page' => 1,
-                        'limit' => count($members),
-                        'total' => count($members),
-                        'pages' => 1
-                    ]
-                ]
+                'data' => $processedMembers
             ]));
             return $response->withHeader('Content-Type', 'application/json');
             
         } catch (\Exception $e) {
             $response->getBody()->write(json_encode([
-                'error' => 'Failed to fetch team members'
+                'success' => false,
+                'error' => 'Failed to fetch team members',
+                'message' => $e->getMessage()
             ]));
             return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
         }
@@ -54,7 +88,7 @@ class TeamController
     {
         try {
             $db = Database::getInstance();
-            $stmt = $db->prepare("SELECT * FROM team_members WHERE active = 1 AND featured = 1 ORDER BY sort_order ASC");
+            $stmt = $db->prepare("SELECT * FROM team WHERE active = 1 AND featured = 1 ORDER BY sort_order ASC");
             $stmt->execute();
             $members = $stmt->fetchAll();
             
@@ -73,7 +107,7 @@ class TeamController
     {
         try {
             $db = Database::getInstance();
-            $stmt = $db->query("SELECT DISTINCT department FROM team_members WHERE active = 1 AND department IS NOT NULL");
+            $stmt = $db->query("SELECT DISTINCT department FROM team WHERE active = 1 AND department IS NOT NULL");
             $departments = $stmt->fetchAll(\PDO::FETCH_COLUMN);
             
             $response->getBody()->write(json_encode($departments));
@@ -99,10 +133,22 @@ class TeamController
                 return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
             }
             
+            // Validate skills format if provided
+            if (isset($data['skills'])) {
+                $validatedSkills = $this->validateSkills($data['skills']);
+                if ($validatedSkills === false) {
+                    $response->getBody()->write(json_encode([
+                        'error' => 'Invalid skills format. Skills must be an array of strings like ["Leadership", "Mentorship", "Strategy"]'
+                    ]));
+                    return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+                }
+                $data['skills'] = json_encode($validatedSkills);
+            }
+            
             $db = Database::getInstance();
             $slug = strtolower(str_replace(' ', '-', $data['name']));
             
-            $stmt = $db->prepare("INSERT INTO team_members (name, slug, position, department, bio, avatar, email, linkedin_url, github_url, twitter_url, skills, experience_years, featured, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $db->prepare("INSERT INTO team (name, slug, position, department, bio, avatar, email, phone, location, linkedin_url, github_url, twitter_url, skills, experience_years, featured, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $data['name'],
                 $slug,
@@ -111,6 +157,8 @@ class TeamController
                 $data['bio'] ?? null,
                 $data['avatar'] ?? null,
                 $data['email'] ?? null,
+                $data['phone'] ?? null,
+                $data['location'] ?? null,
                 $data['linkedin_url'] ?? null,
                 $data['github_url'] ?? null,
                 $data['twitter_url'] ?? null,
@@ -134,6 +182,71 @@ class TeamController
         }
     }
     
+    private function validateSkills($skills)
+    {
+        // If skills is null or empty, return empty array
+        if (empty($skills)) {
+            return [];
+        }
+
+        // If it's a string, try to parse as comma-separated or JSON
+        if (is_string($skills)) {
+            // First, check if it's already a JSON string that was double-encoded
+            // This happens when frontend sends JSON that gets stringified again
+            $trimmed = trim($skills);
+            
+            // Remove any extra quotes or brackets that might have been added
+            $trimmed = preg_replace('/^[\["]*(.*?)[\]"]*$/', '$1', $trimmed);
+            
+            // Try to decode as JSON first
+            $decoded = json_decode($skills, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $skills = $decoded;
+            } else {
+                // Try decoding the trimmed version
+                $decoded = json_decode($trimmed, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $skills = $decoded;
+                } else {
+                    // Parse as comma-separated string
+                    $skills = array_map('trim', explode(',', $trimmed));
+                }
+            }
+        }
+
+        // If it's an array, validate it
+        if (is_array($skills)) {
+            // Clean up any double-encoded values in the array
+            $cleanedSkills = [];
+            
+            foreach ($skills as $skill) {
+                if (is_string($skill)) {
+                    // Remove extra quotes and brackets that might wrap individual skills
+                    $cleaned = trim($skill);
+                    $cleaned = trim($cleaned, '"\'[]');
+                    
+                    // Skip empty values
+                    if (!empty($cleaned)) {
+                        $cleanedSkills[] = $cleaned;
+                    }
+                } else if (is_array($skill)) {
+                    // If somehow we have nested arrays, flatten them
+                    foreach ($skill as $nestedSkill) {
+                        if (is_string($nestedSkill) && !empty(trim($nestedSkill))) {
+                            $cleanedSkills[] = trim($nestedSkill);
+                        }
+                    }
+                }
+            }
+            
+            // Return the cleaned array
+            return array_values(array_unique($cleanedSkills));
+        }
+
+        // Invalid format
+        return false;
+    }
+    
     public function update(Request $request, Response $response, $args)
     {
         $id = $args['id'];
@@ -142,10 +255,22 @@ class TeamController
             $data = json_decode($request->getBody()->getContents(), true);
             $db = Database::getInstance();
             
+            // Validate skills format if provided
+            if (isset($data['skills'])) {
+                $validatedSkills = $this->validateSkills($data['skills']);
+                if ($validatedSkills === false) {
+                    $response->getBody()->write(json_encode([
+                        'error' => 'Invalid skills format. Skills must be an array of strings like ["Leadership", "Mentorship", "Strategy"]'
+                    ]));
+                    return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+                }
+                $data['skills'] = json_encode($validatedSkills);
+            }
+            
             $fields = [];
             $params = [];
             
-            foreach (['name', 'position', 'department', 'bio', 'avatar', 'email', 'linkedin_url', 'github_url', 'twitter_url', 'skills', 'experience_years', 'featured', 'active'] as $field) {
+            foreach (['name', 'position', 'department', 'bio', 'avatar', 'email', 'phone', 'location', 'linkedin_url', 'github_url', 'twitter_url', 'skills', 'experience_years', 'featured', 'active'] as $field) {
                 if (isset($data[$field])) {
                     $fields[] = "$field = ?";
                     $params[] = $data[$field];
@@ -160,7 +285,7 @@ class TeamController
             }
             
             $params[] = $id;
-            $sql = "UPDATE team_members SET " . implode(', ', $fields) . " WHERE id = ?";
+            $sql = "UPDATE team SET " . implode(', ', $fields) . " WHERE id = ?";
             
             $stmt = $db->prepare($sql);
             $stmt->execute($params);
@@ -184,7 +309,7 @@ class TeamController
         
         try {
             $db = Database::getInstance();
-            $stmt = $db->prepare("DELETE FROM team_members WHERE id = ?");
+            $stmt = $db->prepare("DELETE FROM team WHERE id = ?");
             $stmt->execute([$id]);
             
             $response->getBody()->write(json_encode([

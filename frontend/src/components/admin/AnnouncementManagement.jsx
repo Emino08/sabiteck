@@ -31,6 +31,8 @@ import {
   Archive
 } from 'lucide-react';
 import { apiRequest } from '../../utils/api';
+import { toast } from 'sonner';
+import { getErrorMessage, formatErrorMessage } from '../../utils/errorHandler';
 
 
 const AnnouncementManagement = () => {
@@ -86,6 +88,7 @@ const AnnouncementManagement = () => {
       setStats({ total, active, inactive: total - active });
     } catch (error) {
       console.error('Error fetching announcements:', error);
+      toast.error(formatErrorMessage(error, 'Failed to load announcements'));
       // Set fallback data with enhanced content
       const fallbackData = [
         {
@@ -145,8 +148,10 @@ const AnnouncementManagement = () => {
       await fetchAnnouncements();
       resetForm();
       setShowModal(false);
+      toast.success(editingAnnouncement ? 'Announcement updated successfully!' : 'Announcement created successfully!');
     } catch (error) {
       console.error('Error saving announcement:', error);
+      toast.error(formatErrorMessage(error, 'Failed to save announcement'));
       // For demo purposes, update local state
       if (editingAnnouncement) {
         setAnnouncements(prev => prev.map(ann =>
@@ -192,23 +197,61 @@ const AnnouncementManagement = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this announcement?')) return;
+    const announcement = announcements.find(a => a.id === id);
+    const announcementTitle = announcement ? announcement.title : 'this announcement';
 
-    try {
-      await apiRequest(`/api/admin/announcements/${id}`, {
-        method: 'DELETE'
-      });
-      await fetchAnnouncements();
-    } catch (error) {
-      console.error('Error deleting announcement:', error);
-      // For demo purposes, remove from local state
-      setAnnouncements(prev => prev.filter(ann => ann.id !== id));
-      // Update stats
-      const newAnnouncements = announcements.filter(ann => ann.id !== id);
-      const total = newAnnouncements.length;
-      const active = newAnnouncements.filter(a => a.is_active).length;
-      setStats({ total, active, inactive: total - active });
-    }
+    toast.custom((t) => (
+      <div className="bg-white rounded-lg shadow-xl border border-gray-200 p-5 max-w-md">
+        <div className="flex items-start gap-3 mb-4">
+          <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-gray-900 text-lg mb-1">Delete Announcement</h3>
+            <p className="text-sm text-gray-600">Are you sure you want to delete <strong className="text-gray-900">{announcementTitle}</strong>?</p>
+            <p className="text-xs text-gray-500 mt-2">This action cannot be undone.</p>
+          </div>
+        </div>
+        <div className="flex gap-2 justify-end">
+          <button
+            onClick={() => toast.dismiss(t)}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={async () => {
+              toast.dismiss(t);
+              try {
+                await apiRequest(`/api/admin/announcements/${id}`, {
+                  method: 'DELETE'
+                });
+                await fetchAnnouncements();
+                toast.success('Announcement deleted successfully!');
+              } catch (error) {
+                console.error('Error deleting announcement:', error);
+                toast.error(formatErrorMessage(error, 'Failed to delete announcement'));
+                // For demo purposes, remove from local state
+                setAnnouncements(prev => prev.filter(ann => ann.id !== id));
+                // Update stats
+                const newAnnouncements = announcements.filter(ann => ann.id !== id);
+                const total = newAnnouncements.length;
+                const active = newAnnouncements.filter(a => a.is_active).length;
+                setStats({ total, active, inactive: total - active });
+              }
+            }}
+            className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    ), {
+      duration: Infinity,
+      position: 'top-center'
+    });
   };
 
   const toggleVisibility = async (id, isActive) => {
@@ -218,8 +261,10 @@ const AnnouncementManagement = () => {
         body: JSON.stringify({ is_active: !isActive })
       });
       await fetchAnnouncements();
+      toast.success(`Announcement ${!isActive ? 'activated' : 'deactivated'} successfully!`);
     } catch (error) {
       console.error('Error toggling announcement visibility:', error);
+      toast.error(formatErrorMessage(error, 'Failed to toggle announcement visibility'));
       // For demo purposes, update local state
       setAnnouncements(prev => prev.map(ann =>
         ann.id === id ? { ...ann, is_active: !isActive } : ann
@@ -689,7 +734,7 @@ const AnnouncementManagement = () => {
         {/* Professional Enterprise-Grade Modal */}
         {showModal && (
           <div className="fixed inset-0 bg-gradient-to-br from-black/70 via-slate-900/50 to-black/70 backdrop-blur-md overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
-            <div className="relative bg-white rounded-3xl shadow-4xl w-full max-w-4xl transform transition-all duration-500 scale-100 overflow-hidden border border-white/20">
+            <div className="relative bg-white rounded-3xl shadow-4xl w-full max-w-4xl max-h-[90vh] transform transition-all duration-500 scale-100 overflow-hidden border border-white/20 flex flex-col">
               {/* Premium Modal Header */}
               <div className="bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 p-10 text-white relative overflow-hidden">
                 {/* Sophisticated Background Pattern */}
@@ -727,7 +772,7 @@ const AnnouncementManagement = () => {
               </div>
 
               {/* Enhanced Professional Form Body */}
-              <div className="p-10 bg-gradient-to-br from-gray-50 to-white">
+              <div className="p-10 bg-gradient-to-br from-gray-50 to-white overflow-y-auto max-h-[calc(90vh-12rem)] flex-1">
                 <form onSubmit={handleSubmit} className="space-y-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* Title Field */}

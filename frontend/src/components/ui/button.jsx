@@ -24,14 +24,14 @@ const Button = React.forwardRef(({
   }
 
   const sizes = {
-    default: 'h-10 px-4 py-2',
-    sm: 'h-9 rounded-md px-3',
-    lg: 'h-11 rounded-md px-8',
-    xl: 'h-14 rounded-lg px-10 text-lg',
-    icon: 'h-10 w-10'
+    default: 'h-10 px-4 py-2 text-sm sm:text-base',
+    sm: 'h-8 sm:h-9 rounded-md px-2 sm:px-3 text-xs sm:text-sm',
+    lg: 'h-11 sm:h-12 rounded-md px-6 sm:px-8 text-base sm:text-lg',
+    xl: 'h-12 sm:h-14 rounded-lg px-8 sm:px-10 text-lg sm:text-xl',
+    icon: 'h-10 w-10 sm:h-11 sm:w-11'
   }
 
-  const baseClasses = 'inline-flex items-center justify-center rounded-md font-medium transition-smooth focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none hover-lift'
+  const baseClasses = 'inline-flex items-center justify-center rounded-md font-medium transition-smooth focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none hover-lift active:scale-95 touch-target'
 
   return (
     <button
@@ -62,17 +62,17 @@ const FAB = React.forwardRef(({
   ...props
 }, ref) => {
   const positions = {
-    'bottom-right': 'fixed bottom-6 right-6',
-    'bottom-left': 'fixed bottom-6 left-6',
-    'top-right': 'fixed top-6 right-6',
-    'top-left': 'fixed top-6 left-6'
+    'bottom-right': 'fixed bottom-4 right-4 sm:bottom-6 sm:right-6',
+    'bottom-left': 'fixed bottom-4 left-4 sm:bottom-6 sm:left-6',
+    'top-right': 'fixed top-4 right-4 sm:top-6 sm:right-6',
+    'top-left': 'fixed top-4 left-4 sm:top-6 sm:left-6'
   }
 
   return (
     <Button
       ref={ref}
       className={cn(
-        'h-14 w-14 rounded-full shadow-lg hover:shadow-xl z-50',
+        'h-12 w-12 sm:h-14 sm:w-14 rounded-full shadow-lg hover:shadow-xl z-50 active:scale-90',
         positions[position],
         className
       )}
@@ -121,13 +121,13 @@ const IconButton = React.forwardRef(({
     ref={ref}
     size="icon"
     variant="ghost"
-    className={cn('relative group', className)}
+    className={cn('relative group no-tap-highlight', className)}
     title={tooltip}
     {...props}
   >
-    <Icon className="h-4 w-4" />
+    <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
     {tooltip && (
-      <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+      <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap hidden sm:block">
         {tooltip}
       </span>
     )}

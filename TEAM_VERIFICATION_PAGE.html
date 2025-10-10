@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Management - Complete Verification</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+        
+        .test-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .test-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .test-section h2::before {
+            content: "🔍";
+            font-size: 1.2em;
+        }
+        
+        .test-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px 10px 10px 0;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        .test-button:active {
+            transform: translateY(0);
+        }
+        
+        .result {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 15px;
+            display: none;
+            border: 2px solid #e0e0e0;
+        }
+        
+        .result.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        
+        .warning {
+            color: #ffc107;
+            font-weight: bold;
+        }
+        
+        .team-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+        }
+        
+        .team-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .field-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .field-label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .field-value {
+            color: #333;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-left: 8px;
+        }
+        
+        .status-ok {
+            background: #28a745;
+        }
+        
+        .status-missing {
+            background: #dc3545;
+        }
+        
+        .summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .summary h2 {
+            margin-bottom: 20px;
+        }
+        
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background: rgba(255,255,255,0.2);
+            padding: 20px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #667eea;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎉 Team Management - Complete Verification</h1>
+        <p class="subtitle">Test all functionality to ensure everything is working perfectly</p>
+        
+        <!-- Test 1: Database Structure -->
+        <div class="test-section">
+            <h2>Database Structure</h2>
+            <p>Verify that all required columns exist in the team table</p>
+            <button class="test-button" onclick="testDatabaseStructure()">Run Test</button>
+            <div id="db-result" class="result"></div>
+        </div>
+        
+        <!-- Test 2: API Endpoints -->
+        <div class="test-section">
+            <h2>API Endpoints</h2>
+            <p>Test all team API endpoints for correct data</p>
+            <button class="test-button" onclick="testApiEndpoints()">Test All Endpoints</button>
+            <button class="test-button" onclick="testSingleMember()">Test Single Member</button>
+            <div id="api-result" class="result"></div>
+        </div>
+        
+        <!-- Test 3: Data Completeness -->
+        <div class="test-section">
+            <h2>Data Completeness</h2>
+            <p>Check if all team members have complete information</p>
+            <button class="test-button" onclick="testDataCompleteness()">Check Data</button>
+            <div id="data-result" class="result"></div>
+        </div>
+        
+        <!-- Test 4: Skills Format -->
+        <div class="test-section">
+            <h2>Skills Format Validation</h2>
+            <p>Verify skills are properly formatted without double encoding</p>
+            <button class="test-button" onclick="testSkillsFormat()">Validate Skills</button>
+            <div id="skills-result" class="result"></div>
+        </div>
+        
+        <!-- Summary -->
+        <div class="summary" id="summary" style="display: none;">
+            <h2>Test Summary</h2>
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="total-members">0</div>
+                    <div class="stat-label">Total Members</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="complete-data">0</div>
+                    <div class="stat-label">Complete Data</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="valid-skills">0</div>
+                    <div class="stat-label">Valid Skills</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="tests-passed">0</div>
+                    <div class="stat-label">Tests Passed</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = 'http://localhost:8002';
+        let testResults = {
+            passed: 0,
+            total: 0,
+            members: 0,
+            complete: 0,
+            validSkills: 0
+        };
+        
+        async function testDatabaseStructure() {
+            const resultDiv = document.getElementById('db-result');
+            resultDiv.innerHTML = '<div class="loading"></div> Testing...';
+            resultDiv.classList.add('show');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/team`);
+                const data = await response.json();
+                
+                if (data.success && data.data.length > 0) {
+                    const firstMember = data.data[0];
+                    const requiredFields = ['id', 'name', 'position', 'department', 'email', 'phone', 'location', 'skills'];
+                    const missingFields = requiredFields.filter(field => !(field in firstMember));
+                    
+                    let html = '<h3 class="success">✅ Database Structure Test</h3>';
+                    html += '<div class="field-row"><span class="field-label">Required Fields:</span><span class="field-value">' + requiredFields.length + ' fields</span></div>';
+                    html += '<div class="field-row"><span class="field-label">Found Fields:</span><span class="field-value">' + Object.keys(firstMember).length + ' fields</span></div>';
+                    
+                    if (missingFields.length === 0) {
+                        html += '<div class="field-row"><span class="success">✅ All required fields present</span></div>';
+                        testResults.passed++;
+                    } else {
+                        html += '<div class="field-row"><span class="error">❌ Missing fields: ' + missingFields.join(', ') + '</span></div>';
+                    }
+                    
+                    testResults.total++;
+                    resultDiv.innerHTML = html;
+                    updateSummary();
+                } else {
+                    resultDiv.innerHTML = '<h3 class="error">❌ Failed to fetch data</h3>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = '<h3 class="error">❌ Error: ' + error.message + '</h3>';
+            }
+        }
+        
+        async function testApiEndpoints() {
+            const resultDiv = document.getElementById('api-result');
+            resultDiv.innerHTML = '<div class="loading"></div> Testing API endpoints...';
+            resultDiv.classList.add('show');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/team`);
+                const data = await response.json();
+                
+                let html = '<h3 class="success">✅ API Endpoints Test</h3>';
+                html += '<div class="field-row"><span class="field-label">Endpoint:</span><span class="field-value">/api/admin/team</span></div>';
+                html += '<div class="field-row"><span class="field-label">Status:</span><span class="success">✅ Responding</span></div>';
+                html += '<div class="field-row"><span class="field-label">Success:</span><span class="field-value">' + data.success + '</span></div>';
+                html += '<div class="field-row"><span class="field-label">Members Returned:</span><span class="field-value">' + data.data.length + '</span></div>';
+                
+                testResults.members = data.data.length;
+                testResults.passed++;
+                testResults.total++;
+                
+                resultDiv.innerHTML = html;
+                updateSummary();
+            } catch (error) {
+                resultDiv.innerHTML = '<h3 class="error">❌ Error: ' + error.message + '</h3>';
+                testResults.total++;
+            }
+        }
+        
+        async function testSingleMember() {
+            const resultDiv = document.getElementById('api-result');
+            resultDiv.innerHTML = '<div class="loading"></div> Testing single member endpoint...';
+            resultDiv.classList.add('show');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/team/1`);
+                const data = await response.json();
+                
+                if (data.success && data.data) {
+                    const member = data.data;
+                    let html = '<h3 class="success">✅ Single Member Test (ID: 1)</h3>';
+                    html += '<div class="team-card">';
+                    html += '<h3>' + member.name + '</h3>';
+                    html += '<div class="field-row"><span class="field-label">Position:</span><span class="field-value">' + member.position + '</span></div>';
+                    html += '<div class="field-row"><span class="field-label">Department:</span><span class="field-value">' + (member.department || 'NULL') + '<span class="status-indicator ' + (member.department ? 'status-ok' : 'status-missing') + '"></span></span></div>';
+                    html += '<div class="field-row"><span class="field-label">Phone:</span><span class="field-value">' + (member.phone || 'NULL') + '<span class="status-indicator ' + (member.phone ? 'status-ok' : 'status-missing') + '"></span></span></div>';
+                    html += '<div class="field-row"><span class="field-label">Location:</span><span class="field-value">' + (member.location || 'NULL') + '<span class="status-indicator ' + (member.location ? 'status-ok' : 'status-missing') + '"></span></span></div>';
+                    html += '<div class="field-row"><span class="field-label">Skills:</span><span class="field-value">' + (Array.isArray(member.skills) ? member.skills.length + ' skills' : 'Invalid format') + '<span class="status-indicator ' + (Array.isArray(member.skills) && member.skills.length > 0 ? 'status-ok' : 'status-missing') + '"></span></span></div>';
+                    html += '</div>';
+                    
+                    resultDiv.innerHTML = html;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = '<h3 class="error">❌ Error: ' + error.message + '</h3>';
+            }
+        }
+        
+        async function testDataCompleteness() {
+            const resultDiv = document.getElementById('data-result');
+            resultDiv.innerHTML = '<div class="loading"></div> Checking data completeness...';
+            resultDiv.classList.add('show');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/team`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    let completeCount = 0;
+                    let html = '<h3>📊 Data Completeness Report</h3>';
+                    
+                    data.data.forEach(member => {
+                        const isComplete = member.phone && member.location && member.department;
+                        if (isComplete) completeCount++;
+                        
+                        html += '<div class="team-card">';
+                        html += '<h3>' + member.name + ' ' + (isComplete ? '✅' : '⚠️') + '</h3>';
+                        html += '<div class="field-row"><span class="field-label">Phone:</span><span class="field-value">' + (member.phone ? '✅ ' + member.phone : '❌ Missing') + '</span></div>';
+                        html += '<div class="field-row"><span class="field-label">Location:</span><span class="field-value">' + (member.location ? '✅ ' + member.location : '❌ Missing') + '</span></div>';
+                        html += '<div class="field-row"><span class="field-label">Department:</span><span class="field-value">' + (member.department ? '✅ ' + member.department : '❌ Missing') + '</span></div>';
+                        html += '</div>';
+                    });
+                    
+                    html += '<div class="field-row"><span class="field-label"><strong>Complete Profiles:</strong></span><span class="field-value"><strong>' + completeCount + ' / ' + data.data.length + '</strong></span></div>';
+                    
+                    testResults.complete = completeCount;
+                    if (completeCount === data.data.length) {
+                        html += '<div class="success">✅ All team members have complete information!</div>';
+                        testResults.passed++;
+                    } else {
+                        html += '<div class="warning">⚠️ Some team members are missing information</div>';
+                    }
+                    
+                    testResults.total++;
+                    resultDiv.innerHTML = html;
+                    updateSummary();
+                }
+            } catch (error) {
+                resultDiv.innerHTML = '<h3 class="error">❌ Error: ' + error.message + '</h3>';
+            }
+        }
+        
+        async function testSkillsFormat() {
+            const resultDiv = document.getElementById('skills-result');
+            resultDiv.innerHTML = '<div class="loading"></div> Validating skills format...';
+            resultDiv.classList.add('show');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/team`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    let validCount = 0;
+                    let html = '<h3>🎯 Skills Format Validation</h3>';
+                    
+                    data.data.forEach(member => {
+                        const hasValidSkills = Array.isArray(member.skills) && member.skills.length > 0;
+                        let hasDoubleEncoding = false;
+                        
+                        if (hasValidSkills) {
+                            // Check for double encoding
+                            hasDoubleEncoding = member.skills.some(skill => 
+                                typeof skill === 'string' && (skill.includes('["') || skill.includes('\\"'))
+                            );
+                            
+                            if (!hasDoubleEncoding) validCount++;
+                        }
+                        
+                        html += '<div class="team-card">';
+                        html += '<h3>' + member.name + '</h3>';
+                        html += '<div class="field-row"><span class="field-label">Skills Format:</span><span class="field-value">' + (hasValidSkills ? (hasDoubleEncoding ? '⚠️ Double Encoded' : '✅ Valid Array') : '❌ Invalid/Missing') + '</span></div>';
+                        
+                        if (hasValidSkills) {
+                            html += '<div class="field-row"><span class="field-label">Skills:</span><span class="field-value">' + member.skills.slice(0, 3).join(', ') + (member.skills.length > 3 ? '...' : '') + '</span></div>';
+                            html += '<div class="field-row"><span class="field-label">Count:</span><span class="field-value">' + member.skills.length + ' skills</span></div>';
+                        }
+                        
+                        html += '</div>';
+                    });
+                    
+                    html += '<div class="field-row"><span class="field-label"><strong>Valid Skills Format:</strong></span><span class="field-value"><strong>' + validCount + ' / ' + data.data.length + '</strong></span></div>';
+                    
+                    testResults.validSkills = validCount;
+                    if (validCount === data.data.length) {
+                        html += '<div class="success">✅ All skills are properly formatted!</div>';
+                        testResults.passed++;
+                    } else {
+                        html += '<div class="warning">⚠️ Some skills need formatting fixes</div>';
+                    }
+                    
+                    testResults.total++;
+                    resultDiv.innerHTML = html;
+                    updateSummary();
+                }
+            } catch (error) {
+                resultDiv.innerHTML = '<h3 class="error">❌ Error: ' + error.message + '</h3>';
+            }
+        }
+        
+        function updateSummary() {
+            const summary = document.getElementById('summary');
+            summary.style.display = 'block';
+            
+            document.getElementById('total-members').textContent = testResults.members;
+            document.getElementById('complete-data').textContent = testResults.complete;
+            document.getElementById('valid-skills').textContent = testResults.validSkills;
+            document.getElementById('tests-passed').textContent = testResults.passed + ' / ' + testResults.total;
+        }
+        
+        // Run all tests automatically
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                testDatabaseStructure();
+                setTimeout(() => testApiEndpoints(), 1000);
+                setTimeout(() => testDataCompleteness(), 2000);
+                setTimeout(() => testSkillsFormat(), 3000);
+            }, 500);
+        });
+    </script>
+</body>
+</html>

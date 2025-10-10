@@ -11,12 +11,20 @@
 export const hasPermission = (user, permission) => {
   if (!user || !permission) return false;
 
-  // Super admin and admin have all permissions
-  if (user.role === 'super-admin' || user.role === 'admin' || user.role_name === 'super-admin' || user.role_name === 'admin') {
+  // Super admins (role_name='admin') have all permissions
+  // Note: All staff have role='admin', but role_name determines their type
+  const userRoleName = user.role_name || user.role;
+  const isTrueSuperAdmin = (
+    userRoleName === 'admin' || 
+    userRoleName === 'super_admin' || 
+    userRoleName === 'Administrator'
+  );
+  
+  if (isTrueSuperAdmin) {
     return true;
   }
 
-  // Check in permissions array
+  // For all other staff users, check permissions array
   if (user.permissions) {
     return user.permissions.some(p =>
       p === permission ||
@@ -60,12 +68,19 @@ export const hasAllPermissions = (user, permissions) => {
 export const hasModuleAccess = (user, module) => {
   if (!user || !module) return false;
 
-  // Super admin and admin have access to all modules
-  if (user.role === 'super-admin' || user.role === 'admin' || user.role_name === 'super-admin' || user.role_name === 'admin') {
+  // Super admins (role_name='admin') have access to all modules
+  const userRoleName = user.role_name || user.role;
+  const isTrueSuperAdmin = (
+    userRoleName === 'admin' || 
+    userRoleName === 'super_admin' || 
+    userRoleName === 'Administrator'
+  );
+  
+  if (isTrueSuperAdmin) {
     return true;
   }
 
-  // Check in modules array
+  // For all other staff users, check modules array
   if (user.modules) {
     return user.modules.includes(module);
   }
@@ -108,113 +123,113 @@ export const adminTabs = [
     id: 'overview',
     label: 'Overview',
     icon: 'BarChart3',
-    permissions: ['view-dashboard'],
+    permissions: ['dashboard.view'],
     modules: ['dashboard']
   },
   {
     id: 'analytics',
     label: 'Analytics',
     icon: 'TrendingUp',
-    permissions: ['view-analytics'],
-    modules: ['dashboard']
+    permissions: ['analytics.view'],
+    modules: ['analytics']
   },
   {
     id: 'users',
     label: 'User Management',
     icon: 'Users',
-    permissions: ['view-users'],
+    permissions: ['users.view'],
     modules: ['users']
   },
   {
     id: 'content',
     label: 'Content',
     icon: 'FileText',
-    permissions: ['view-content'],
+    permissions: ['content.view'],
     modules: ['content']
   },
   {
     id: 'jobs',
     label: 'Jobs',
     icon: 'Briefcase',
-    permissions: ['view-jobs'],
+    permissions: ['jobs.view'],
     modules: ['jobs']
   },
   {
     id: 'scholarships',
     label: 'Scholarships',
     icon: 'GraduationCap',
-    permissions: ['view-scholarships'],
+    permissions: ['scholarships.view'],
     modules: ['scholarships']
   },
   {
     id: 'services',
     label: 'Services',
     icon: 'Globe',
-    permissions: ['view-services'],
-    modules: ['services']
+    permissions: ['content.view'],
+    modules: ['content']
   },
   {
     id: 'portfolio',
     label: 'Portfolio',
     icon: 'Folder',
-    permissions: ['view-portfolio'],
-    modules: ['portfolio']
+    permissions: ['content.view'],
+    modules: ['content']
   },
   {
     id: 'team',
     label: 'Team',
     icon: 'User',
-    permissions: ['view-team'],
+    permissions: ['team.view'],
     modules: ['team']
   },
   {
     id: 'announcements',
     label: 'Announcements',
     icon: 'Megaphone',
-    permissions: ['view-announcements'],
+    permissions: ['announcements.view'],
     modules: ['announcements']
   },
   {
     id: 'newsletter',
     label: 'Newsletter',
     icon: 'Mail',
-    permissions: ['view-newsletter'],
+    permissions: ['newsletter.view'],
     modules: ['newsletter']
   },
   {
     id: 'about',
     label: 'About',
     icon: 'FileText',
-    permissions: ['view-content'],
+    permissions: ['content.view'],
     modules: ['content']
   },
   {
     id: 'organizations',
     label: 'Organizations',
     icon: 'Database',
-    permissions: ['view-organizations'],
+    permissions: ['organizations.view'],
     modules: ['organizations']
   },
   {
     id: 'tools',
     label: 'Tools',
     icon: 'Settings',
-    permissions: ['view-tools'],
-    modules: ['tools']
+    permissions: ['system.settings'],
+    modules: ['system']
   },
   {
     id: 'routes',
     label: 'Routes',
     icon: 'Navigation',
-    permissions: ['edit-settings'],
-    modules: ['settings']
+    permissions: ['system.settings'],
+    modules: ['system']
   },
   {
     id: 'settings',
     label: 'Settings',
     icon: 'Settings',
-    permissions: ['view-settings'],
-    modules: ['settings']
+    permissions: ['system.settings'],
+    modules: ['system']
   }
 ];
 
@@ -225,29 +240,28 @@ export const rolePermissions = {
   'super-admin': '*', // All permissions
   'admin': '*', // All permissions
   'content-manager': [
-    'view-dashboard',
-    'view-content', 'create-content', 'edit-content', 'delete-content', 'publish-content',
-    'view-jobs', 'create-jobs', 'edit-jobs', 'delete-jobs',
-    'view-scholarships', 'create-scholarships', 'edit-scholarships', 'delete-scholarships',
-    'view-announcements', 'create-announcements', 'edit-announcements', 'delete-announcements'
+    'dashboard.view',
+    'content.view', 'content.create', 'content.edit', 'content.delete', 'content.publish',
+    'jobs.view', 'jobs.create', 'jobs.edit', 'jobs.delete',
+    'scholarships.view', 'scholarships.create', 'scholarships.edit', 'scholarships.delete',
+    'announcements.view', 'announcements.create', 'announcements.edit', 'announcements.delete'
   ],
   'hr-manager': [
-    'view-dashboard',
-    'view-users', 'create-users', 'edit-users',
-    'view-jobs', 'create-jobs', 'edit-jobs', 'delete-jobs', 'manage-job-applications',
-    'view-team', 'create-team', 'edit-team', 'delete-team'
+    'dashboard.view',
+    'users.view', 'users.create', 'users.edit',
+    'jobs.view', 'jobs.create', 'jobs.edit', 'jobs.delete', 'jobs.manage_applications',
+    'team.view', 'team.create', 'team.edit', 'team.delete'
   ],
   'editor': [
-    'view-dashboard',
-    'view-content', 'create-content', 'edit-content',
-    'view-portfolio', 'create-portfolio', 'edit-portfolio'
+    'dashboard.view',
+    'content.view', 'content.create', 'content.edit'
   ],
   'user': [
-    'view-dashboard'
+    'dashboard.view'
   ],
   'viewer': [
-    'view-dashboard',
-    'view-content', 'view-jobs', 'view-scholarships', 'view-portfolio', 'view-team', 'view-announcements'
+    'dashboard.view',
+    'content.view', 'jobs.view', 'scholarships.view', 'team.view', 'announcements.view'
   ]
 };
 
@@ -259,7 +273,8 @@ export const rolePermissions = {
  * @returns {boolean}
  */
 export const canPerformAction = (user, action, resource) => {
-  const permission = `${action}-${resource}`;
+  // Use dot notation: resource.action (e.g., content.view, users.edit)
+  const permission = `${resource}.${action}`;
   return hasPermission(user, permission);
 };
 

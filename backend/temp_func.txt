@@ -1,0 +1,9 @@
+function handleChangePassword($db) {
+    $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+    $token = str_replace('Bearer ', '', $authHeader);
+    $input = json_decode(file_get_contents('php://input'), true);
+
+    if (empty($token)) {
+        echo json_encode(['success' => false, 'error' => 'No authorization token provided']);
+        return;
+    }

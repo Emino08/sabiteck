@@ -4,13 +4,13 @@ import { Loader2 } from "lucide-react"
 
 const Card = React.forwardRef(({ className, variant = 'default', loading = false, error = false, ...props }, ref) => {
   const variants = {
-    default: "rounded-lg border bg-card text-card-foreground shadow-sm hover:shadow-md transition-smooth",
-    elevated: "rounded-xl border bg-card text-card-foreground shadow-lg hover:shadow-xl transition-smooth hover-lift",
-    interactive: "rounded-lg border bg-card text-card-foreground shadow-sm hover-lift hover-glow transition-smooth cursor-pointer transform hover:scale-[1.02]",
-    minimal: "rounded-lg bg-card text-card-foreground transition-smooth",
-    glass: "rounded-xl glass backdrop-blur-md border border-white/20 shadow-elegant",
-    gradient: "rounded-xl bg-gradient-to-br from-blue-50 to-indigo-100 border-0 shadow-colored",
-    featured: "rounded-xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-white shadow-colored hover-lift transition-smooth"
+    default: "rounded-xl sm:rounded-2xl border bg-card text-card-foreground shadow-sm hover:shadow-md transition-smooth",
+    elevated: "rounded-xl sm:rounded-2xl border bg-card text-card-foreground shadow-lg hover:shadow-xl transition-smooth hover-lift",
+    interactive: "rounded-xl sm:rounded-2xl border bg-card text-card-foreground shadow-sm hover-lift hover-glow transition-smooth cursor-pointer transform hover:scale-[1.02] active:scale-[0.98]",
+    minimal: "rounded-xl sm:rounded-2xl bg-card text-card-foreground transition-smooth",
+    glass: "rounded-xl sm:rounded-2xl glass backdrop-blur-md border border-white/20 shadow-elegant",
+    gradient: "rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-100 border-0 shadow-colored",
+    featured: "rounded-xl sm:rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-white shadow-colored hover-lift transition-smooth"
   }
 
   if (loading) {
@@ -49,7 +49,7 @@ const Card = React.forwardRef(({ className, variant = 'default', loading = false
 const CardHeader = React.forwardRef(({ className, children, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex flex-col space-y-1.5 p-6", className)}
+    className={cn("flex flex-col space-y-1.5 p-4 sm:p-6", className)}
     {...props}
   >
     {children}
@@ -60,7 +60,7 @@ const CardTitle = React.forwardRef(({ className, children, gradient = false, ...
   <h3
     ref={ref}
     className={cn(
-      "text-2xl font-semibold leading-none tracking-tight",
+      "text-xl sm:text-2xl font-semibold leading-none tracking-tight",
       gradient && "text-gradient",
       className
     )}
@@ -79,11 +79,11 @@ const CardDescription = React.forwardRef(({ className, ...props }, ref) => (
 ))
 
 const CardContent = React.forwardRef(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+  <div ref={ref} className={cn("p-4 sm:p-6 pt-0", className)} {...props} />
 ))
 
 const CardFooter = React.forwardRef(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("flex items-center p-6 pt-0", className)} {...props} />
+  <div ref={ref} className={cn("flex items-center p-4 sm:p-6 pt-0", className)} {...props} />
 ))
 
 // Enhanced skeleton loader for cards
@@ -125,7 +125,7 @@ const ImageCard = React.forwardRef(({
             src={imageSrc}
             alt={imageAlt}
             className={cn(
-              "w-full h-48 object-cover transition-transform duration-300 hover:scale-105",
+              "w-full h-40 sm:h-48 md:h-56 object-cover transition-transform duration-300 hover:scale-105",
               imageClassName
             )}
             onError={(e) => {
@@ -135,7 +135,7 @@ const ImageCard = React.forwardRef(({
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
         </div>
       )}
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         {props.children}
       </div>
     </Card>

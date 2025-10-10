@@ -1,35 +1,76 @@
-import React, { useState, useEffect, useMemo } from 'react'
-import { Users, Award, Globe, Clock, Heart, Target, Lightbulb, Shield, Github, Linkedin, Twitter, Mail, MapPin, Calendar, Code, Coffee, Zap, X, FileText, Send, Upload, ChevronRight, Star, Building2, Briefcase, GraduationCap, Phone } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { toast } from 'sonner'
-import ApiService from '../../services/api'
+import React, { useState, useEffect, useMemo } from 'react';
+import { Users, Award, Globe, Clock, Heart, Target, Lightbulb, Shield, Github, Linkedin, Twitter, Mail, MapPin, Calendar, Code, Coffee, Zap, X, FileText, Send, Upload, ChevronRight, Star, Building, Briefcase, GraduationCap, Phone, User, TrendingUp, Sparkles, Laptop, Palette, Database, Cloud, Smartphone, Layout, Terminal, BookOpen, Wrench, Rocket } from 'lucide-react';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Badge } from '../ui/badge';
+import { toast } from 'sonner';
+import { apiRequest } from '../../utils/api';
+import SEO from '../SEO/SEOHead';
 
 const Team = () => {
-  const [selectedDepartment, setSelectedDepartment] = useState('all')
-  const [showJobsModal, setShowJobsModal] = useState(false)
-  const [showResumeModal, setShowResumeModal] = useState(false)
-  const [resumeForm, setResumeForm] = useState({
-    name: '',
-    email: '',
-    position: '',
-    experience: '',
-    message: '',
-    resume: null
-  })
-  const [submittingResume, setSubmittingResume] = useState(false)
+  const [selectedDepartment, setSelectedDepartment] = useState('all');
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // New state for API-driven data
-  const [teamMembers, setTeamMembers] = useState([])
-  const [featuredMembers, setFeaturedMembers] = useState([])
-  const [rawDepartments, setRawDepartments] = useState([])
-  const [jobs, setJobs] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  // Skill icon and color mapping for enhanced visual display
+  const skillStyles = {
+    // Technical Skills
+    'react': { icon: Code, gradient: 'from-cyan-500 to-blue-500', bg: 'bg-cyan-50', text: 'text-cyan-700', border: 'border-cyan-200' },
+    'javascript': { icon: Code, gradient: 'from-yellow-400 to-yellow-600', bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-200' },
+    'typescript': { icon: Code, gradient: 'from-blue-500 to-blue-700', bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+    'node.js': { icon: Terminal, gradient: 'from-green-500 to-green-700', bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
+    'nodejs': { icon: Terminal, gradient: 'from-green-500 to-green-700', bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
+    'python': { icon: Code, gradient: 'from-blue-400 to-yellow-400', bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+    'java': { icon: Coffee, gradient: 'from-red-500 to-orange-500', bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
+    'php': { icon: Code, gradient: 'from-indigo-500 to-purple-500', bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200' },
+    
+    // Databases
+    'database': { icon: Database, gradient: 'from-emerald-500 to-teal-500', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
+    'mongodb': { icon: Database, gradient: 'from-green-600 to-green-800', bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
+    'mysql': { icon: Database, gradient: 'from-blue-500 to-blue-700', bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+    'postgresql': { icon: Database, gradient: 'from-blue-600 to-indigo-600', bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+    
+    // Design
+    'design': { icon: Palette, gradient: 'from-pink-500 to-rose-500', bg: 'bg-pink-50', text: 'text-pink-700', border: 'border-pink-200' },
+    'ui/ux': { icon: Layout, gradient: 'from-purple-500 to-pink-500', bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
+    'figma': { icon: Palette, gradient: 'from-purple-400 to-pink-400', bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
+    
+    // Cloud & DevOps
+    'cloud': { icon: Cloud, gradient: 'from-sky-400 to-blue-500', bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200' },
+    'aws': { icon: Cloud, gradient: 'from-orange-500 to-yellow-500', bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' },
+    'docker': { icon: Cloud, gradient: 'from-blue-500 to-cyan-500', bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+    
+    // Leadership & Soft Skills
+    'leadership': { icon: Users, gradient: 'from-purple-600 to-indigo-600', bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
+    'mentorship': { icon: BookOpen, gradient: 'from-teal-500 to-cyan-500', bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200' },
+    'strategy': { icon: Target, gradient: 'from-indigo-500 to-purple-500', bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200' },
+    'management': { icon: Briefcase, gradient: 'from-slate-600 to-gray-600', bg: 'bg-slate-50', text: 'text-slate-700', border: 'border-slate-200' },
+    
+    // Mobile
+    'mobile': { icon: Smartphone, gradient: 'from-violet-500 to-purple-500', bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200' },
+    'ios': { icon: Smartphone, gradient: 'from-gray-700 to-gray-900', bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200' },
+    'android': { icon: Smartphone, gradient: 'from-green-500 to-lime-500', bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
+    
+    // Default
+    'default': { icon: Zap, gradient: 'from-purple-500 to-indigo-500', bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' }
+  };
 
-  // Department color mapping for better visual appeal
+  // Function to get skill style
+  const getSkillStyle = (skill) => {
+    const skillLower = skill.toLowerCase().trim();
+    
+    // Check for exact matches or partial matches
+    for (const [key, value] of Object.entries(skillStyles)) {
+      if (skillLower.includes(key) || key.includes(skillLower)) {
+        return value;
+      }
+    }
+    
+    return skillStyles.default;
+  };
+
   const departmentColors = {
     leadership: { bg: 'bg-gradient-to-br from-purple-500 to-purple-700', icon: '👑', accent: 'text-purple-600' },
     engineering: { bg: 'bg-gradient-to-br from-blue-500 to-blue-700', icon: '⚡', accent: 'text-blue-600' },
@@ -39,203 +80,57 @@ const Team = () => {
     sales: { bg: 'bg-gradient-to-br from-indigo-500 to-indigo-700', icon: '💼', accent: 'text-indigo-600' },
     management: { bg: 'bg-gradient-to-br from-red-500 to-red-700', icon: '🏆', accent: 'text-red-600' },
     all: { bg: 'bg-gradient-to-br from-gray-500 to-gray-700', icon: '🌟', accent: 'text-gray-600' }
-  }
-
-  // Helpers
-  const slugifySimple = (s) => (s || '').toString().toLowerCase().replace(/[^a-z0-9]+/g, '').trim()
-
-  const inferDepartmentSlug = (position = '') => {
-    const p = (position || '').toLowerCase()
-    if (/design|ux|ui/.test(p)) return 'design'
-    if (/devops|cloud|infra/.test(p)) return 'engineering'
-    if (/engineer|developer|cto|software|backend|frontend|full/.test(p)) return 'engineering'
-    if (/sales|marketing|growth/.test(p)) return 'sales'
-    if (/ceo|coo|cfo|vp|head|manager|lead|director|product|management/.test(p)) return 'management'
-    return 'engineering' // default bucket
-  }
-
-  const mapMember = (m) => {
-    const social = {
-      linkedin: m.linkedin_url || undefined,
-      twitter: m.twitter_url || undefined,
-      email: m.email || undefined,
-      github: undefined
-    }
-    // Use the actual department from API if available, otherwise infer from position
-    const department = m.department
-      ? slugifySimple(m.department)
-      : inferDepartmentSlug(m.position)
-
-    return {
-      name: m.name,
-      role: m.position,
-      department: department,
-      bio: m.bio || '',
-      experience: m.experience || '',
-      education: m.education || '',
-      skills: Array.isArray(m.skills) ? m.skills : [],
-      social
-    }
-  }
-
-  const splitToList = (text = '') => {
-    if (!text) return []
-    return (text || '')
-      .split(/\r?\n|•/)
-      .map(s => s.replace(/^[-•\s]+/, '').trim())
-      .filter(Boolean)
-  }
-
-  const mapJob = (j) => ({
-    id: j.id || j.slug || Math.random().toString(36).slice(2),
-    title: j.title,
-    department: j.category || j.department || 'General',
-    location: j.location || 'Remote',
-    type: j.job_type || j.type || 'full-time',
-    experience: j.experience || '',
-    description: j.description || '',
-    requirements: Array.isArray(j.requirements) ? j.requirements : splitToList(j.requirements),
-    benefits: Array.isArray(j.benefits) ? j.benefits : splitToList(j.benefits)
-  })
+  };
 
   useEffect(() => {
-    let mounted = true
-    setLoading(true)
-    setError(null)
+    let mounted = true;
+    setLoading(true);
+    setError(null);
 
     const load = async () => {
       try {
-        const [teamResp, featuredResp, deptResp, jobsResp] = await Promise.all([
-          ApiService.getTeamMembers().catch(() => []),
-          ApiService.getFeaturedTeamMembers().catch(() => []),
-          ApiService.getTeamDepartments().catch(() => []),
-          ApiService.getJobs().catch(() => [])
-        ])
-        if (!mounted) return
-        setTeamMembers(Array.isArray(teamResp) ? teamResp : (teamResp?.team || []))
-        setFeaturedMembers(Array.isArray(featuredResp) ? featuredResp : (featuredResp?.team || []))
-        setRawDepartments(Array.isArray(deptResp) ? deptResp : (deptResp?.departments || []))
-        setJobs(Array.isArray(jobsResp) ? jobsResp : (jobsResp?.jobs || []))
+        const teamResp = await apiRequest('/api/team');
+        if (!mounted) return;
+
+        if (teamResp.success && Array.isArray(teamResp.data)) {
+          setTeamMembers(teamResp.data);
+        } else {
+          setError('Failed to load team members.');
+        }
       } catch (e) {
-        if (!mounted) return
-        setError('Failed to load team data')
+        if (!mounted) return;
+        setError('An error occurred while fetching team data.');
+        console.error(e);
       } finally {
-        if (mounted) setLoading(false)
+        if (mounted) setLoading(false);
       }
-    }
+    };
 
-    load()
-    return () => { mounted = false }
-  }, [])
-
-  const normalizedTeam = useMemo(() => (teamMembers || []).map(mapMember), [teamMembers])
-  const normalizedFeatured = useMemo(() => (featuredMembers || []).map(mapMember), [featuredMembers])
-  const uiJobs = useMemo(() => (jobs || []).map(mapJob), [jobs])
-
-  const deptCounts = useMemo(() => {
-    const counts = {}
-    for (const m of normalizedTeam) {
-      const d = m.department || 'engineering'
-      counts[d] = (counts[d] || 0) + 1
-    }
-    return counts
-  }, [normalizedTeam])
+    load();
+    return () => { mounted = false; };
+  }, []);
 
   const uiDepartments = useMemo(() => {
-    const mapped = (rawDepartments || []).map(d => {
-      const slug = d.slug || slugifySimple(d.name)
-      return {
-        id: slug,
-        name: d.name || d.value || slug,
-        count: d.member_count || deptCounts[slug] || 0,
-        description: d.description || '',
-        head: d.head || ''
-      }
-    })
-    const total = normalizedTeam.length
-    // Ensure uniqueness of slugs and stable order
-    const seen = new Set()
-    const unique = []
-    for (const d of mapped) {
-      if (!seen.has(d.id)) { seen.add(d.id); unique.push(d) }
-    }
-    return [{ id: 'all', name: 'All Team', count: total, description: 'View all team members', head: '' }, ...unique]
-  }, [rawDepartments, deptCounts, normalizedTeam.length])
-
-  // Dynamic stats: make team count real; keep others as-is for now
-  const stats = useMemo(() => ([
-    { icon: Users, label: 'Team Members', value: `${normalizedTeam.length}+`, description: 'Talented professionals worldwide' },
-    { icon: Award, label: 'Projects Completed', value: '200+', description: 'Successful deliveries since 2016' },
-    { icon: Globe, label: 'Countries Served', value: '25+', description: 'Global client base' },
-    { icon: Clock, label: 'Years Experience', value: '8+', description: 'Industry expertise' }
-  ]), [normalizedTeam.length])
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0]
-    if (file) {
-      // Check file size (5MB limit)
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('File size must be less than 5MB')
-        return
-      }
-
-      // Check file type
-      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
-      if (!allowedTypes.includes(file.type)) {
-        toast.error('Please upload a PDF, DOC, or DOCX file')
-        return
-      }
-
-      setResumeForm(prev => ({ ...prev, resume: file }))
-    }
-  }
-
-  const handleResumeSubmit = async (e) => {
-    e.preventDefault()
-    setSubmittingResume(true)
-
-    try {
-      const formData = new FormData()
-      formData.append('name', resumeForm.name)
-      formData.append('email', resumeForm.email)
-      formData.append('position', resumeForm.position)
-      formData.append('experience', resumeForm.experience)
-      formData.append('message', resumeForm.message)
-      formData.append('resume', resumeForm.resume)
-
-      // Since we don't have a specific API endpoint, we'll simulate success
-      // In a real application, you would send this to your backend
-      await new Promise(resolve => setTimeout(resolve, 2000)) // Simulate API call
-
-      toast.success('Resume submitted successfully! We\'ll be in touch soon.')
-      setShowResumeModal(false)
-      setResumeForm({
-        name: '',
-        email: '',
-        position: '',
-        experience: '',
-        message: '',
-        resume: null
-      })
-    } catch (error) {
-      toast.error('Failed to submit resume. Please try again.')
-    } finally {
-      setSubmittingResume(false)
-    }
-  }
+    if (!teamMembers.length) return [];
+    const depts = teamMembers.map(m => m.department).filter(Boolean);
+    const uniqueDepts = [...new Set(depts)];
+    const total = teamMembers.length;
+    return [{ id: 'all', name: 'All Team', count: total }, ...uniqueDepts.map(d => ({ id: d, name: d, count: teamMembers.filter(m => m.department === d).length }))];
+  }, [teamMembers]);
 
   const filteredTeam = selectedDepartment === 'all'
-    ? normalizedTeam
-    : normalizedTeam.filter(member => {
-        const matches = member.department === selectedDepartment
-        return matches
-      })
-
-  const featuredTeam = normalizedFeatured
+    ? teamMembers
+    : teamMembers.filter(member => member.department === selectedDepartment);
 
   const getDepartmentStyle = (dept) => {
-    return departmentColors[dept] || departmentColors.all
-  }
+    const slug = (dept || '').toLowerCase();
+    if (slug.includes('exec')) return departmentColors.leadership;
+    if (slug.includes('tech')) return departmentColors.engineering;
+    if (slug.includes('design')) return departmentColors.design;
+    if (slug.includes('market')) return departmentColors.marketing;
+    if (slug.includes('operat')) return departmentColors.operations;
+    return departmentColors.all;
+  };
 
   const values = [
     {
@@ -258,558 +153,397 @@ const Team = () => {
       title: 'Reliability',
       description: 'Count on us for consistent, high-quality delivery. We meet deadlines and maintain the highest standards of professionalism.'
     }
-  ]
+  ];
 
   return (
-    <div className="min-h-screen pt-20">
-      {/* Hero Section */}
-      <section className="relative py-20 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white overflow-hidden">
-        <div className="absolute inset-0 opacity-5">
-          <div className="w-full h-full bg-gradient-to-br from-white/10 to-transparent bg-repeat bg-[length:60px_60px]"
-               style={{
-                 backgroundImage: `radial-gradient(circle at 30px 30px, white 2px, transparent 2px)`
-               }}>
-          </div>
-        </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center px-4 py-2 bg-blue-600/20 backdrop-blur-sm rounded-full text-blue-200 text-sm font-medium mb-8 border border-blue-400/20">
-            <Star className="h-4 w-4 mr-2" />
-            World-class talent, global impact
-          </div>
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent">
-            Meet Our Team
-          </h1>
-          <p className="text-xl md:text-2xl text-blue-100 max-w-4xl mx-auto mb-12 leading-relaxed">
-            We're a diverse group of passionate professionals from around the world,
-            united by our mission to build exceptional software that makes a difference.
-          </p>
+    <div className="bg-gradient-to-b from-slate-50 via-blue-50 to-white min-h-screen pt-24">
+      <SEO
+        title="Our Team - Sabiteck"
+        description="Meet the talented and dedicated team behind Sabiteck. Our experts are passionate about helping you achieve your goals."
+        keywords="team, experts, Sabiteck team, professionals"
+      />
 
-          {/* Enhanced Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-5xl mx-auto">
-            {stats.map((stat, index) => (
-              <div key={index} className="relative group">
-                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105">
-                  <stat.icon className="h-12 w-12 text-blue-300 mx-auto mb-4 group-hover:text-blue-200 transition-colors" />
-                  <div className="text-3xl md:text-4xl font-bold text-white mb-2">{stat.value}</div>
-                  <div className="text-blue-200 font-medium text-lg">{stat.label}</div>
-                  <div className="text-sm text-blue-300 mt-2">{stat.description}</div>
-                </div>
-              </div>
-            ))}
-          </div>
+      {/* Hero Header Section */}
+      <header className="relative bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 text-white overflow-hidden">
+        {/* Animated Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
+          <div className="absolute top-0 right-0 w-96 h-96 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
+          <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000"></div>
         </div>
-      </section>
 
-      {/* Department Overview */}
-      <section className="py-20 bg-gradient-to-br from-gray-50 to-blue-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Our Departments
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Discover the diverse teams that make Sabiteck a powerhouse of innovation and excellence.
+        <div className="container mx-auto px-4 py-24 relative z-10">
+          <div className="text-center max-w-4xl mx-auto">
+            <div className="inline-flex items-center justify-center p-3 bg-white/10 rounded-full backdrop-blur-sm mb-6 animate-bounce">
+              <Users className="h-8 w-8" />
+            </div>
+            <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
+              Meet Our <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 to-pink-200">Exceptional Team</span>
+            </h1>
+            <p className="text-xl md:text-2xl text-indigo-100 leading-relaxed mb-8">
+              The passionate innovators and talented professionals driving our mission to transform education and create opportunities worldwide.
             </p>
+            <div className="flex flex-wrap justify-center gap-6 text-lg">
+              <div className="flex items-center gap-2 bg-white/10 px-6 py-3 rounded-full backdrop-blur-sm">
+                <Sparkles className="h-5 w-5 text-yellow-300" />
+                <span>Diverse Expertise</span>
+              </div>
+              <div className="flex items-center gap-2 bg-white/10 px-6 py-3 rounded-full backdrop-blur-sm">
+                <Heart className="h-5 w-5 text-red-300" />
+                <span>Passionate Dedication</span>
+              </div>
+              <div className="flex items-center gap-2 bg-white/10 px-6 py-3 rounded-full backdrop-blur-sm">
+                <TrendingUp className="h-5 w-5 text-green-300" />
+                <span>Proven Excellence</span>
+              </div>
+            </div>
           </div>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-            {uiDepartments.filter(dept => dept.id !== 'all').map((dept) => {
-              const style = getDepartmentStyle(dept.id)
-              return (
-                <Card key={dept.id} className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-0 bg-white/80 backdrop-blur-sm">
-                  <CardContent className="p-8">
-                    <div className="flex items-center justify-between mb-6">
-                      <div className={`w-16 h-16 ${style.bg} rounded-2xl flex items-center justify-center text-2xl shadow-lg`}>
-                        {style.icon}
-                      </div>
-                      <Badge className={`${style.accent} bg-transparent text-lg px-3 py-1 font-bold`}>
-                        {dept.count} {dept.count === 1 ? 'member' : 'members'}
-                      </Badge>
-                    </div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-3">{dept.name}</h3>
-                    <p className="text-gray-600 mb-4 leading-relaxed">{dept.description}</p>
-                    {dept.head && (
-                      <div className="flex items-center text-sm text-gray-500 mb-4">
-                        <Building2 className="h-4 w-4 mr-2" />
-                        Led by {dept.head}
-                      </div>
-                    )}
-                    <Button
-                      variant="ghost"
-                      className={`group-hover:${style.accent} transition-colors text-gray-700 hover:text-gray-900`}
-                      onClick={() => setSelectedDepartment(dept.id)}
-                    >
-                      View Team
-                      <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </CardContent>
-                </Card>
-              )
-            })}
-          </div>
+        {/* Bottom Wave */}
+        <div className="absolute bottom-0 left-0 right-0">
+          <svg className="w-full h-16 md:h-24" viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 120L60 105C120 90 240 60 360 45C480 30 600 30 720 37.5C840 45 960 60 1080 67.5C1200 75 1320 75 1380 75L1440 75V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" fill="rgb(248, 250, 252)"/>
+          </svg>
+        </div>
+      </header>
 
-          {/* Department Filter */}
-          <div className="flex flex-wrap justify-center gap-4">
-            {uiDepartments.map((dept) => {
-              const style = getDepartmentStyle(dept.id)
-              const isActive = selectedDepartment === dept.id
+      <main className="container mx-auto px-4 py-8 sm:py-12 md:py-16">
+        {/* Department Filter with Enhanced Design */}
+        <div className="flex justify-center mb-12 sm:mb-16">
+          <div className="inline-flex flex-wrap gap-2 sm:gap-3 bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 w-full max-w-full sm:max-w-max overflow-x-auto">
+            {uiDepartments.map(dept => {
+              const isActive = selectedDepartment === dept.id;
               return (
-                <Button
+                <button
                   key={dept.id}
-                  variant={isActive ? "default" : "outline"}
                   onClick={() => setSelectedDepartment(dept.id)}
-                  className={`flex items-center px-6 py-3 text-lg font-medium transition-all duration-300 ${
+                  className={`px-4 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95 whitespace-nowrap ${
                     isActive
-                      ? `${style.bg} text-white shadow-lg scale-105`
-                      : 'hover:scale-105 hover:shadow-md border-2'
+                      ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-300'
+                      : 'bg-gray-50 text-gray-700 hover:bg-purple-50 hover:text-purple-600'
                   }`}
                 >
-                  <span className="mr-2 text-xl">{style.icon}</span>
-                  {dept.name}
-                  <Badge className={`ml-3 ${isActive ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-700'} text-sm px-2 py-1`}>
-                    {dept.count}
-                  </Badge>
-                </Button>
-              )
+                  <span className="flex items-center gap-1 sm:gap-2">
+                    <Building className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">{dept.name}</span>
+                    <span className="sm:hidden">{dept.name.split(' ')[0]}</span>
+                    <Badge className={`ml-1 sm:ml-2 text-xs ${isActive ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-700'}`}>
+                      {dept.count}
+                    </Badge>
+                  </span>
+                </button>
+              );
             })}
           </div>
         </div>
-      </section>
 
-      {/* Team Members Grid */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              {selectedDepartment === 'all' ? 'Our Amazing Team' : `${uiDepartments.find(d => d.id === selectedDepartment)?.name || ''} Team`}
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              {selectedDepartment === 'all'
-                ? 'Get to know the talented individuals behind our success.'
-                : `Meet the experts who make ${uiDepartments.find(d => d.id === selectedDepartment)?.name || ''} exceptional.`}
-            </p>
+        {loading ? (
+          <div className="text-center py-20">
+            <div className="relative inline-flex">
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-200 border-t-purple-600"></div>
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                <Users className="h-6 w-6 text-purple-600" />
+              </div>
+            </div>
+            <p className="mt-6 text-gray-600 text-lg font-medium">Loading our amazing team...</p>
           </div>
-
+        ) : error ? (
+          <div className="text-center py-20">
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-8 max-w-md mx-auto">
+              <div className="bg-red-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <X className="h-8 w-8 text-red-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-red-800 mb-2">{error}</h2>
+              <p className="text-red-600">Please try again later or contact support.</p>
+            </div>
+          </div>
+        ) : filteredTeam.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {filteredTeam.map((member, index) => {
-              const style = getDepartmentStyle(member.department)
+            {filteredTeam.map((member) => {
+              const photoUrl = member.photo_url || member.avatar;
+              const fullPhotoUrl = photoUrl && (photoUrl.startsWith('http') ? photoUrl : `http://localhost:8002${photoUrl}`);
+              const social = member.social_links || {};
+              
+              // Parse and clean skills - handle various formats
+              let skills = [];
+              if (Array.isArray(member.skills)) {
+                // Already an array - clean each skill
+                skills = member.skills.map(s => {
+                  if (typeof s === 'string') {
+                    // Remove any wrapping quotes or brackets
+                    return s.replace(/^[\["\s]+|[\]"\s]+$/g, '').trim();
+                  }
+                  return String(s).trim();
+                }).filter(s => s.length > 0);
+              } else if (typeof member.skills === 'string') {
+                // String - could be JSON or comma-separated
+                const trimmed = member.skills.trim();
+                if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+                  try {
+                    const parsed = JSON.parse(trimmed);
+                    if (Array.isArray(parsed)) {
+                      skills = parsed.map(s => String(s).replace(/^[\["\s]+|[\]"\s]+$/g, '').trim()).filter(s => s.length > 0);
+                    }
+                  } catch (e) {
+                    // If JSON parse fails, treat as comma-separated
+                    skills = trimmed.replace(/[\[\]"]/g, '').split(',').map(s => s.trim()).filter(s => s.length > 0);
+                  }
+                } else {
+                  // Comma-separated string
+                  skills = trimmed.split(',').map(s => s.trim()).filter(s => s.length > 0);
+                }
+              }
+
               return (
-                <Card key={index} className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-0 bg-gradient-to-br from-white to-gray-50">
-                  <CardContent className="p-6">
-                    {/* Avatar and Department Badge */}
-                    <div className="relative mb-6">
-                      <div className={`w-20 h-20 ${style.bg} rounded-2xl mx-auto flex items-center justify-center shadow-lg`}>
-                        <span className="text-white text-2xl font-bold">
-                          {member.name?.split(' ').map(n => n[0]).join('')}
-                        </span>
+                <Card 
+                  key={member.id} 
+                  className="bg-white shadow-lg hover:shadow-2xl transition-all duration-300 rounded-2xl overflow-hidden group border-0 transform hover:-translate-y-2"
+                >
+                  <CardContent className="p-0">
+                    {/* Photo Section with Gradient Overlay */}
+                    <div className="relative h-72 overflow-hidden bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100">
+                      {fullPhotoUrl ? (
+                        <>
+                          <img
+                            src={fullPhotoUrl}
+                            alt={member.name}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              e.target.nextElementSibling.style.display = 'flex';
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        </>
+                      ) : null}
+                      <div 
+                        className={`${fullPhotoUrl ? 'hidden' : 'flex'} w-full h-full items-center justify-center bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100`}
+                      >
+                        <div className="text-center">
+                          <div className="bg-white/80 p-8 rounded-full mb-4 inline-block">
+                            <User className="h-16 w-16 text-indigo-600" />
+                          </div>
+                          <p className="text-sm text-gray-500">No photo available</p>
+                        </div>
                       </div>
-                      <Badge className={`absolute -bottom-2 left-1/2 transform -translate-x-1/2 ${style.accent} bg-white border-2 text-xs px-2 py-1`}>
-                        {style.icon} {member.department}
-                      </Badge>
+
+                      {/* Featured Badge */}
+                      {member.featured && (
+                        <div className="absolute top-4 right-4">
+                          <Badge className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white border-0 shadow-lg px-3 py-1.5">
+                            <Star className="h-3 w-3 mr-1 fill-white" />
+                            Featured
+                          </Badge>
+                        </div>
+                      )}
+
+                      {/* Department Badge */}
+                      {member.department && (
+                        <div className="absolute top-4 left-4">
+                          <Badge className="bg-white/90 backdrop-blur-sm text-gray-700 border-0 shadow-md px-3 py-1.5">
+                            <Building className="h-3 w-3 mr-1" />
+                            {member.department}
+                          </Badge>
+                        </div>
+                      )}
                     </div>
 
-                    {/* Member Info */}
-                    <div className="text-center mb-4">
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">{member.name}</h3>
-                      <p className={`font-medium text-lg ${style.accent} mb-3`}>{member.role}</p>
-                      <p className="text-gray-600 text-sm leading-relaxed line-clamp-3">{member.bio}</p>
-                    </div>
+                    {/* Content Section */}
+                    <div className="p-6 space-y-4">
+                      {/* Name and Position */}
+                      <div className="text-center border-b border-gray-100 pb-4">
+                        <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-purple-600 transition-colors">
+                          {member.name}
+                        </h3>
+                        <p className="text-purple-600 font-semibold text-sm">{member.position}</p>
+                      </div>
 
-                    {/* Skills */}
-                    <div className="flex flex-wrap gap-2 mb-4 justify-center">
-                      {(member.skills || []).slice(0, 3).map((skill) => (
-                        <Badge key={skill} variant="secondary" className="text-xs px-2 py-1 bg-gray-100 text-gray-700">
-                          {skill}
-                        </Badge>
-                      ))}
-                    </div>
+                      {/* Bio */}
+                      {member.bio && (
+                        <p className="text-gray-600 text-sm leading-relaxed line-clamp-3">
+                          {member.bio}
+                        </p>
+                      )}
 
-                    {/* Experience & Education */}
-                    {(member.experience || member.education) && (
-                      <div className="space-y-2 text-xs text-gray-500 mb-4">
-                        {member.experience && (
-                          <div className="flex items-center">
-                            <Briefcase className="h-3 w-3 mr-2" />
-                            <span>{member.experience}</span>
+                      {/* Contact Info */}
+                      <div className="space-y-2">
+                        {member.email && (
+                          <div className="flex items-center text-sm text-gray-600 hover:text-purple-600 transition-colors">
+                            <div className="bg-purple-50 p-2 rounded-lg mr-3">
+                              <Mail className="h-4 w-4 text-purple-600" />
+                            </div>
+                            <a href={`mailto:${member.email}`} className="truncate hover:underline">
+                              {member.email}
+                            </a>
                           </div>
                         )}
-                        {member.education && (
-                          <div className="flex items-center">
-                            <GraduationCap className="h-3 w-3 mr-2" />
-                            <span>{member.education}</span>
+                        {member.location && (
+                          <div className="flex items-center text-sm text-gray-600">
+                            <div className="bg-green-50 p-2 rounded-lg mr-3">
+                              <MapPin className="h-4 w-4 text-green-600" />
+                            </div>
+                            <span>{member.location}</span>
+                          </div>
+                        )}
+                        {member.phone && (
+                          <div className="flex items-center text-sm text-gray-600">
+                            <div className="bg-blue-50 p-2 rounded-lg mr-3">
+                              <Phone className="h-4 w-4 text-blue-600" />
+                            </div>
+                            <span>{member.phone}</span>
+                          </div>
+                        )}
+                        {member.years_experience && (
+                          <div className="flex items-center text-sm text-gray-600">
+                            <div className="bg-orange-50 p-2 rounded-lg mr-3">
+                              <Briefcase className="h-4 w-4 text-orange-600" />
+                            </div>
+                            <span>{member.years_experience} years experience</span>
                           </div>
                         )}
                       </div>
-                    )}
 
-                    {/* Social Links */}
-                    <div className="flex justify-center space-x-3">
-                      {member.social?.linkedin && (
-                        <Button size="sm" variant="ghost" className="p-2 hover:bg-blue-50 hover:text-blue-600">
-                          <Linkedin className="h-4 w-4" />
-                        </Button>
+                      {/* Skills - Enhanced Display */}
+                      {skills.length > 0 && (
+                        <div className="pt-3 border-t border-gray-100">
+                          <div className="mb-2 flex items-center gap-2">
+                            <Sparkles className="h-4 w-4 text-purple-500" />
+                            <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wide">Skills & Expertise</h4>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {skills.slice(0, 5).map((skill, index) => {
+                              const style = getSkillStyle(skill);
+                              const SkillIcon = style.icon;
+                              
+                              return (
+                                <div
+                                  key={index}
+                                  className={`group relative ${style.bg} ${style.border} border rounded-lg px-3 py-2 transition-all duration-300 hover:shadow-lg hover:scale-105 cursor-default`}
+                                >
+                                  <div className="flex items-center gap-1.5">
+                                    <SkillIcon className={`h-3.5 w-3.5 ${style.text}`} />
+                                    <span className={`text-xs font-semibold ${style.text}`}>
+                                      {skill}
+                                    </span>
+                                  </div>
+                                  {/* Hover effect - gradient background */}
+                                  <div className={`absolute inset-0 bg-gradient-to-r ${style.gradient} opacity-0 group-hover:opacity-10 rounded-lg transition-opacity duration-300`}></div>
+                                </div>
+                              );
+                            })}
+                            {skills.length > 5 && (
+                              <div className="bg-gradient-to-r from-gray-100 to-slate-100 border border-gray-300 rounded-lg px-3 py-2 transition-all duration-300 hover:shadow-md hover:scale-105 cursor-pointer group">
+                                <div className="flex items-center gap-1.5">
+                                  <ChevronRight className="h-3.5 w-3.5 text-gray-600 group-hover:translate-x-0.5 transition-transform" />
+                                  <span className="text-xs font-bold text-gray-700">
+                                    +{skills.length - 5} more
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* All skills tooltip on hover - show remaining skills */}
+                          {skills.length > 5 && (
+                            <div className="mt-2 text-xs text-gray-500 italic">
+                              Hover to see: {skills.slice(5).join(', ')}
+                            </div>
+                          )}
+                        </div>
                       )}
-                      {member.social?.github && (
-                        <Button size="sm" variant="ghost" className="p-2 hover:bg-gray-50 hover:text-gray-900">
-                          <Github className="h-4 w-4" />
-                        </Button>
-                      )}
-                      {member.social?.twitter && (
-                        <Button size="sm" variant="ghost" className="p-2 hover:bg-blue-50 hover:text-blue-400">
-                          <Twitter className="h-4 w-4" />
-                        </Button>
-                      )}
-                      {member.social?.email && (
-                        <Button size="sm" variant="ghost" className="p-2 hover:bg-red-50 hover:text-red-600">
-                          <Mail className="h-4 w-4" />
-                        </Button>
-                      )}
+
+                      {/* Social Links */}
+                      <div className="flex justify-center items-center gap-3 pt-4 border-t border-gray-100">
+                        {(social.linkedin || member.linkedin_url) && (
+                          <a 
+                            href={social.linkedin || member.linkedin_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="p-3 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all duration-300 transform hover:scale-110"
+                          >
+                            <Linkedin className="h-5 w-5" />
+                          </a>
+                        )}
+                        {(social.twitter || member.twitter_url) && (
+                          <a 
+                            href={social.twitter || member.twitter_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="p-3 bg-sky-50 text-sky-600 rounded-xl hover:bg-sky-600 hover:text-white transition-all duration-300 transform hover:scale-110"
+                          >
+                            <Twitter className="h-5 w-5" />
+                          </a>
+                        )}
+                        {(social.website || member.website_url) && (
+                          <a 
+                            href={social.website || member.website_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="p-3 bg-purple-50 text-purple-600 rounded-xl hover:bg-purple-600 hover:text-white transition-all duration-300 transform hover:scale-110"
+                          >
+                            <Globe className="h-5 w-5" />
+                          </a>
+                        )}
+                        {member.email && (
+                          <a 
+                            href={`mailto:${member.email}`} 
+                            className="p-3 bg-green-50 text-green-600 rounded-xl hover:bg-green-600 hover:text-white transition-all duration-300 transform hover:scale-110"
+                          >
+                            <Mail className="h-5 w-5" />
+                          </a>
+                        )}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
-              )
+              );
             })}
           </div>
-
-          {filteredTeam.length === 0 && (
-            <div className="text-center py-12">
-              <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-medium text-gray-600 mb-2">No team members found</h3>
-              <p className="text-gray-500">This department doesn't have any members yet.</p>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Company Values */}
-      <section className="py-20 bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Our Values
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              These core values guide everything we do and shape how we work together.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {values.map((value, index) => (
-              <Card key={index} className="text-center hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-0 bg-white/80 backdrop-blur-sm">
-                <CardContent className="p-8">
-                  <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-                    <value.icon className="h-10 w-10 text-white" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">{value.title}</h3>
-                  <p className="text-gray-600 leading-relaxed">{value.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white relative overflow-hidden">
-        <div className="absolute inset-0 opacity-5">
-          <div className="w-full h-full bg-repeat bg-[length:60px_60px]"
-               style={{
-                 backgroundImage: `radial-gradient(circle at 30px 30px, white 2px, transparent 2px)`
-               }}>
-          </div>
-        </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center px-4 py-2 bg-blue-600/20 backdrop-blur-sm rounded-full text-blue-200 text-sm font-medium mb-8 border border-blue-400/20">
-            <Heart className="h-4 w-4 mr-2" />
-            Join our growing family
-          </div>
-          <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent">
-            Ready to Make an Impact?
-          </h2>
-          <p className="text-xl md:text-2xl text-blue-100 mb-12 max-w-3xl mx-auto leading-relaxed">
-            We're always looking for talented individuals to join our growing team
-            and help us build the future of technology.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <Button
-              size="lg"
-              className="text-lg px-8 py-4 bg-white text-blue-900 hover:bg-blue-50 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
-              onClick={() => setShowJobsModal(true)}
-            >
-              <Briefcase className="h-5 w-5 mr-2" />
-              View Open Positions
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="text-lg px-8 py-4 text-white border-white/30 hover:bg-white/10 backdrop-blur-sm shadow-xl transition-all duration-300 hover:scale-105"
-              onClick={() => setShowResumeModal(true)}
-            >
-              <Send className="h-5 w-5 mr-2" />
-              Send Your Resume
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* Job Openings Modal */}
-      {showJobsModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div className="p-8">
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-3xl font-bold text-gray-900">Open Positions</h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowJobsModal(false)}
-                  className="hover:bg-gray-100 rounded-full p-2"
-                >
-                  <X className="h-5 w-5" />
-                </Button>
+        ) : (
+          <div className="text-center py-20">
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-2xl p-12 max-w-lg mx-auto">
+              <div className="bg-gray-200 p-6 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+                <Users className="h-12 w-12 text-gray-500" />
               </div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-3">No Team Members Found</h2>
+              <p className="text-gray-600 text-lg">
+                We couldn't find any team members for this department. Please try selecting a different department or check back later.
+              </p>
+            </div>
+          </div>
+        )}
 
-              <div className="space-y-6">
-                {uiJobs.map((job) => (
-                  <Card key={job.id} className="border-l-4 border-l-blue-500 hover:shadow-lg transition-shadow">
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <CardTitle className="text-2xl text-gray-900 mb-2">{job.title}</CardTitle>
-                          <div className="flex items-center gap-6 text-sm text-gray-600">
-                            <span className="flex items-center">
-                              <Building2 className="h-4 w-4 mr-1" />
-                              {job.department}
-                            </span>
-                            <span className="flex items-center">
-                              <MapPin className="h-4 w-4 mr-1" />
-                              {job.location}
-                            </span>
-                            <span className="flex items-center">
-                              <Clock className="h-4 w-4 mr-1" />
-                              {job.type}
-                            </span>
-                            {job.experience && (
-                              <span className="flex items-center">
-                                <Award className="h-4 w-4 mr-1" />
-                                {job.experience}
-                              </span>
-                            )}
-                          </div>
-                        </div>
+        {/* Core Values Section */}
+        {filteredTeam.length > 0 && (
+          <div className="mt-24">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">Our Core Values</h2>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                The principles that guide our team and drive our success
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {values.map((value, index) => {
+                const Icon = value.icon;
+                return (
+                  <Card key={index} className="bg-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden group transform hover:-translate-y-2">
+                    <CardContent className="p-8 text-center">
+                      <div className="bg-gradient-to-br from-purple-100 to-indigo-100 p-6 rounded-2xl w-20 h-20 mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <Icon className="h-10 w-10 text-purple-600" />
                       </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-gray-700 mb-6 leading-relaxed">{job.description}</p>
-                      <div className="grid md:grid-cols-2 gap-8">
-                        <div>
-                          <h4 className="font-bold text-gray-900 mb-4 text-lg">Requirements:</h4>
-                          <ul className="space-y-3">
-                            {(job.requirements || []).map((req, index) => (
-                              <li key={index} className="text-gray-600 flex items-start">
-                                <span className="text-blue-500 mr-3 mt-1 text-lg">•</span>
-                                {req}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-gray-900 mb-4 text-lg">Benefits:</h4>
-                          <ul className="space-y-3">
-                            {(job.benefits || []).map((benefit, index) => (
-                              <li key={index} className="text-gray-600 flex items-start">
-                                <span className="text-green-500 mr-3 mt-1 text-lg">•</span>
-                                {benefit}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                      <div className="mt-8 pt-6 border-t border-gray-200">
-                        <Button
-                          className="w-full sm:w-auto px-8 py-3 text-lg bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all duration-300"
-                          onClick={() => {
-                            setShowJobsModal(false)
-                            setResumeForm(prev => ({ ...prev, position: job.title }))
-                            setShowResumeModal(true)
-                          }}
-                        >
-                          <Send className="h-5 w-5 mr-2" />
-                          Apply for This Position
-                        </Button>
-                      </div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-3">{value.title}</h3>
+                      <p className="text-gray-600 leading-relaxed">{value.description}</p>
                     </CardContent>
                   </Card>
-                ))}
-              </div>
+                );
+              })}
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Resume Submission Modal */}
-      {showResumeModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div className="p-8">
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-3xl font-bold text-gray-900">Submit Your Resume</h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowResumeModal(false)}
-                  className="hover:bg-gray-100 rounded-full p-2"
-                >
-                  <X className="h-5 w-5" />
-                </Button>
-              </div>
-
-              <form onSubmit={handleResumeSubmit} className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Full Name *
-                    </label>
-                    <Input
-                      type="text"
-                      value={resumeForm.name}
-                      onChange={(e) => setResumeForm(prev => ({ ...prev, name: e.target.value }))}
-                      required
-                      placeholder="Your full name"
-                      className="h-12"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Email Address *
-                    </label>
-                    <Input
-                      type="email"
-                      value={resumeForm.email}
-                      onChange={(e) => setResumeForm(prev => ({ ...prev, email: e.target.value }))}
-                      required
-                      placeholder="your.email@example.com"
-                      className="h-12"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Position of Interest *
-                  </label>
-                  <select
-                    value={resumeForm.position}
-                    onChange={(e) => setResumeForm(prev => ({ ...prev, position: e.target.value }))}
-                    required
-                    className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">Select a position</option>
-                    {jobs.map((job) => (
-                      <option key={job.id} value={job.title}>{job.title}</option>
-                    ))}
-                    <option value="Other">Other / General Application</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Years of Experience *
-                  </label>
-                  <select
-                    value={resumeForm.experience}
-                    onChange={(e) => setResumeForm(prev => ({ ...prev, experience: e.target.value }))}
-                    required
-                    className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">Select experience level</option>
-                    <option value="0-1">0-1 years</option>
-                    <option value="2-3">2-3 years</option>
-                    <option value="4-5">4-5 years</option>
-                    <option value="6-10">6-10 years</option>
-                    <option value="10+">10+ years</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Cover Letter / Message
-                  </label>
-                  <textarea
-                    value={resumeForm.message}
-                    onChange={(e) => setResumeForm(prev => ({ ...prev, message: e.target.value }))}
-                    rows={4}
-                    placeholder="Tell us why you're interested in working with us..."
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Resume / CV *
-                  </label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
-                    <input
-                      type="file"
-                      id="resume-upload"
-                      accept=".pdf,.doc,.docx"
-                      onChange={handleFileChange}
-                      className="hidden"
-                      required
-                    />
-                    <label htmlFor="resume-upload" className="cursor-pointer">
-                      <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-600">
-                        {resumeForm.resume ? (
-                          <span className="text-blue-600 font-medium">
-                            {resumeForm.resume.name}
-                          </span>
-                        ) : (
-                          <>
-                            Click to upload your resume or drag and drop
-                            <br />
-                            <span className="text-sm text-gray-500">PDF, DOC, or DOCX (max 5MB)</span>
-                          </>
-                        )}
-                      </p>
-                    </label>
-                  </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-4 pt-6">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowResumeModal(false)}
-                    className="order-2 sm:order-1 h-12"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={submittingResume}
-                    className="order-1 sm:order-2 flex-1 h-12 bg-blue-600 hover:bg-blue-700"
-                  >
-                    {submittingResume ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Submitting...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="h-4 w-4 mr-2" />
-                        Submit Application
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
+        )}
+      </main>
     </div>
-  )
-}
+  );
+};
 
-export default Team
+export default Team;

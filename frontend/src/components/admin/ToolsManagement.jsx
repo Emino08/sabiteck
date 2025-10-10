@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 
 // Custom UI Components
 const Button = ({ children, onClick, disabled, variant, size, className = '', ...props }) => {
@@ -92,8 +93,8 @@ const Switch = ({ checked, onChange, onCheckedChange, className = '', ...props }
 const Modal = ({ isOpen, onClose, title, children, className = '' }) => {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className={`bg-white rounded-lg p-6 w-full max-w-md mx-4 ${className}`}>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className={`bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto ${className}`}>
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-gray-900">{title}</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
@@ -106,86 +107,7 @@ const Modal = ({ isOpen, onClose, title, children, className = '' }) => {
   );
 };
 
-// Enhanced toast notifications
-const toast = {
-  success: (message) => {
-    console.log('Success:', message);
-    // Create a temporary toast notification
-    const toastEl = document.createElement('div');
-    toastEl.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300';
-    toastEl.textContent = message;
-    document.body.appendChild(toastEl);
-    setTimeout(() => {
-      toastEl.style.opacity = '0';
-      setTimeout(() => document.body.removeChild(toastEl), 300);
-    }, 3000);
-  },
-  error: (message) => {
-    console.error('Error:', message);
-    // Create a temporary toast notification
-    const toastEl = document.createElement('div');
-    toastEl.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300';
-    toastEl.textContent = message;
-    document.body.appendChild(toastEl);
-    setTimeout(() => {
-      toastEl.style.opacity = '0';
-      setTimeout(() => document.body.removeChild(toastEl), 300);
-    }, 3000);
-  },
-  confirm: (message, onConfirm, onCancel) => {
-    // Create confirmation toast
-    const toastEl = document.createElement('div');
-    toastEl.className = 'fixed top-4 right-4 bg-yellow-500 text-white px-6 py-4 rounded-lg shadow-lg z-50 transition-all duration-300 max-w-sm';
-
-    toastEl.innerHTML = `
-      <div class="mb-3">
-        <div class="flex items-center mb-2">
-          <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-          </svg>
-          <span class="font-semibold">Confirm Action</span>
-        </div>
-        <p class="text-sm">${message}</p>
-      </div>
-      <div class="flex space-x-2">
-        <button id="toast-confirm" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm font-medium transition-colors">
-          Yes, Delete
-        </button>
-        <button id="toast-cancel" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm font-medium transition-colors">
-          Cancel
-        </button>
-      </div>
-    `;
-
-    document.body.appendChild(toastEl);
-
-    // Add event listeners
-    const confirmBtn = toastEl.querySelector('#toast-confirm');
-    const cancelBtn = toastEl.querySelector('#toast-cancel');
-
-    const cleanup = () => {
-      toastEl.style.opacity = '0';
-      setTimeout(() => {
-        if (document.body.contains(toastEl)) {
-          document.body.removeChild(toastEl);
-        }
-      }, 300);
-    };
-
-    confirmBtn.addEventListener('click', () => {
-      cleanup();
-      if (onConfirm) onConfirm();
-    });
-
-    cancelBtn.addEventListener('click', () => {
-      cleanup();
-      if (onCancel) onCancel();
-    });
-
-    // Auto-close after 10 seconds
-    setTimeout(cleanup, 10000);
-  }
-};
+// Icons from lucide-react (imported at top now)
 import {
   Settings,
   Eye,
@@ -565,25 +487,61 @@ const ToolsManagement = () => {
   };
 
   const handleDeleteTool = async (toolId) => {
-    toast.confirm('Are you sure you want to delete this tool?', async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/tools/delete`, {
-          method: 'DELETE',
-          headers: getAuthHeaders(),
-          body: JSON.stringify({ id: toolId })
-        });
+    const tool = tools.find(t => t.id === toolId);
+    const toolName = tool ? tool.name : 'this tool';
 
-        const data = await response.json();
-        if (data.success) {
-          await fetchData();
-          toast.success('Tool deleted successfully');
-        } else {
-          throw new Error(data.error || 'Failed to delete tool');
-        }
-      } catch (error) {
-        toast.error('Failed to delete tool');
-        console.error('Error:', error);
-      }
+    toast.custom((t) => (
+      <div className="bg-white rounded-lg shadow-xl border border-gray-200 p-5 max-w-md">
+        <div className="flex items-start gap-3 mb-4">
+          <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-gray-900 text-lg mb-1">Delete Tool</h3>
+            <p className="text-sm text-gray-600">Are you sure you want to delete <strong className="text-gray-900">{toolName}</strong>?</p>
+            <p className="text-xs text-gray-500 mt-2">This action cannot be undone.</p>
+          </div>
+        </div>
+        <div className="flex gap-2 justify-end">
+          <button
+            onClick={() => toast.dismiss(t)}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={async () => {
+              toast.dismiss(t);
+              try {
+                const response = await fetch(`${API_BASE_URL}/api/admin/tools/delete`, {
+                  method: 'DELETE',
+                  headers: getAuthHeaders(),
+                  body: JSON.stringify({ id: toolId })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                  await fetchData();
+                  toast.success('Tool deleted successfully');
+                } else {
+                  throw new Error(data.error || 'Failed to delete tool');
+                }
+              } catch (error) {
+                toast.error('Failed to delete tool');
+                console.error('Error:', error);
+              }
+            }}
+            className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    ), {
+      duration: Infinity,
+      position: 'top-center'
     });
   };
 
@@ -616,25 +574,62 @@ const ToolsManagement = () => {
   };
 
   const handleDeleteCategory = async (categoryId) => {
-    toast.confirm('Are you sure you want to delete this category? This will also delete all subjects in this category.', async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/curriculum/categories/delete`, {
-          method: 'DELETE',
-          headers: getAuthHeaders(),
-          body: JSON.stringify({ id: categoryId })
-        });
+    const category = curriculumCategories.find(c => c.id === categoryId);
+    const categoryName = category ? category.name : 'this category';
 
-        const data = await response.json();
-        if (data.success) {
-          await fetchData();
-          toast.success('Category deleted successfully');
-        } else {
-          throw new Error(data.error || 'Failed to delete category');
-        }
-      } catch (error) {
-        toast.error('Failed to delete category');
-        console.error('Error:', error);
-      }
+    toast.custom((t) => (
+      <div className="bg-white rounded-lg shadow-xl border border-gray-200 p-5 max-w-md">
+        <div className="flex items-start gap-3 mb-4">
+          <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-gray-900 text-lg mb-1">Delete Category</h3>
+            <p className="text-sm text-gray-600">Are you sure you want to delete <strong className="text-gray-900">{categoryName}</strong>?</p>
+            <p className="text-xs text-red-600 mt-2 font-medium">⚠️ This will also delete all subjects in this category.</p>
+            <p className="text-xs text-gray-500 mt-1">This action cannot be undone.</p>
+          </div>
+        </div>
+        <div className="flex gap-2 justify-end">
+          <button
+            onClick={() => toast.dismiss(t)}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={async () => {
+              toast.dismiss(t);
+              try {
+                const response = await fetch(`${API_BASE_URL}/api/admin/curriculum/categories/delete`, {
+                  method: 'DELETE',
+                  headers: getAuthHeaders(),
+                  body: JSON.stringify({ id: categoryId })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                  await fetchData();
+                  toast.success('Category deleted successfully');
+                } else {
+                  throw new Error(data.error || 'Failed to delete category');
+                }
+              } catch (error) {
+                toast.error('Failed to delete category');
+                console.error('Error:', error);
+              }
+            }}
+            className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    ), {
+      duration: Infinity,
+      position: 'top-center'
     });
   };
 
@@ -766,25 +761,61 @@ const ToolsManagement = () => {
   };
 
   const handleDeleteSubject = async (subjectId) => {
-    toast.confirm('Are you sure you want to delete this subject?', async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/curriculum/subjects/delete`, {
-          method: 'DELETE',
-          headers: getAuthHeaders(),
-          body: JSON.stringify({ id: subjectId })
-        });
+    const subject = curriculumSubjects.find(s => s.id === subjectId);
+    const subjectName = subject ? subject.name : 'this subject';
 
-        const data = await response.json();
-        if (data.success) {
-          await fetchData();
-          toast.success('Subject deleted successfully');
-        } else {
-          throw new Error(data.error || 'Failed to delete subject');
-        }
-      } catch (error) {
-        toast.error('Failed to delete subject');
-        console.error('Error:', error);
-      }
+    toast.custom((t) => (
+      <div className="bg-white rounded-lg shadow-xl border border-gray-200 p-5 max-w-md">
+        <div className="flex items-start gap-3 mb-4">
+          <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-gray-900 text-lg mb-1">Delete Subject</h3>
+            <p className="text-sm text-gray-600">Are you sure you want to delete <strong className="text-gray-900">{subjectName}</strong>?</p>
+            <p className="text-xs text-gray-500 mt-2">This action cannot be undone.</p>
+          </div>
+        </div>
+        <div className="flex gap-2 justify-end">
+          <button
+            onClick={() => toast.dismiss(t)}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={async () => {
+              toast.dismiss(t);
+              try {
+                const response = await fetch(`${API_BASE_URL}/api/admin/curriculum/subjects/delete`, {
+                  method: 'DELETE',
+                  headers: getAuthHeaders(),
+                  body: JSON.stringify({ id: subjectId })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                  await fetchData();
+                  toast.success('Subject deleted successfully');
+                } else {
+                  throw new Error(data.error || 'Failed to delete subject');
+                }
+              } catch (error) {
+                toast.error('Failed to delete subject');
+                console.error('Error:', error);
+              }
+            }}
+            className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    ), {
+      duration: Infinity,
+      position: 'top-center'
     });
   };
 
@@ -837,24 +868,60 @@ const ToolsManagement = () => {
   };
 
   const handleDeleteLinksCategory = async (categoryId) => {
-    toast.confirm('Are you sure you want to delete this category?', async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/important-links/categories/delete`, {
-          method: 'DELETE',
-          headers: getAuthHeaders(),
-          body: JSON.stringify({ id: categoryId })
-        });
-        const data = await response.json();
-        if (data.success) {
-          await fetchData();
-          toast.success('Important Links category deleted successfully');
-        } else {
-          throw new Error(data.error || 'Failed to delete category');
-        }
-      } catch (error) {
-        toast.error('Failed to delete Important Links category');
-        console.error('Error:', error);
-      }
+    const category = linksCategories.find(c => c.id === categoryId);
+    const categoryName = category ? category.name : 'this category';
+
+    toast.custom((t) => (
+      <div className="bg-white rounded-lg shadow-xl border border-gray-200 p-5 max-w-md">
+        <div className="flex items-start gap-3 mb-4">
+          <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-gray-900 text-lg mb-1">Delete Links Category</h3>
+            <p className="text-sm text-gray-600">Are you sure you want to delete <strong className="text-gray-900">{categoryName}</strong>?</p>
+            <p className="text-xs text-gray-500 mt-2">This action cannot be undone.</p>
+          </div>
+        </div>
+        <div className="flex gap-2 justify-end">
+          <button
+            onClick={() => toast.dismiss(t)}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={async () => {
+              toast.dismiss(t);
+              try {
+                const response = await fetch(`${API_BASE_URL}/api/admin/important-links/categories/delete`, {
+                  method: 'DELETE',
+                  headers: getAuthHeaders(),
+                  body: JSON.stringify({ id: categoryId })
+                });
+                const data = await response.json();
+                if (data.success) {
+                  await fetchData();
+                  toast.success('Important Links category deleted successfully');
+                } else {
+                  throw new Error(data.error || 'Failed to delete category');
+                }
+              } catch (error) {
+                toast.error('Failed to delete Important Links category');
+                console.error('Error:', error);
+              }
+            }}
+            className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    ), {
+      duration: Infinity,
+      position: 'top-center'
     });
   };
 
@@ -941,24 +1008,60 @@ const ToolsManagement = () => {
   };
 
   const handleDeleteLink = async (linkId) => {
-    toast.confirm('Are you sure you want to delete this link?', async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/important-links/delete`, {
-          method: 'DELETE',
-          headers: getAuthHeaders(),
-          body: JSON.stringify({ id: linkId })
-        });
-        const data = await response.json();
-        if (data.success) {
-          await fetchData();
-          toast.success('Important Link deleted successfully');
-        } else {
-          throw new Error(data.error || 'Failed to delete link');
-        }
-      } catch (error) {
-        toast.error('Failed to delete Important Link');
-        console.error('Error:', error);
-      }
+    const link = importantLinks.find(l => l.id === linkId);
+    const linkTitle = link ? link.title : 'this link';
+
+    toast.custom((t) => (
+      <div className="bg-white rounded-lg shadow-xl border border-gray-200 p-5 max-w-md">
+        <div className="flex items-start gap-3 mb-4">
+          <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-gray-900 text-lg mb-1">Delete Link</h3>
+            <p className="text-sm text-gray-600">Are you sure you want to delete <strong className="text-gray-900">{linkTitle}</strong>?</p>
+            <p className="text-xs text-gray-500 mt-2">This action cannot be undone.</p>
+          </div>
+        </div>
+        <div className="flex gap-2 justify-end">
+          <button
+            onClick={() => toast.dismiss(t)}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={async () => {
+              toast.dismiss(t);
+              try {
+                const response = await fetch(`${API_BASE_URL}/api/admin/important-links/delete`, {
+                  method: 'DELETE',
+                  headers: getAuthHeaders(),
+                  body: JSON.stringify({ id: linkId })
+                });
+                const data = await response.json();
+                if (data.success) {
+                  await fetchData();
+                  toast.success('Important Link deleted successfully');
+                } else {
+                  throw new Error(data.error || 'Failed to delete link');
+                }
+              } catch (error) {
+                toast.error('Failed to delete Important Link');
+                console.error('Error:', error);
+              }
+            }}
+            className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    ), {
+      duration: Infinity,
+      position: 'top-center'
     });
   };
 

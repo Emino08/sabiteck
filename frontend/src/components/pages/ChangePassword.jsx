@@ -71,8 +71,10 @@ const ChangePassword = () => {
     setLoading(true)
 
     try {
-      // Call the change password API
-      const response = await fetch('/api/auth/change-password', {
+      // Use apiRequest helper to call the correct API endpoint
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8002';
+      
+      const response = await fetch(`${API_BASE_URL}/api/user/change-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -87,7 +89,7 @@ const ChangePassword = () => {
 
       const data = await response.json()
 
-      if (data.success) {
+      if (data.success || response.ok) {
         toast.success('Password changed successfully!')
 
         // Update user context to clear must_change_password flag
@@ -111,7 +113,15 @@ const ChangePassword = () => {
 
         // Redirect to appropriate page after successful password change
         setTimeout(() => {
-          if (user?.role && ['admin', 'super_admin'].includes(user.role)) {
+          // Check if user has dashboard access based on role or permissions
+          const userRole = user?.role || user?.role_name;
+          const hasDashboardRole = ['admin', 'super_admin', 'super-admin', 'Administrator', 'editor', 'moderator', 'hr_manager', 'Content Editor', 'HR Manager', 'Content Moderator'].includes(userRole);
+          const hasDashboardPermission = user?.permissions?.some(p => 
+            (typeof p === 'string' && p === 'dashboard.view') ||
+            (typeof p === 'object' && p.name === 'dashboard.view')
+          );
+          
+          if (hasDashboardRole || hasDashboardPermission) {
             navigate('/dashboard', { replace: true });
           } else {
             navigate('/', { replace: true });
@@ -125,7 +135,7 @@ const ChangePassword = () => {
     } finally {
       setLoading(false)
     }
-  }, [formData, validatePassword])
+  }, [formData, validatePassword, user, token, login, navigate])
 
   const toggleCurrentPassword = useCallback(() => {
     setShowCurrentPassword(prev => !prev)

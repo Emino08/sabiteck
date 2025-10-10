@@ -347,7 +347,7 @@ const Jobs = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white relative overflow-hidden">
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white relative overflow-hidden pt-24">
             {/* Elite Background Effects */}
             <div className="absolute inset-0 overflow-hidden">
                 <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
@@ -355,7 +355,7 @@ const Jobs = () => {
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse animation-delay-4000"></div>
             </div>
             {/* Elite Hero Section */}
-            <section className="relative z-10 pt-32 pb-20">
+            <section className="relative z-10 pt-8 pb-20">
                 <div className="container mx-auto px-6">
                     <div className="max-w-6xl mx-auto text-center">
                         <div className="mb-12">

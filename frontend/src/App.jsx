@@ -26,6 +26,9 @@ import AccountDetails from './components/pages/AccountDetails'
 import ChangePassword from './components/pages/ChangePassword'
 import AdminRegister from './components/pages/AdminRegister'
 import AuthCallback from './components/pages/AuthCallback'
+import ForgotPassword from './components/auth/ForgotPassword'
+import ResetPassword from './components/auth/ResetPassword'
+import AdminForgotPassword from './components/auth/AdminForgotPassword'
 import { AuthProvider } from './contexts/AuthContext'
 import { RouteSettingsProvider } from './contexts/RouteSettingsContext'
 import { ToastProvider } from './components/ui/toast'
@@ -154,6 +157,9 @@ function App() {
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
                     <Route path="/admin-register" element={<AdminRegister />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
+                    <Route path="/admin/forgot-password" element={<AdminForgotPassword />} />
                     <Route path="/auth/callback" element={<AuthCallback />} />
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/profile" element={<Profile />} />

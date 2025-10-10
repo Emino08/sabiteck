@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Force Fresh Login - Token Cleanup</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a2e;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: #16213e;
+            border-radius: 15px;
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        h1 { color: #e94560; margin-bottom: 20px; }
+        .alert {
+            background: #ff6b6b;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .info {
+            background: #0f3460;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+        button {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin: 10px 0;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: #d63447;
+            transform: translateY(-2px);
+        }
+        .success {
+            background: #06d6a0;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            color: #1a1a2e;
+            font-weight: bold;
+        }
+        .step {
+            background: #0f3460;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #e94560;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚨 CRITICAL: Token Cleanup Required</h1>
+        
+        <div class="alert">
+            You are still using the OLD 64-character token!<br>
+            This MUST be cleared before fresh login will work.
+        </div>
+
+        <div class="info" id="tokenStatus">
+            Checking tokens...
+        </div>
+
+        <button onclick="clearEverything()">🗑️ CLEAR ALL TOKENS NOW</button>
+        <button onclick="window.location.reload()">🔄 Check Again</button>
+        
+        <div id="result"></div>
+
+        <div class="step">
+            <h3>After Clearing:</h3>
+            <ol style="margin-left: 20px; margin-top: 10px;">
+                <li>Click the button below to go to login</li>
+                <li>Login with: koromaemmanuel66@gmail.com</li>
+                <li>Password: 2d5838dc71aacf3b</li>
+                <li>Test Services tab - WILL WORK!</li>
+            </ol>
+        </div>
+
+        <button onclick="goToLogin()" style="background: #06d6a0;">
+            🔐 Go to Login Page
+        </button>
+    </div>
+
+    <script>
+        function checkTokens() {
+            const tokens = {
+                auth_token: localStorage.getItem('auth_token'),
+                admin_token: localStorage.getItem('admin_token'),
+                token: localStorage.getItem('token'),
+                user: localStorage.getItem('user')
+            };
+
+            let html = '<strong>Current Storage:</strong><br><br>';
+            let hasOldToken = false;
+
+            Object.keys(tokens).forEach(key => {
+                if (tokens[key]) {
+                    const val = tokens[key];
+                    const parts = val.includes('.') ? val.split('.').length : 1;
+                    const isJWT = parts === 3;
+                    const status = isJWT ? '✅ JWT' : '❌ OLD FORMAT';
+                    
+                    if (!isJWT && key.includes('token')) {
+                        hasOldToken = true;
+                    }
+
+                    html += `${key}: ${status}<br>`;
+                    html += `  Length: ${val.length} chars<br>`;
+                    html += `  Parts: ${parts}<br>`;
+                    html += `  Preview: ${val.substring(0, 40)}...<br><br>`;
+                }
+            });
+
+            if (!tokens.auth_token && !tokens.admin_token && !tokens.token) {
+                html = '<strong style="color: #06d6a0;">✅ NO TOKENS - Ready for fresh login!</strong>';
+                document.getElementById('result').innerHTML = `
+                    <div class="success">
+                        Perfect! All tokens cleared.<br>
+                        Click "Go to Login Page" below.
+                    </div>
+                `;
+            } else if (hasOldToken) {
+                html += '<br><strong style="color: #ff6b6b;">⚠️ OLD TOKEN DETECTED!</strong>';
+                document.getElementById('result').innerHTML = `
+                    <div class="alert">
+                        Click "CLEAR ALL TOKENS NOW" button above!
+                    </div>
+                `;
+            }
+
+            document.getElementById('tokenStatus').innerHTML = html;
+        }
+
+        function clearEverything() {
+            console.log('Clearing all storage...');
+            
+            // Remove all possible token keys
+            const keysToRemove = [
+                'auth_token',
+                'admin_token', 
+                'token',
+                'user',
+                'remember_token',
+                'access_token',
+                'jwt_token'
+            ];
+
+            keysToRemove.forEach(key => {
+                localStorage.removeItem(key);
+                sessionStorage.removeItem(key);
+            });
+
+            // Clear everything
+            localStorage.clear();
+            sessionStorage.clear();
+
+            // Also try to clear cookies
+            document.cookie.split(";").forEach(function(c) { 
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+            });
+
+            document.getElementById('result').innerHTML = `
+                <div class="success">
+                    ✅ ALL TOKENS CLEARED!<br>
+                    Storage is now clean.<br>
+                    Click "Go to Login Page" below.
+                </div>
+            `;
+
+            checkTokens();
+        }
+
+        function goToLogin() {
+            // One final clear
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            // Redirect to admin login
+            window.location.href = 'http://localhost:5173/admin';
+        }
+
+        // Run on page load
+        window.onload = checkTokens;
+    </script>
+</body>
+</html>

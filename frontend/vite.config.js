@@ -19,7 +19,7 @@ export default defineConfig({
       }
     },
     headers: {
-      'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data:; script-src-elem 'self' 'unsafe-inline' blob: data:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; connect-src 'self' http://localhost:* https://localhost:*; frame-src 'self'; object-src 'none'; worker-src 'self' blob:; form-action 'self'; manifest-src 'self';"
+      'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data:; script-src-elem 'self' 'unsafe-inline' blob: data:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; connect-src 'self' http://localhost:* https://localhost:* https://ipapi.co; frame-src 'self'; object-src 'none'; worker-src 'self' blob:; form-action 'self'; manifest-src 'self';"
     }
   },
   build: {

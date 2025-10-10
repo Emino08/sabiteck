@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RBAC Tab Visibility Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #2563eb;
+            border-bottom: 3px solid #2563eb;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #1e40af;
+            margin-top: 30px;
+        }
+        .role-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .role-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .role-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1e40af;
+        }
+        .perm-count {
+            background: #3b82f6;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        .tabs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .tab-item {
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tab-visible {
+            background: #dcfce7;
+            border: 1px solid #86efac;
+            color: #166534;
+        }
+        .tab-hidden {
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+            color: #991b1b;
+        }
+        .icon {
+            font-size: 18px;
+        }
+        .summary {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            margin-bottom: 30px;
+        }
+        .permissions-list {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+        .permission {
+            display: inline-block;
+            background: white;
+            border: 1px solid #d1d5db;
+            padding: 4px 10px;
+            margin: 3px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #374151;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔐 RBAC Tab Visibility Matrix</h1>
+    
+    <div class="summary">
+        <h3>✅ Permission Fix Applied</h3>
+        <p><strong>Issue Fixed:</strong> Blogger was seeing User Roles tab (and other admin-only tabs)</p>
+        <p><strong>Solution:</strong> Changed permission check from <code>.some()</code> (ANY) to <code>.every()</code> (ALL)</p>
+        <p><strong>Impact:</strong> Users now see ONLY tabs they have full permission for</p>
+    </div>
+
+    <div class="role-section">
+        <div class="role-header">
+            <div class="role-name">👑 Admin</div>
+            <div class="perm-count">56 permissions</div>
+        </div>
+        <p><strong>Description:</strong> Full access to all modules</p>
+        <div class="tabs-grid">
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Overview</div>
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Content</div>
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Services</div>
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Portfolio</div>
+            <div class="tab-item tab-visible"><span class="icon">✓</span> About</div>
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Team</div>
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Announcements</div>
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Jobs</div>
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Scholarships</div>
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Organizations</div>
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Analytics</div>
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Newsletter</div>
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Tools</div>
+            <div class="tab-item tab-visible"><span class="icon">✓</span> User Roles</div>
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Routes</div>
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Settings</div>
+        </div>
+    </div>
+
+    <div class="role-section">
+        <div class="role-header">
+            <div class="role-name">✍️ Content Editor</div>
+            <div class="perm-count">24 permissions</div>
+        </div>
+        <p><strong>Description:</strong> Creates, updates, and publishes website content, blogs, and news</p>
+        <div class="tabs-grid">
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Overview</div>
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Content</div>
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Services</div>
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Portfolio</div>
+            <div class="tab-item tab-visible"><span class="icon">✓</span> About</div>
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Team</div>
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Announcements</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Jobs</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Scholarships</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Organizations</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Analytics</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Newsletter</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Tools</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> User Roles</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Routes</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Settings</div>
+        </div>
+    </div>
+
+    <div class="role-section">
+        <div class="role-header">
+            <div class="role-name">📋 Program Manager</div>
+            <div class="perm-count">17 permissions</div>
+        </div>
+        <p><strong>Description:</strong> Manages all program-related items (jobs, scholarships, organizations)</p>
+        <div class="tabs-grid">
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Overview</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Content</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Services</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Portfolio</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> About</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Team</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Announcements</div>
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Jobs</div>
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Scholarships</div>
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Organizations</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Analytics</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Newsletter</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Tools</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> User Roles</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Routes</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Settings</div>
+        </div>
+    </div>
+
+    <div class="role-section">
+        <div class="role-header">
+            <div class="role-name">📢 Marketing Officer</div>
+            <div class="perm-count">12 permissions</div>
+        </div>
+        <p><strong>Description:</strong> Handles promotion, newsletter, and analytics insights</p>
+        <div class="tabs-grid">
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Overview</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Content</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Services</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Portfolio</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> About</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Team</div>
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Announcements</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Jobs</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Scholarships</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Organizations</div>
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Analytics</div>
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Newsletter</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Tools</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> User Roles</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Routes</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Settings</div>
+        </div>
+    </div>
+
+    <div class="role-section">
+        <div class="role-header">
+            <div class="role-name">📊 Analyst</div>
+            <div class="perm-count">4 permissions</div>
+        </div>
+        <p><strong>Description:</strong> Can only view analytics, insights, and reports</p>
+        <div class="tabs-grid">
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Overview</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Content</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Services</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Portfolio</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> About</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Team</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Announcements</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Jobs</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Scholarships</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Organizations</div>
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Analytics</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Newsletter</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Tools</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> User Roles</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Routes</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Settings</div>
+        </div>
+    </div>
+
+    <div class="role-section">
+        <div class="role-header">
+            <div class="role-name">✏️ Blogger</div>
+            <div class="perm-count">15 permissions</div>
+        </div>
+        <p><strong>Description:</strong> Creates, updates, and publishes content, blogs, news, jobs, scholarships, newsletter</p>
+        <div class="permissions-list">
+            <strong>Permissions:</strong><br>
+            <span class="permission">dashboard.view</span>
+            <span class="permission">content.view</span>
+            <span class="permission">content.create</span>
+            <span class="permission">content.edit</span>
+            <span class="permission">content.publish</span>
+            <span class="permission">jobs.view</span>
+            <span class="permission">jobs.create</span>
+            <span class="permission">jobs.edit</span>
+            <span class="permission">jobs.publish</span>
+            <span class="permission">scholarships.view</span>
+            <span class="permission">scholarships.create</span>
+            <span class="permission">scholarships.edit</span>
+            <span class="permission">scholarships.publish</span>
+            <span class="permission">newsletter.view</span>
+            <span class="permission">newsletter.create</span>
+        </div>
+        <div class="tabs-grid">
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Overview</div>
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Content</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Services</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Portfolio</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> About</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Team</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Announcements</div>
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Jobs</div>
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Scholarships</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Organizations</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Analytics</div>
+            <div class="tab-item tab-visible"><span class="icon">✓</span> Newsletter</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Tools</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> User Roles ❌</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Routes</div>
+            <div class="tab-item tab-hidden"><span class="icon">✗</span> Settings</div>
+        </div>
+        <div style="margin-top: 15px; padding: 10px; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 4px;">
+            <strong>⚠️ Important:</strong> Blogger does NOT have <code>users.view</code> permission, so User Roles tab is HIDDEN
+        </div>
+    </div>
+
+    <div style="margin-top: 40px; padding: 20px; background: #dcfce7; border-radius: 8px; border-left: 4px solid #16a34a;">
+        <h3>✅ Verification Steps</h3>
+        <ol>
+            <li><strong>Logout</strong> from current session</li>
+            <li><strong>Login</strong> again to get fresh JWT token</li>
+            <li><strong>Check dashboard</strong> - you should only see tabs listed as "visible" for your role</li>
+            <li><strong>Blogger specifically</strong> should NOT see User Roles, Tools, Routes, or Settings tabs</li>
+        </ol>
+    </div>
+</body>
+</html>

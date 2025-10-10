@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Logout Redirect Logic</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            color: #333;
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .test-section h3 {
+            color: #667eea;
+            margin-top: 0;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: all 0.3s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .result {
+            background: #fff;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+        .error {
+            border-left-color: #dc3545;
+        }
+        .info {
+            border-left-color: #17a2b8;
+        }
+        code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+        .role-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin: 5px;
+        }
+        .role-admin {
+            background: #dc3545;
+            color: white;
+        }
+        .role-user {
+            background: #28a745;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Logout Redirect Logic Tester</h1>
+        
+        <div class="test-section">
+            <h3>📧 Test Invite Email URLs</h3>
+            <p>Test what URL is generated in invite emails based on role:</p>
+            
+            <button onclick="testInviteUrl('admin')">Test Admin Role</button>
+            <button onclick="testInviteUrl('super_admin')">Test Super Admin</button>
+            <button onclick="testInviteUrl('editor')">Test Editor</button>
+            <button onclick="testInviteUrl('moderator')">Test Moderator</button>
+            <button onclick="testInviteUrl('hr_manager')">Test HR Manager</button>
+            <button onclick="testInviteUrl('user')">Test Regular User</button>
+            
+            <div id="inviteResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🚪 Test Logout Redirect</h3>
+            <p>Test where users are redirected after logout:</p>
+            
+            <button onclick="testLogout('admin')">Logout as Admin</button>
+            <button onclick="testLogout('super_admin')">Logout as Super Admin</button>
+            <button onclick="testLogout('editor')">Logout as Editor</button>
+            <button onclick="testLogout('user')">Logout as User</button>
+            <button onclick="testLogout('subscriber')">Logout as Subscriber</button>
+            
+            <div id="logoutResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>✅ Quick Test: Current User</h3>
+            <p>Check your current localStorage and test logout:</p>
+            
+            <button onclick="checkCurrentUser()">Check My User Data</button>
+            <button onclick="testCurrentLogout()">Test My Logout</button>
+            
+            <div id="currentResult"></div>
+        </div>
+    </div>
+
+    <script>
+        const baseUrl = 'http://localhost:5173';
+        
+        // Admin roles that should get /admin
+        const adminRoles = [
+            'admin', 
+            'super_admin', 
+            'super-admin', 
+            'Administrator',
+            'editor', 
+            'moderator', 
+            'hr_manager', 
+            'content_editor', 
+            'content_moderator'
+        ];
+
+        function testInviteUrl(role) {
+            const resultDiv = document.getElementById('inviteResult');
+            
+            // Simulate backend logic
+            const isAdminRole = adminRoles.includes(role);
+            const loginUrl = isAdminRole ? baseUrl + '/admin' : baseUrl + '/login';
+            const accountType = isAdminRole ? 'Admin' : 'User';
+            
+            const roleBadge = isAdminRole 
+                ? `<span class="role-badge role-admin">ADMIN ROLE</span>`
+                : `<span class="role-badge role-user">USER ROLE</span>`;
+            
+            resultDiv.innerHTML = `
+                <div class="result">
+                    <h4>📨 Invite Email for Role: <code>${role}</code></h4>
+                    ${roleBadge}
+                    <p><strong>Account Type:</strong> ${accountType}</p>
+                    <p><strong>Login URL in Email:</strong> <code>${loginUrl}</code></p>
+                    <p><strong>Email says:</strong> "Login to Your <strong>${accountType} Account</strong>"</p>
+                    ${isAdminRole 
+                        ? '<p style="color: #dc3545;">✅ This user will be directed to the <strong>admin login page</strong></p>'
+                        : '<p style="color: #28a745;">✅ This user will be directed to the <strong>regular login page</strong></p>'
+                    }
+                </div>
+            `;
+        }
+
+        function testLogout(role) {
+            const resultDiv = document.getElementById('logoutResult');
+            
+            // Simulate frontend logic
+            const isAdmin = ['super_admin', 'admin', 'Administrator'].includes(role);
+            const redirectPath = isAdmin ? '/admin' : '/login';
+            
+            const roleBadge = isAdmin 
+                ? `<span class="role-badge role-admin">ADMIN</span>`
+                : `<span class="role-badge role-user">USER</span>`;
+            
+            resultDiv.innerHTML = `
+                <div class="result">
+                    <h4>🚪 Logout Test for Role: <code>${role}</code></h4>
+                    ${roleBadge}
+                    <p><strong>Is Admin:</strong> ${isAdmin ? 'YES' : 'NO'}</p>
+                    <p><strong>Redirect Path:</strong> <code>${redirectPath}</code></p>
+                    <p><strong>Full URL:</strong> <code>${baseUrl}${redirectPath}</code></p>
+                    ${isAdmin 
+                        ? '<p style="color: #dc3545;">✅ Will redirect to <strong>admin login page</strong></p>'
+                        : '<p style="color: #28a745;">✅ Will redirect to <strong>regular login page</strong></p>'
+                    }
+                </div>
+            `;
+        }
+
+        function checkCurrentUser() {
+            const resultDiv = document.getElementById('currentResult');
+            const userStr = localStorage.getItem('user');
+            
+            if (!userStr) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <p>❌ No user data in localStorage. You're not logged in.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            try {
+                const user = JSON.parse(userStr);
+                const role = user.role || user.role_name;
+                const isAdmin = ['super_admin', 'admin', 'Administrator'].includes(role);
+                
+                resultDiv.innerHTML = `
+                    <div class="result">
+                        <h4>👤 Your Current User Data</h4>
+                        <p><strong>Email:</strong> ${user.email || 'N/A'}</p>
+                        <p><strong>Username:</strong> ${user.username || 'N/A'}</p>
+                        <p><strong>Role:</strong> <code>${role}</code></p>
+                        <p><strong>Is Admin:</strong> ${isAdmin ? '✅ YES' : '❌ NO'}</p>
+                        <p><strong>Permissions:</strong> ${user.permissions?.length || 0}</p>
+                        <p><strong>Modules:</strong> ${user.modules?.length || 0}</p>
+                    </div>
+                `;
+            } catch (e) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <p>❌ Error parsing user data: ${e.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function testCurrentLogout() {
+            const resultDiv = document.getElementById('currentResult');
+            const userStr = localStorage.getItem('user');
+            
+            if (!userStr) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <p>❌ No user data to test. Login first!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            try {
+                const user = JSON.parse(userStr);
+                const role = user.role || user.role_name;
+                const isAdmin = ['super_admin', 'admin', 'Administrator'].includes(role);
+                const redirectPath = isAdmin ? '/admin' : '/login';
+                
+                const roleBadge = isAdmin 
+                    ? `<span class="role-badge role-admin">ADMIN</span>`
+                    : `<span class="role-badge role-user">USER</span>`;
+                
+                resultDiv.innerHTML = `
+                    <div class="result">
+                        <h4>🧪 Logout Test Result</h4>
+                        ${roleBadge}
+                        <p><strong>Your Role:</strong> <code>${role}</code></p>
+                        <p><strong>Is Admin:</strong> ${isAdmin ? 'YES' : 'NO'}</p>
+                        <p><strong>When you logout, you'll be redirected to:</strong></p>
+                        <h3 style="color: #667eea; margin: 10px 0;">${baseUrl}${redirectPath}</h3>
+                        ${isAdmin 
+                            ? '<p style="color: #dc3545;">✅ Admin login page (/admin)</p>'
+                            : '<p style="color: #28a745;">✅ Regular login page (/login)</p>'
+                        }
+                        <p style="margin-top: 20px;"><em>Note: This is a simulation. Click "Sign Out" in the app to test for real.</em></p>
+                    </div>
+                `;
+            } catch (e) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <p>❌ Error: ${e.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Auto-check on load
+        window.onload = function() {
+            const stored = localStorage.getItem('user');
+            if (stored) {
+                checkCurrentUser();
+            }
+        };
+    </script>
+</body>
+</html>

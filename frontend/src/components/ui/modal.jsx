@@ -76,7 +76,7 @@ const Modal = ({
         )}
 
         {/* Content */}
-        <div className="overflow-y-auto max-h-[calc(90vh-8rem)]">
+        <div className="overflow-y-auto max-h-[calc(90vh-8rem)] modal-scrollbar">
           {children}
         </div>
       </div>

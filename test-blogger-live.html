@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Blogger Login Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            text-decoration: none;
+        }
+        
+        .button:hover {
+            background: #5568d3;
+        }
+        
+        .button-danger {
+            background: #dc3545;
+        }
+        
+        .button-danger:hover {
+            background: #c82333;
+        }
+        
+        .button-success {
+            background: #28a745;
+        }
+        
+        .button-success:hover {
+            background: #218838;
+        }
+        
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        
+        .result {
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        
+        .result.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .result.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .result.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .credentials {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        
+        .credentials strong {
+            color: #856404;
+        }
+        
+        #testResults {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔒 Live Blogger Login Test</h1>
+        
+        <div class="section">
+            <h2>Test Credentials</h2>
+            <div class="credentials">
+                <p><strong>Username:</strong> encictyear1</p>
+                <p><strong>Email:</strong> encictyear1@gmail.com</p>
+                <p><strong>Role:</strong> blogger</p>
+                <p><strong>Note:</strong> You'll need to enter the password in the actual login form</p>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Quick Actions</h2>
+            <button class="button button-danger" onclick="clearStorage()">1. Clear LocalStorage</button>
+            <a href="http://localhost:5174/admin" class="button" target="_blank">2. Go to Admin Login</a>
+            <button class="button button-success" onclick="checkLogin()">3. Check Login Status</button>
+        </div>
+        
+        <div class="section">
+            <h2>Automated Tests</h2>
+            <button class="button" onclick="testPermissionChecking()">Test Permission Logic</button>
+            <button class="button" onclick="testTabFiltering()">Test Tab Filtering</button>
+            <button class="button" onclick="runAllTests()">Run All Tests</button>
+        </div>
+        
+        <div id="testResults"></div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:8002';
+        
+        function showResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = message;
+            document.getElementById('testResults').appendChild(div);
+        }
+        
+        function clearStorage() {
+            localStorage.clear();
+            sessionStorage.clear();
+            showResult('✅ LocalStorage and SessionStorage cleared!', 'success');
+            showResult('You can now login with a fresh session.', 'info');
+        }
+        
+        function checkLogin() {
+            const user = localStorage.getItem('user');
+            const token = localStorage.getItem('auth_token');
+            
+            if (!user || !token) {
+                showResult('❌ Not logged in. Please login at /admin', 'error');
+                return;
+            }
+            
+            try {
+                const userData = JSON.parse(user);
+                showResult('✅ User is logged in!', 'success');
+                showResult(`<pre>${JSON.stringify(userData, null, 2)}</pre>`, 'info');
+                
+                // Check role consistency
+                if (userData.role === userData.role_name) {
+                    showResult('✅ Role is consistent: ' + userData.role, 'success');
+                } else {
+                    showResult(`❌ Role mismatch! role=${userData.role}, role_name=${userData.role_name}`, 'error');
+                }
+                
+                // Check permissions
+                if (userData.permissions && userData.permissions.length > 0) {
+                    showResult(`✅ Has ${userData.permissions.length} permissions`, 'success');
+                    const permList = userData.permissions.map(p => typeof p === 'string' ? p : p.name).join(', ');
+                    showResult(`<strong>Permissions:</strong> ${permList}`, 'info');
+                } else {
+                    showResult('❌ No permissions found!', 'error');
+                }
+                
+            } catch (e) {
+                showResult('❌ Error parsing user data: ' + e.message, 'error');
+            }
+        }
+        
+        function testPermissionChecking() {
+            const user = localStorage.getItem('user');
+            if (!user) {
+                showResult('❌ Please login first', 'error');
+                return;
+            }
+            
+            const userData = JSON.parse(user);
+            
+            // Test the isTrueAdmin logic
+            const isTrueAdmin = (
+                (['admin', 'super_admin'].includes(userData.role)) &&
+                (['admin', 'super_admin', 'Administrator'].includes(userData.role_name))
+            );
+            
+            showResult(`<h3>Permission Check Test</h3>`, 'info');
+            showResult(`Role: ${userData.role}`, 'info');
+            showResult(`Role Name: ${userData.role_name}`, 'info');
+            showResult(`Is True Admin: ${isTrueAdmin}`, isTrueAdmin ? 'error' : 'success');
+            
+            if (userData.role === 'blogger' && !isTrueAdmin) {
+                showResult('✅ Blogger correctly identified as non-admin', 'success');
+            } else if (userData.role === 'blogger' && isTrueAdmin) {
+                showResult('❌ ERROR: Blogger incorrectly identified as admin!', 'error');
+            }
+        }
+        
+        function testTabFiltering() {
+            const user = localStorage.getItem('user');
+            if (!user) {
+                showResult('❌ Please login first', 'error');
+                return;
+            }
+            
+            const userData = JSON.parse(user);
+            
+            // Define tabs (from Admin.jsx)
+            const tabs = [
+                {id: 'overview', label: 'Overview', permissions: ['dashboard.view']},
+                {id: 'content', label: 'Content', permissions: ['content.view']},
+                {id: 'services', label: 'Services', permissions: ['services.view']},
+                {id: 'portfolio', label: 'Portfolio', permissions: ['portfolio.view']},
+                {id: 'about', label: 'About', permissions: ['about.view']},
+                {id: 'team', label: 'Team', permissions: ['team.view']},
+                {id: 'announcements', label: 'Announcements', permissions: ['announcements.view']},
+                {id: 'jobs', label: 'Jobs', permissions: ['jobs.view']},
+                {id: 'scholarships', label: 'Scholarships', permissions: ['scholarships.view']},
+                {id: 'organizations', label: 'Organizations', permissions: ['organizations.view']},
+                {id: 'analytics', label: 'Analytics', permissions: ['analytics.view']},
+                {id: 'newsletter', label: 'Newsletter', permissions: ['newsletter.view']},
+                {id: 'tools-management', label: 'Tools & Curriculum', permissions: ['tools.use', 'system.settings']},
+                {id: 'roles', label: 'User Roles', permissions: ['users.create', 'roles.manage']},
+                {id: 'routes', label: 'Navigation', permissions: ['system.settings']},
+                {id: 'settings', label: 'Settings', permissions: ['settings.edit', 'system.settings']}
+            ];
+            
+            // Get user permissions
+            const userPermissions = userData.permissions || [];
+            const permissionNames = userPermissions.map(p => typeof p === 'string' ? p : p.name);
+            
+            // Check which tabs should be visible
+            const isTrueAdmin = (
+                (['admin', 'super_admin'].includes(userData.role)) &&
+                (['admin', 'super_admin', 'Administrator'].includes(userData.role_name))
+            );
+            
+            const accessibleTabs = tabs.filter(tab => {
+                if (isTrueAdmin) return true;
+                
+                return tab.permissions.some(perm => permissionNames.includes(perm));
+            });
+            
+            showResult(`<h3>Tab Filtering Test</h3>`, 'info');
+            showResult(`Total Tabs: ${tabs.length}`, 'info');
+            showResult(`Accessible Tabs: ${accessibleTabs.length}`, 'info');
+            
+            const allowed = accessibleTabs.map(t => t.label).join(', ');
+            const blocked = tabs.filter(t => !accessibleTabs.includes(t)).map(t => t.label).join(', ');
+            
+            showResult(`<strong>Allowed:</strong> ${allowed}`, 'success');
+            showResult(`<strong>Blocked:</strong> ${blocked}`, 'error');
+            
+            // Expected for blogger
+            const expected = ['overview', 'content', 'jobs', 'scholarships', 'newsletter'];
+            const actual = accessibleTabs.map(t => t.id);
+            
+            const isCorrect = JSON.stringify(expected.sort()) === JSON.stringify(actual.sort());
+            
+            if (userData.role === 'blogger' && isCorrect) {
+                showResult('✅✅✅ Tab filtering is working correctly for blogger!', 'success');
+            } else if (userData.role === 'blogger' && !isCorrect) {
+                showResult('❌ Tab filtering is INCORRECT for blogger!', 'error');
+                showResult(`Expected: ${expected.join(', ')}`, 'info');
+                showResult(`Got: ${actual.join(', ')}`, 'info');
+            }
+        }
+        
+        function runAllTests() {
+            document.getElementById('testResults').innerHTML = '';
+            showResult('<h2>Running All Tests...</h2>', 'info');
+            checkLogin();
+            testPermissionChecking();
+            testTabFiltering();
+        }
+        
+        // Auto-check on page load if logged in
+        window.addEventListener('load', () => {
+            const user = localStorage.getItem('user');
+            if (user) {
+                showResult('ℹ️ User session detected. Click "Check Login Status" to view details.', 'info');
+            } else {
+                showResult('ℹ️ No active session. Please clear storage and login at /admin', 'info');
+            }
+        });
+    </script>
+</body>
+</html>

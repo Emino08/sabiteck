@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blogger Role - Tab Visibility</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        .header h1 {
+            color: #1e293b;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .header p {
+            color: #64748b;
+            font-size: 16px;
+        }
+        .status {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        .card h2 {
+            color: #1e293b;
+            font-size: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .icon {
+            font-size: 24px;
+        }
+        .tab-list {
+            list-style: none;
+        }
+        .tab-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 15px;
+            transition: all 0.2s;
+        }
+        .tab-visible {
+            background: #d1fae5;
+            color: #065f46;
+            border: 2px solid #6ee7b7;
+        }
+        .tab-hidden {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 2px solid #fca5a5;
+        }
+        .tab-item .check {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .permissions {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 15px;
+        }
+        .permission-item {
+            display: inline-block;
+            background: white;
+            border: 1px solid #e2e8f0;
+            padding: 6px 12px;
+            margin: 4px;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #475569;
+            font-family: 'Courier New', monospace;
+        }
+        .description {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .description h3 {
+            color: #1e40af;
+            margin-bottom: 10px;
+        }
+        .description p {
+            color: #1e40af;
+            line-height: 1.6;
+        }
+        .action-box {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .action-box h3 {
+            color: #92400e;
+            margin-bottom: 10px;
+        }
+        .action-box ol {
+            color: #92400e;
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✏️ Blogger Role - Navigation Configuration</h1>
+            <p>What blogger users should see in the admin dashboard</p>
+            <span class="status">✅ Configuration Complete</span>
+        </div>
+
+        <div class="description">
+            <h3>📋 Role Description</h3>
+            <p><strong>Blogger:</strong> Focuses on creating, updating, and publishing website content, blogs, news, jobs, scholarships, newsletter.</p>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2><span class="icon">✅</span> Visible Tabs (5)</h2>
+                <p style="color: #64748b; margin-bottom: 15px; font-size: 14px;">Blogger can access these sections</p>
+                <ul class="tab-list">
+                    <li class="tab-item tab-visible">
+                        <span class="check">✓</span>
+                        <strong>Overview</strong>
+                    </li>
+                    <li class="tab-item tab-visible">
+                        <span class="check">✓</span>
+                        <strong>Content</strong>
+                        <span style="font-size: 12px; color: #065f46;">(Blogs, News, Website Content)</span>
+                    </li>
+                    <li class="tab-item tab-visible">
+                        <span class="check">✓</span>
+                        <strong>Jobs</strong>
+                    </li>
+                    <li class="tab-item tab-visible">
+                        <span class="check">✓</span>
+                        <strong>Scholarships</strong>
+                    </li>
+                    <li class="tab-item tab-visible">
+                        <span class="check">✓</span>
+                        <strong>Newsletter</strong>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h2><span class="icon">❌</span> Hidden Tabs (11)</h2>
+                <p style="color: #64748b; margin-bottom: 15px; font-size: 14px;">Blogger cannot access these sections</p>
+                <ul class="tab-list">
+                    <li class="tab-item tab-hidden">
+                        <span class="check">✗</span>
+                        Services
+                    </li>
+                    <li class="tab-item tab-hidden">
+                        <span class="check">✗</span>
+                        Portfolio
+                    </li>
+                    <li class="tab-item tab-hidden">
+                        <span class="check">✗</span>
+                        About
+                    </li>
+                    <li class="tab-item tab-hidden">
+                        <span class="check">✗</span>
+                        Team
+                    </li>
+                    <li class="tab-item tab-hidden">
+                        <span class="check">✗</span>
+                        Announcements
+                    </li>
+                    <li class="tab-item tab-hidden">
+                        <span class="check">✗</span>
+                        Organizations
+                    </li>
+                    <li class="tab-item tab-hidden">
+                        <span class="check">✗</span>
+                        Analytics
+                    </li>
+                    <li class="tab-item tab-hidden">
+                        <span class="check">✗</span>
+                        Tools
+                    </li>
+                    <li class="tab-item tab-hidden">
+                        <span class="check">✗</span>
+                        <strong>User Roles</strong>
+                    </li>
+                    <li class="tab-item tab-hidden">
+                        <span class="check">✗</span>
+                        Routes
+                    </li>
+                    <li class="tab-item tab-hidden">
+                        <span class="check">✗</span>
+                        Settings
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2><span class="icon">🔐</span> Blogger Permissions (15 total)</h2>
+            <div class="permissions">
+                <h4 style="margin-bottom: 10px; color: #1e293b;">Dashboard (1):</h4>
+                <span class="permission-item">dashboard.view</span>
+
+                <h4 style="margin: 15px 0 10px; color: #1e293b;">Content (4):</h4>
+                <span class="permission-item">content.view</span>
+                <span class="permission-item">content.create</span>
+                <span class="permission-item">content.edit</span>
+                <span class="permission-item">content.publish</span>
+
+                <h4 style="margin: 15px 0 10px; color: #1e293b;">Jobs (4):</h4>
+                <span class="permission-item">jobs.view</span>
+                <span class="permission-item">jobs.create</span>
+                <span class="permission-item">jobs.edit</span>
+                <span class="permission-item">jobs.publish</span>
+
+                <h4 style="margin: 15px 0 10px; color: #1e293b;">Scholarships (4):</h4>
+                <span class="permission-item">scholarships.view</span>
+                <span class="permission-item">scholarships.create</span>
+                <span class="permission-item">scholarships.edit</span>
+                <span class="permission-item">scholarships.publish</span>
+
+                <h4 style="margin: 15px 0 10px; color: #1e293b;">Newsletter (2):</h4>
+                <span class="permission-item">newsletter.view</span>
+                <span class="permission-item">newsletter.create</span>
+            </div>
+        </div>
+
+        <div class="action-box">
+            <h3>⚠️ Action Required for Blogger Users</h3>
+            <ol>
+                <li><strong>LOGOUT</strong> completely from the admin dashboard</li>
+                <li><strong>CLEAR</strong> browser cache (recommended)</li>
+                <li><strong>LOGIN</strong> again to get a fresh JWT token</li>
+                <li><strong>VERIFY</strong> you see only the 5 visible tabs listed above</li>
+                <li>All other tabs should be completely hidden from the navigation</li>
+            </ol>
+        </div>
+
+        <div class="card" style="margin-top: 20px; background: #dcfce7; border: 2px solid #86efac;">
+            <h2 style="color: #065f46;"><span class="icon">✅</span> Configuration Status</h2>
+            <p style="color: #065f46; line-height: 1.6;">
+                The blogger role has been successfully configured to match the job description. 
+                Blogger users now have access to exactly what they need: creating, updating, and publishing 
+                website content, blogs, news, jobs, scholarships, and newsletters. All administrative and 
+                system management features are properly restricted.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -4,15 +4,18 @@ require_once __DIR__ . '/controllers/BaseController.php';
 require_once __DIR__ . '/controllers/CategoryController.php';
 require_once __DIR__ . '/controllers/AdminController.php';
 require_once __DIR__ . '/Controllers/OrganizationController.php';
+require_once __DIR__ . '/Controllers/TeamMemberController.php';
 
 use App\Controllers\CategoryController;
 use App\Controllers\AdminController;
 use DevCo\Controllers\OrganizationController;
+use DevCo\Controllers\TeamMemberController;
 
 function handleRoutes($method, $path, $db) {
     $categoryController = new CategoryController($db);
     $adminController = new AdminController($db);
     $organizationController = new OrganizationController();
+    $teamController = new TeamMemberController($db);
 
     // Category routes - replace hardcoded data with database calls
     switch (true) {
@@ -141,6 +144,37 @@ function handleRoutes($method, $path, $db) {
 
         case ($path === '/api/admin/about' && $method === 'PUT'):
             return $adminController->updateAbout();
+
+        // Team Management Routes (Admin)
+        case ($path === '/api/admin/team' && $method === 'GET'):
+            return $teamController->getAllAdmin();
+
+        case ($path === '/api/admin/team' && $method === 'POST'):
+            return $teamController->create();
+
+        // Photo upload must come BEFORE the numeric ID routes
+        case ($path === '/api/admin/team/upload-photo' && $method === 'POST'):
+            return $teamController->uploadPhoto();
+
+        case (preg_match('/^\/api\/admin\/team\/(\d+)$/', $path, $matches) && $method === 'GET'):
+            return $teamController->getOne($matches[1]);
+
+        case (preg_match('/^\/api\/admin\/team\/(\d+)$/', $path, $matches) && $method === 'PUT'):
+            return $teamController->update($matches[1]);
+
+        case (preg_match('/^\/api\/admin\/team\/(\d+)$/', $path, $matches) && $method === 'PATCH'):
+            return $teamController->update($matches[1]);
+
+        case (preg_match('/^\/api\/admin\/team\/(\d+)$/', $path, $matches) && $method === 'DELETE'):
+            return $teamController->delete($matches[1]);
+
+
+        // Public Team Routes
+        case ($path === '/api/team' && $method === 'GET'):
+            return $teamController->getPublicTeam();
+
+        case (preg_match('/^\/api\/team\/(\d+)$/', $path, $matches) && $method === 'GET'):
+            return $teamController->getOne($matches[1]);
 
         default:
             return false; // Route not handled by this system

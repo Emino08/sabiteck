@@ -1,0 +1,122 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                  FIX "INVALID CREDENTIALS" ERROR                             ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ PROBLEM                                                                      │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ ✅ Database has: role='admin' (CORRECT)                                     │
+│ ❌ API returns: role='blogger' (CACHED/OLD DATA)                            │
+│ ❌ Frontend login fails: "Invalid credentials"                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ ROOT CAUSE                                                                   │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ Backend server (PHP) is caching old database query results                  │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ SOLUTION (3 STEPS - TAKES 30 SECONDS)                                       │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│ STEP 1: STOP BACKEND SERVER                                                 │
+│   • Find terminal running backend                                           │
+│   • Press Ctrl+C                                                            │
+│                                                                              │
+│ STEP 2: RESTART BACKEND SERVER                                              │
+│   cd backend                                                                │
+│   php -S localhost:8002 -t public                                           │
+│                                                                              │
+│   Wait for: "Development Server (http://localhost:8002) started"            │
+│                                                                              │
+│ STEP 3: CLEAR BROWSER CACHE                                                 │
+│   • Open browser DevTools (F12)                                             │
+│   • Application tab → Clear site data                                       │
+│   • Close and reopen browser                                                │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ TEST LOGIN                                                                   │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ URL: http://localhost:3000/admin                                            │
+│                                                                              │
+│ Username: test_blogger                                                      │
+│ Password: Test123!                                                          │
+│                                                                              │
+│ Expected: ✅ Login success → See dashboard with 6 tabs                     │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ VERIFY FIX (BEFORE BROWSER TEST)                                            │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ Run this command to verify backend is fixed:                                │
+│                                                                              │
+│   cd backend                                                                │
+│   php test_login_now.php                                                    │
+│                                                                              │
+│ Expected output:                                                            │
+│   ✅ LOGIN SUCCESSFUL!                                                      │
+│   Role (column): admin     ← MUST be 'admin' not 'blogger'                 │
+│                                                                              │
+│ If it still shows 'blogger':                                                │
+│   → Backend server NOT restarted properly                                   │
+│   → Stop and restart again                                                  │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ ALTERNATIVE TEST ACCOUNTS                                                   │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ All passwords: Test123!                                                     │
+│                                                                              │
+│ test_admin    → Full access (ALL tabs)                                     │
+│ test_blogger  → Limited (6 tabs)                                            │
+│ test_editor   → Limited (7 tabs)                                            │
+│ test_manager  → Limited (4 tabs)                                            │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ TROUBLESHOOTING                                                              │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│ Q: test_login_now.php still shows role='blogger'?                           │
+│ A: Backend server not restarted. Try:                                       │
+│    1. Kill all PHP processes                                                │
+│    2. Start fresh: php -S localhost:8002 -t public                          │
+│                                                                              │
+│ Q: Browser still shows "Invalid credentials"?                               │
+│ A: Clear browser cache completely:                                          │
+│    1. F12 → Application → Clear site data                                   │
+│    2. Close ALL browser tabs                                                │
+│    3. Reopen browser                                                        │
+│    4. Try again                                                             │
+│                                                                              │
+│ Q: Using Docker/XAMPP instead of PHP built-in server?                       │
+│ A: Restart your web server:                                                 │
+│    Docker: docker-compose restart backend                                   │
+│    XAMPP: Stop/Start Apache from control panel                              │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ CHECKLIST                                                                    │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ □ Backend server stopped (Ctrl+C)                                           │
+│ □ Backend server restarted (php -S localhost:8002 -t public)                │
+│ □ Verified with test_login_now.php (shows role='admin')                     │
+│ □ Browser cache cleared (F12 → Clear site data)                             │
+│ □ Browser closed and reopened                                               │
+│ □ Login tested at http://localhost:3000/admin                               │
+│ □ Login successful ✅                                                       │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ SUMMARY                                                                      ║
+║                                                                              ║
+║ Database is correct ✅                                                      ║
+║ Code is correct ✅                                                          ║
+║ Server needs restart ⚠️  ← THIS IS THE FIX                                 ║
+║                                                                              ║
+║ ACTION: Restart backend server + Clear browser cache                        ║
+╚══════════════════════════════════════════════════════════════════════════════╝

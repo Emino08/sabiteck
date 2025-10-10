@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Newsletter Admin - Mobile Responsive Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Scrollbar hide utility */
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="p-4">
+        <h1 class="text-2xl font-bold mb-4">Newsletter Admin - Mobile Responsive Test</h1>
+        
+        <!-- Test Screen Sizes -->
+        <div class="bg-white rounded-lg p-4 mb-6">
+            <h2 class="text-xl font-semibold mb-3">Current Screen Size: <span id="screenSize" class="text-blue-600"></span></h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                <div class="bg-blue-100 p-2 rounded text-center">
+                    <div class="font-bold">XS</div>
+                    <div class="text-sm">&lt; 640px</div>
+                    <div id="xs-indicator" class="hidden sm:hidden text-green-600 font-bold">✓ Active</div>
+                </div>
+                <div class="bg-green-100 p-2 rounded text-center">
+                    <div class="font-bold">SM</div>
+                    <div class="text-sm">≥ 640px</div>
+                    <div id="sm-indicator" class="hidden sm:block lg:hidden text-green-600 font-bold">✓ Active</div>
+                </div>
+                <div class="bg-yellow-100 p-2 rounded text-center">
+                    <div class="font-bold">MD</div>
+                    <div class="text-sm">≥ 768px</div>
+                    <div id="md-indicator" class="hidden md:block lg:hidden text-green-600 font-bold">✓ Active</div>
+                </div>
+                <div class="bg-purple-100 p-2 rounded text-center">
+                    <div class="font-bold">LG+</div>
+                    <div class="text-sm">≥ 1024px</div>
+                    <div id="lg-indicator" class="hidden lg:block text-green-600 font-bold">✓ Active</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Newsletter Header Test -->
+        <div class="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white rounded-lg mb-6">
+            <div class="relative z-10 border-b border-white/10 bg-black/20 backdrop-blur-xl">
+                <div class="container mx-auto px-4 md:px-6 py-4">
+                    <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="relative">
+                                    <div class="absolute -inset-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full blur opacity-75"></div>
+                                    <div class="relative p-2 md:p-3 bg-black/50 backdrop-blur-lg rounded-full border border-white/20">
+                                        <svg class="w-6 h-6 md:w-8 md:h-8 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h1 class="text-xl md:text-3xl font-black bg-gradient-to-r from-white via-purple-200 to-cyan-200 bg-clip-text text-transparent">
+                                        Elite Newsletter Studio
+                                    </h1>
+                                    <p class="text-gray-300 text-xs md:text-sm">Professional-grade email marketing platform</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Navigation Tabs -->
+                        <div class="flex items-center space-x-1 md:space-x-2 overflow-x-auto scrollbar-hide w-full lg:w-auto">
+                            <button class="group relative px-3 py-2 md:px-6 md:py-3 rounded-xl font-semibold transition-all duration-300 whitespace-nowrap bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-2xl">
+                                <div class="flex items-center space-x-1 md:space-x-2">
+                                    <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                    <span class="text-xs md:text-sm font-bold hidden sm:inline">Composer</span>
+                                </div>
+                            </button>
+                            <button class="group relative px-3 py-2 md:px-6 md:py-3 rounded-xl font-semibold transition-all duration-300 whitespace-nowrap bg-black/30 backdrop-blur-lg text-gray-300 border border-white/20">
+                                <div class="flex items-center space-x-1 md:space-x-2">
+                                    <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                    <span class="text-xs md:text-sm font-bold hidden sm:inline">Content</span>
+                                </div>
+                            </button>
+                            <button class="group relative px-3 py-2 md:px-6 md:py-3 rounded-xl font-semibold transition-all duration-300 whitespace-nowrap bg-black/30 backdrop-blur-lg text-gray-300 border border-white/20">
+                                <div class="flex items-center space-x-1 md:space-x-2">
+                                    <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                    </svg>
+                                    <span class="text-xs md:text-sm font-bold hidden sm:inline">Campaigns</span>
+                                </div>
+                            </button>
+                            <button class="group relative px-3 py-2 md:px-6 md:py-3 rounded-xl font-semibold transition-all duration-300 whitespace-nowrap bg-black/30 backdrop-blur-lg text-gray-300 border border-white/20">
+                                <div class="flex items-center space-x-1 md:space-x-2">
+                                    <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                    </svg>
+                                    <span class="text-xs md:text-sm font-bold hidden sm:inline">Audience</span>
+                                </div>
+                            </button>
+                            <button class="group relative px-3 py-2 md:px-6 md:py-3 rounded-xl font-semibold transition-all duration-300 whitespace-nowrap bg-black/30 backdrop-blur-lg text-gray-300 border border-white/20">
+                                <div class="flex items-center space-x-1 md:space-x-2">
+                                    <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
+                                    </svg>
+                                    <span class="text-xs md:text-sm font-bold hidden sm:inline">Templates</span>
+                                </div>
+                            </button>
+                            <button class="group relative px-3 py-2 md:px-6 md:py-3 rounded-xl font-semibold transition-all duration-300 whitespace-nowrap bg-black/30 backdrop-blur-lg text-gray-300 border border-white/20">
+                                <div class="flex items-center space-x-1 md:space-x-2">
+                                    <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                                    </svg>
+                                    <span class="text-xs md:text-sm font-bold hidden sm:inline">Analytics</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Email Modal Test -->
+        <div class="bg-white rounded-lg p-4 mb-6">
+            <h2 class="text-xl font-semibold mb-3">Email Modal Text Visibility Test</h2>
+            <div class="bg-white rounded-lg p-6 border-2 border-gray-200">
+                <h3 class="text-lg font-bold mb-4 text-gray-900">Send Email to subscriber@example.com</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-gray-700">Subject</label>
+                        <input
+                            type="text"
+                            value="Test Email Subject"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
+                        />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-gray-700">Content</label>
+                        <textarea
+                            class="w-full h-32 p-3 border border-gray-300 rounded-md resize-none text-gray-900"
+                            placeholder="Email content (HTML supported)"
+                        >This is a test email content that should be clearly visible.</textarea>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50">Cancel</button>
+                        <button class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Send Email</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Audience Tab Test -->
+        <div class="bg-white rounded-lg p-4">
+            <h2 class="text-xl font-semibold mb-3">Audience Tab Responsive Test</h2>
+            <div class="space-y-4">
+                <!-- Stats -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <div class="text-2xl font-bold text-blue-600">245</div>
+                        <div class="text-sm text-blue-600">Active Subscribers</div>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="text-2xl font-bold text-gray-600">12</div>
+                        <div class="text-sm text-gray-600">Unsubscribed</div>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <div class="text-2xl font-bold text-green-600">8</div>
+                        <div class="text-sm text-green-600">New This Week</div>
+                    </div>
+                </div>
+
+                <!-- Subscribers Table -->
+                <div class="border rounded-lg overflow-x-auto">
+                    <div class="bg-gray-50 px-4 py-3 border-b">
+                        <div class="grid grid-cols-5 gap-4 text-sm font-medium text-gray-700 min-w-[600px]">
+                            <div>Email</div>
+                            <div>Name</div>
+                            <div>Status</div>
+                            <div>Subscribed</div>
+                            <div>Actions</div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="px-4 py-3 border-b hover:bg-gray-50">
+                            <div class="grid grid-cols-5 gap-4 items-center text-sm min-w-[600px]">
+                                <div class="font-medium truncate">john.doe@example.com</div>
+                                <div class="truncate">John Doe</div>
+                                <div>
+                                    <span class="inline-flex px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                                        Active
+                                    </span>
+                                </div>
+                                <div class="text-gray-600">2024-01-15</div>
+                                <div class="flex space-x-1">
+                                    <button class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50 text-xs">Mail</button>
+                                    <button class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50 text-xs">Edit</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="px-4 py-3 border-b hover:bg-gray-50">
+                            <div class="grid grid-cols-5 gap-4 items-center text-sm min-w-[600px]">
+                                <div class="font-medium truncate">jane.smith@verylongemailaddress.com</div>
+                                <div class="truncate">Jane Smith with a Very Long Name</div>
+                                <div>
+                                    <span class="inline-flex px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                                        Active
+                                    </span>
+                                </div>
+                                <div class="text-gray-600">2024-01-10</div>
+                                <div class="flex space-x-1">
+                                    <button class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50 text-xs">Mail</button>
+                                    <button class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50 text-xs">Edit</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="bg-blue-50 rounded-lg p-4 mt-6">
+            <h3 class="font-bold text-blue-900 mb-2">Testing Instructions:</h3>
+            <ul class="text-sm text-blue-800 space-y-1">
+                <li>✓ Resize your browser window to test different screen sizes</li>
+                <li>✓ On mobile (&lt;640px): Navigation should show icons only</li>
+                <li>✓ On tablet (≥640px): Navigation should show icons + text</li>
+                <li>✓ Check that all text in the email modal is clearly visible</li>
+                <li>✓ Verify the audience table scrolls horizontally on small screens</li>
+                <li>✓ Long email addresses and names should truncate properly</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function updateScreenSize() {
+            const width = window.innerWidth;
+            const sizeEl = document.getElementById('screenSize');
+            if (width < 640) {
+                sizeEl.textContent = `${width}px (XS - Mobile)`;
+            } else if (width < 768) {
+                sizeEl.textContent = `${width}px (SM - Large Phone)`;
+            } else if (width < 1024) {
+                sizeEl.textContent = `${width}px (MD - Tablet)`;
+            } else {
+                sizeEl.textContent = `${width}px (LG+ - Desktop)`;
+            }
+        }
+        
+        updateScreenSize();
+        window.addEventListener('resize', updateScreenSize);
+    </script>
+</body>
+</html>

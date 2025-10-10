@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Blogger Login Diagnostic</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 { color: #667eea; margin-bottom: 20px; }
+        .status-box {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 5px solid;
+        }
+        .success { background: #d4edda; border-color: #28a745; color: #155724; }
+        .error { background: #f8d7da; border-color: #dc3545; color: #721c24; }
+        .info { background: #d1ecf1; border-color: #17a2b8; color: #0c5460; }
+        .warning { background: #fff3cd; border-color: #ffc107; color: #856404; }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover { background: #5568d3; }
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .test-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Blogger Login Diagnostic Tool</h1>
+        
+        <div class="status-box info">
+            <strong>ℹ️ Current Server:</strong> http://localhost:5175/admin
+        </div>
+        
+        <div class="test-section">
+            <h2>Step 1: Check Servers</h2>
+            <button onclick="checkServers()">Test Server Connection</button>
+            <div id="serverStatus"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Step 2: Clear Cache</h2>
+            <button onclick="clearCache()">Clear LocalStorage</button>
+            <button onclick="window.location.reload(true)">Hard Refresh</button>
+            <p style="margin-top: 10px; color: #666;">
+                Or press <strong>Ctrl+Shift+R</strong> (Cmd+Shift+R on Mac)
+            </p>
+        </div>
+        
+        <div class="test-section">
+            <h2>Step 3: Test Login API</h2>
+            <input type="text" id="username" placeholder="Username" value="encictyear1" 
+                   style="padding: 10px; margin: 5px; border: 1px solid #ccc; border-radius: 4px; width: 200px;">
+            <input type="password" id="password" placeholder="Password" 
+                   style="padding: 10px; margin: 5px; border: 1px solid #ccc; border-radius: 4px; width: 200px;">
+            <button onclick="testLogin()">Test Login API</button>
+            <div id="loginResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Step 4: Go to Admin</h2>
+            <a href="http://localhost:5175/admin" target="_blank">
+                <button>Open Admin Login (New Tab)</button>
+            </a>
+            <button onclick="window.open('http://localhost:5175/admin', '_blank', 'toolbar=0,location=0,menubar=0')">
+                Open in Incognito-like Window
+            </button>
+        </div>
+        
+        <div id="diagnosticResults"></div>
+    </div>
+    
+    <script>
+        function showResult(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = `status-box ${type}`;
+            div.innerHTML = message;
+            container.appendChild(div);
+        }
+        
+        async function checkServers() {
+            const container = document.getElementById('serverStatus');
+            container.innerHTML = '';
+            
+            // Check backend
+            try {
+                const backendResponse = await fetch('http://localhost:8002/api/settings/routes');
+                if (backendResponse.ok) {
+                    showResult('serverStatus', '✅ Backend server is running on http://localhost:8002', 'success');
+                } else {
+                    showResult('serverStatus', '⚠️ Backend responded but with error', 'warning');
+                }
+            } catch (e) {
+                showResult('serverStatus', '❌ Backend server is NOT running on port 8002', 'error');
+            }
+            
+            // Check frontend
+            try {
+                const frontendResponse = await fetch('http://localhost:5175/');
+                if (frontendResponse.ok) {
+                    showResult('serverStatus', '✅ Frontend server is running on http://localhost:5175', 'success');
+                } else {
+                    showResult('serverStatus', '⚠️ Frontend responded but with error', 'warning');
+                }
+            } catch (e) {
+                showResult('serverStatus', '❌ Frontend server is NOT running on port 5175', 'error');
+                showResult('serverStatus', 'ℹ️ Check terminal - server might be on different port', 'info');
+            }
+        }
+        
+        function clearCache() {
+            localStorage.clear();
+            sessionStorage.clear();
+            showResult('diagnosticResults', '✅ Cache cleared! Now refresh the page.', 'success');
+        }
+        
+        async function testLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const container = document.getElementById('loginResult');
+            container.innerHTML = '';
+            
+            if (!password) {
+                showResult('loginResult', '❌ Please enter password', 'error');
+                return;
+            }
+            
+            showResult('loginResult', '⏳ Testing login...', 'info');
+            
+            try {
+                const response = await fetch('http://localhost:8002/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showResult('loginResult', '✅ Login API call SUCCEEDED!', 'success');
+                    
+                    // Check permissions
+                    const permissions = data.data.permissions || [];
+                    const hasDashboard = permissions.some(p => 
+                        (typeof p === 'string' && p === 'dashboard.view') ||
+                        (typeof p === 'object' && p.name === 'dashboard.view')
+                    );
+                    
+                    if (hasDashboard) {
+                        showResult('loginResult', 
+                            `✅ Has dashboard.view permission<br>
+                            ✅ Backend is returning correct data<br>
+                            ✅ SHOULD be able to login to admin<br><br>
+                            <strong>If you still see "Access denied":</strong><br>
+                            1. Clear browser cache (Ctrl+Shift+Delete)<br>
+                            2. Hard refresh (Ctrl+Shift+R)<br>
+                            3. Try Incognito mode`, 
+                            'success'
+                        );
+                    } else {
+                        showResult('loginResult', 
+                            '❌ Missing dashboard.view permission<br>' +
+                            'This user WILL be blocked from admin panel', 
+                            'error'
+                        );
+                    }
+                    
+                    showResult('loginResult', 
+                        `<strong>Permissions (${permissions.length}):</strong><br>` +
+                        permissions.map(p => typeof p === 'object' ? p.name : p).join(', '), 
+                        'info'
+                    );
+                } else {
+                    showResult('loginResult', 
+                        `❌ Login FAILED<br>Error: ${data.error || data.message || 'Unknown error'}`, 
+                        'error'
+                    );
+                }
+            } catch (e) {
+                showResult('loginResult', 
+                    `❌ Network error: ${e.message}<br>Is the backend server running?`, 
+                    'error'
+                );
+            }
+        }
+        
+        // Auto-check on load
+        window.addEventListener('load', () => {
+            checkServers();
+        });
+    </script>
+</body>
+</html>

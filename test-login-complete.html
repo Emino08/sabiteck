@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete RBAC Login Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 600;
+            margin: 2px;
+        }
+        .badge-success { background: #28a745; color: white; }
+        .badge-info { background: #17a2b8; color: white; }
+        .badge-warning { background: #ffc107; color: #333; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Complete RBAC Login Test</h1>
+
+        <div class="info-box">
+            <strong>Test Accounts:</strong><br>
+            <span class="badge badge-success">admin</span> (all permissions)<br>
+            <span class="badge badge-info">test_editor</span> (content_editor)<br>
+            <span class="badge badge-info">test_manager</span> (program_manager)<br>
+            <span class="badge badge-warning">test_blogger</span> (blogger)<br>
+            <span class="badge badge-warning">test_analyst</span> (analyst)
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="testUser">Select Test User:</label>
+                <select id="testUser" required>
+                    <option value="">-- Select User --</option>
+                    <option value="admin">admin (Administrator)</option>
+                    <option value="test_admin">test_admin (Administrator)</option>
+                    <option value="test_editor">test_editor (Content Editor)</option>
+                    <option value="test_manager">test_manager (Program Manager)</option>
+                    <option value="test_marketer">test_marketer (Marketing Officer)</option>
+                    <option value="test_blogger">test_blogger (Blogger)</option>
+                    <option value="test_analyst">test_analyst (Analyst)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" placeholder="Enter password" required>
+            </div>
+
+            <button type="submit">Test Login</button>
+        </form>
+
+        <div id="result" class="result"></div>
+
+        <div id="permissionsDisplay" style="display:none; margin-top: 20px;">
+            <h3>✅ Login Successful!</h3>
+            <div id="userInfo"></div>
+            <h4>Permissions:</h4>
+            <div id="permissions"></div>
+            <h4>Accessible Navigation Routes:</h4>
+            <div id="navigation"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8002/api';
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('testUser').value;
+            const password = document.getElementById('password').value;
+
+            const resultDiv = document.getElementById('result');
+            const permissionsDiv = document.getElementById('permissionsDisplay');
+
+            resultDiv.style.display = 'none';
+            permissionsDiv.style.display = 'none';
+
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Success
+                    const user = data.data.user;
+                    const permissions = data.data.permissions || [];
+                    const modules = data.data.modules || [];
+
+                    // Display user info
+                    document.getElementById('userInfo').innerHTML = `
+                        <pre>${JSON.stringify(user, null, 2)}</pre>
+                    `;
+
+                    // Display permissions
+                    document.getElementById('permissions').innerHTML = `
+                        <p><strong>Total Permissions:</strong> ${permissions.length}</p>
+                        <div>${permissions.map(p => `<span class="badge badge-info">${p}</span>`).join('')}</div>
+                    `;
+
+                    // Display navigation (simplified)
+                    const routePermissions = {
+                        'Dashboard': ['dashboard.view'],
+                        'Content': ['content.view', 'content.create', 'content.edit'],
+                        'Services': ['services.view', 'services.create', 'services.edit'],
+                        'Portfolio': ['portfolio.view', 'portfolio.create', 'portfolio.edit'],
+                        'About': ['about.view', 'about.edit'],
+                        'Team': ['team.view', 'team.create', 'team.edit'],
+                        'Announcements': ['announcements.view', 'announcements.create', 'announcements.edit'],
+                        'Jobs': ['jobs.view', 'jobs.create', 'jobs.edit'],
+                        'Scholarships': ['scholarships.view', 'scholarships.create', 'scholarships.edit'],
+                        'Organizations': ['organizations.view', 'organizations.create', 'organizations.edit'],
+                        'Analytics': ['analytics.view'],
+                        'Newsletter': ['newsletter.view', 'newsletter.create'],
+                        'Tools & Curriculum': ['tools.view', 'curriculum.view'],
+                        'User Roles': ['users.view', 'roles.manage'],
+                        'Navigation': ['routes.manage'],
+                        'Settings': ['settings.view', 'settings.edit']
+                    };
+
+                    const accessibleRoutes = [];
+                    for (const [route, requiredPerms] of Object.entries(routePermissions)) {
+                        const hasAccess = requiredPerms.some(p => permissions.includes(p));
+                        if (hasAccess) {
+                            accessibleRoutes.push(route);
+                        }
+                    }
+
+                    document.getElementById('navigation').innerHTML = `
+                        <p><strong>Accessible Routes:</strong> ${accessibleRoutes.length}/16</p>
+                        <div>${accessibleRoutes.map(r => `<span class="badge badge-success">${r}</span>`).join('')}</div>
+                    `;
+
+                    permissionsDiv.style.display = 'block';
+
+                } else {
+                    // Error
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `<strong>Login Failed:</strong><br>${data.error || 'Unknown error'}`;
+                    resultDiv.style.display = 'block';
+                }
+
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<strong>Error:</strong><br>${error.message}`;
+                resultDiv.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

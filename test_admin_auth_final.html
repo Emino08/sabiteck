@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Authentication Fix - Final Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .header p {
+            opacity: 0.9;
+        }
+        .content {
+            padding: 30px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .test-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        .credentials {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+        .credentials strong {
+            color: #1976D2;
+        }
+        .button-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        button.public {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+        button.danger {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 500px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .result.loading {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .result.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .result.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .result.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        .status-success {
+            background: #28a745;
+            color: white;
+        }
+        .status-error {
+            background: #dc3545;
+            color: white;
+        }
+        .status-warning {
+            background: #ffc107;
+            color: #333;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #667eea;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Admin Authentication Fix - Final Test</h1>
+            <p>Comprehensive testing of admin routes with JWT authentication</p>
+        </div>
+
+        <div class="content">
+            <!-- Test Statistics -->
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalTests">0</div>
+                    <div class="stat-label">Total Tests</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="passedTests" style="color: #28a745;">0</div>
+                    <div class="stat-label">Passed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="failedTests" style="color: #dc3545;">0</div>
+                    <div class="stat-label">Failed</div>
+                </div>
+            </div>
+
+            <!-- Admin Route Tests -->
+            <div class="test-section">
+                <h2>🔒 Admin Routes (Requires Authentication)</h2>
+                <div class="credentials">
+                    <strong>Test Admin Credentials:</strong><br>
+                    Username: <span id="username">test_admin_1759682447</span><br>
+                    Password: <span id="password">Admin@123456</span><br>
+                    Token: <span id="token" style="word-break: break-all;">Loading...</span>
+                </div>
+                <div class="button-group">
+                    <button onclick="testRoute('/backend/public/api/admin/services', 'GET', true)">Admin Services</button>
+                    <button onclick="testRoute('/backend/public/api/admin/portfolio', 'GET', true)">Admin Portfolio</button>
+                    <button onclick="testRoute('/backend/public/api/admin/jobs', 'GET', true)">Admin Jobs</button>
+                    <button onclick="testRoute('/backend/public/api/admin/team', 'GET', true)">Admin Team</button>
+                    <button onclick="testRoute('/backend/public/api/admin/scholarships', 'GET', true)">Admin Scholarships</button>
+                    <button onclick="testRoute('/backend/public/api/admin/content', 'GET', true)">Admin Content</button>
+                    <button onclick="testRoute('/backend/public/api/admin/announcements', 'GET', true)">Admin Announcements</button>
+                    <button onclick="testRoute('/backend/public/api/admin/organizations', 'GET', true)">Admin Organizations</button>
+                </div>
+                <div id="adminResult" class="result info">Results will appear here...</div>
+            </div>
+
+            <!-- Public Route Tests -->
+            <div class="test-section">
+                <h2>🌐 Public Routes (No Authentication Required)</h2>
+                <div class="button-group">
+                    <button class="public" onclick="testRoute('/backend/public/api/test', 'GET', false)">Database Test</button>
+                    <button class="public" onclick="testRoute('/backend/public/api/services', 'GET', false)">Public Services</button>
+                    <button class="public" onclick="testRoute('/backend/public/api/portfolio', 'GET', false)">Public Portfolio</button>
+                    <button class="public" onclick="testRoute('/backend/public/api/team', 'GET', false)">Public Team</button>
+                    <button class="public" onclick="testRoute('/backend/public/api/jobs', 'GET', false)">Public Jobs</button>
+                    <button class="public" onclick="testRoute('/backend/public/api/scholarships', 'GET', false)">Public Scholarships</button>
+                </div>
+                <div id="publicResult" class="result info">Results will appear here...</div>
+            </div>
+
+            <!-- Bulk Test -->
+            <div class="test-section">
+                <h2>🚀 Quick Actions</h2>
+                <div class="button-group">
+                    <button onclick="runAllAdminTests()">Run All Admin Tests</button>
+                    <button class="public" onclick="runAllPublicTests()">Run All Public Tests</button>
+                    <button class="danger" onclick="clearResults()">Clear Results</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let token = '';
+        let totalTests = 0;
+        let passedTests = 0;
+        let failedTests = 0;
+
+        // Load credentials
+        fetch('./test_admin_credentials.json')
+            .then(r => r.json())
+            .then(data => {
+                token = data.jwt_token;
+                document.getElementById('token').textContent = token.substring(0, 50) + '...';
+                document.getElementById('username').textContent = data.username;
+            })
+            .catch(err => {
+                console.error('Failed to load credentials:', err);
+                document.getElementById('token').textContent = 'Failed to load - using default';
+                token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiMzgiLCJ1c2VybmFtZSI6InRlc3RfYWRtaW5fMTc1OTY4MjQ0NyIsImVtYWlsIjoidGVzdF9hZG1pbl8xNzU5NjgyNDQ3QHRlc3QuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzU5NjgyNDQ3LCJleHAiOjE3NjIyNzQ0NDd9.azo3TRwtqanJjMwAWsFVCOLwnOZ4Oa9ALcHWDcG2va4';
+            });
+
+        async function testRoute(url, method = 'GET', requiresAuth = true) {
+            const resultDiv = requiresAuth ? document.getElementById('adminResult') : document.getElementById('publicResult');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            resultDiv.className = 'result loading';
+            resultDiv.textContent = `[${timestamp}] Testing ${method} ${url}...\n`;
+            
+            try {
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+
+                if (requiresAuth) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: headers
+                });
+
+                const contentType = response.headers.get('content-type');
+                let data;
+                
+                if (contentType && contentType.includes('application/json')) {
+                    data = await response.json();
+                } else {
+                    data = await response.text();
+                }
+                
+                totalTests++;
+                if (response.ok) {
+                    passedTests++;
+                    resultDiv.className = 'result success';
+                } else {
+                    failedTests++;
+                    resultDiv.className = 'result error';
+                }
+
+                updateStats();
+                
+                resultDiv.textContent = `[${timestamp}] ${method} ${url}\n`;
+                resultDiv.textContent += `Status: ${response.status} ${response.statusText}\n`;
+                resultDiv.textContent += `Content-Type: ${contentType}\n\n`;
+                resultDiv.textContent += `Response:\n`;
+                resultDiv.textContent += typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+            } catch (error) {
+                totalTests++;
+                failedTests++;
+                updateStats();
+                
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `[${timestamp}] ❌ Error testing ${url}\n`;
+                resultDiv.textContent += `Error: ${error.message}\n`;
+                resultDiv.textContent += `\nThis might be a network error or CORS issue.`;
+            }
+        }
+
+        async function runAllAdminTests() {
+            const routes = [
+                '/backend/public/api/admin/services',
+                '/backend/public/api/admin/portfolio',
+                '/backend/public/api/admin/jobs',
+                '/backend/public/api/admin/team',
+                '/backend/public/api/admin/scholarships',
+                '/backend/public/api/admin/content',
+                '/backend/public/api/admin/announcements',
+                '/backend/public/api/admin/organizations'
+            ];
+
+            for (const route of routes) {
+                await testRoute(route, 'GET', true);
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+        }
+
+        async function runAllPublicTests() {
+            const routes = [
+                '/backend/public/api/test',
+                '/backend/public/api/services',
+                '/backend/public/api/portfolio',
+                '/backend/public/api/team',
+                '/backend/public/api/jobs',
+                '/backend/public/api/scholarships'
+            ];
+
+            for (const route of routes) {
+                await testRoute(route, 'GET', false);
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('totalTests').textContent = totalTests;
+            document.getElementById('passedTests').textContent = passedTests;
+            document.getElementById('failedTests').textContent = failedTests;
+        }
+
+        function clearResults() {
+            document.getElementById('adminResult').className = 'result info';
+            document.getElementById('adminResult').textContent = 'Results cleared. Click a button to test.';
+            document.getElementById('publicResult').className = 'result info';
+            document.getElementById('publicResult').textContent = 'Results cleared. Click a button to test.';
+            totalTests = 0;
+            passedTests = 0;
+            failedTests = 0;
+            updateStats();
+        }
+
+        // Auto-test on load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                testRoute('/backend/public/api/test', 'GET', false);
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -4513,33 +4513,47 @@ class AdminController extends BaseController
             $firstName = $input['first_name'] ?? '';
             $lastName = $input['last_name'] ?? '';
             $password = $input['password'] ?? '';
-            $roleId = $input['role_id'] ?? 1; // Default to user role
+            $roleId = $input['role_id'] ?? 2; // Default to Admin role (ID 2) for admin-created users
 
             // Generate username if not provided
             if (empty($username)) {
-                $username = strtolower($firstName . '.' . $lastName);
-                $username = preg_replace('/[^a-z0-9._]/', '', $username);
+                $baseUsername = strtolower($firstName . '.' . $lastName);
+                $username = preg_replace('/[^a-z0-9._]/', '', $baseUsername);
+                
+                // Ensure username is unique
+                $counter = 1;
+                $originalUsername = $username;
+                while (true) {
+                    $checkStmt = $this->db->prepare("SELECT id FROM users WHERE username = ?");
+                    $checkStmt->execute([$username]);
+                    if (!$checkStmt->fetch()) {
+                        break; // Username is available
+                    }
+                    $username = $originalUsername . $counter;
+                    $counter++;
+                }
             }
 
             // Generate password if not provided
+            $tempPassword = null;
+            $mustChangePassword = 0;
             if (empty($password)) {
                 $password = bin2hex(random_bytes(8));
                 $tempPassword = $password;
-            } else {
-                $tempPassword = null;
+                $mustChangePassword = 1; // User must change generated password
             }
 
             // Hash the password
             $passwordHash = password_hash($password, PASSWORD_DEFAULT);
-
+            
             // Insert user into database
             $organizationId = !empty($input['organization_id']) ? $input['organization_id'] : null;
             $status = $input['status'] ?? 'active';
             $emailVerified = $input['email_verified'] ?? false;
 
-            // Use the new database structure with foreign keys
+            // Insert user (no role_id or role columns)
             $stmt = $this->db->prepare("
-                INSERT INTO users (email, username, first_name, last_name, password_hash, role_id, organization_id, status, created_at)
+                INSERT INTO users (email, username, first_name, last_name, password_hash, organization_id, status, must_change_password, created_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
             ");
             $stmt->execute([
@@ -4548,24 +4562,35 @@ class AdminController extends BaseController
                 $firstName,
                 $lastName,
                 $passwordHash,
-                $roleId,
                 $organizationId,
-                $status
+                $status,
+                $mustChangePassword
             ]);
 
             $userId = $this->db->lastInsertId();
 
-            // Role is now stored in users.role_id column via foreign key
+            // Assign role via user_roles table
+            $roleAssignStmt = $this->db->prepare("
+                INSERT INTO user_roles (user_id, role_id, created_at)
+                VALUES (?, ?, NOW())
+            ");
+            $roleAssignStmt->execute([$userId, $roleId]);
+
+            // Send email with credentials if password was auto-generated
+            if ($tempPassword && !empty($email)) {
+                $this->sendInvitationEmail($email, $username, $tempPassword, $roleId);
+            }
 
             $response = [
                 'success' => true,
-                'message' => 'User created successfully',
+                'message' => 'User created successfully' . ($tempPassword ? '. Login credentials sent via email.' : ''),
                 'user_id' => $userId,
                 'username' => $username
             ];
 
             if ($tempPassword) {
                 $response['temporary_password'] = $tempPassword;
+                $response['password_sent_to_email'] = true;
             }
 
             header('Content-Type: application/json');
@@ -4607,9 +4632,15 @@ class AdminController extends BaseController
                 $params[] = $input['last_name'];
             }
 
-            if (isset($input['role'])) {
-                $updateFields[] = 'role = ?';
-                $params[] = $input['role'];
+            // Handle role update via user_roles table (not direct column update)
+            if (isset($input['role_id'])) {
+                // Delete existing role assignment
+                $deleteRoleStmt = $this->db->prepare("DELETE FROM user_roles WHERE user_id = ?");
+                $deleteRoleStmt->execute([$userId]);
+
+                // Insert new role assignment
+                $insertRoleStmt = $this->db->prepare("INSERT INTO user_roles (user_id, role_id, created_at) VALUES (?, ?, NOW())");
+                $insertRoleStmt->execute([$userId, $input['role_id']]);
             }
 
             if (isset($input['organization_id'])) {
@@ -4662,8 +4693,14 @@ class AdminController extends BaseController
     public function deleteUser(int $userId): void
     {
         try {
-            // Check if user exists
-            $stmt = $this->db->prepare("SELECT id, username, role FROM users WHERE id = ?");
+            // Check if user exists and get their role
+            $stmt = $this->db->prepare("
+                SELECT u.id, u.username, r.name as role_name
+                FROM users u
+                LEFT JOIN user_roles ur ON u.id = ur.user_id
+                LEFT JOIN roles r ON ur.role_id = r.id
+                WHERE u.id = ?
+            ");
             $stmt->execute([$userId]);
             $user = $stmt->fetch();
 
@@ -4673,10 +4710,18 @@ class AdminController extends BaseController
             }
 
             // Prevent deletion of super admin users
-            if ($user['role'] === 'super_admin') {
+            if ($user['role_name'] === 'super_admin') {
                 $this->errorResponse('Super admin users cannot be deleted');
                 return;
             }
+
+            // Delete user role assignments first
+            $stmt = $this->db->prepare("DELETE FROM user_roles WHERE user_id = ?");
+            $stmt->execute([$userId]);
+
+            // Delete user permissions
+            $stmt = $this->db->prepare("DELETE FROM user_permissions WHERE user_id = ?");
+            $stmt->execute([$userId]);
 
             // Delete the user
             $stmt = $this->db->prepare("DELETE FROM users WHERE id = ?");
@@ -4703,7 +4748,7 @@ class AdminController extends BaseController
 
             $email = $input['email'] ?? '';
             $organizationId = $input['organization_id'] ?? null;
-            $roleId = $input['role_id'] ?? 1; // Default to user role
+            $roleId = $input['role_id'] ?? 2; // Default to Admin role (ID 2) for admin-created users
             $permissions = $input['permissions'] ?? [];
 
             if (empty($email)) {
@@ -4741,17 +4786,33 @@ class AdminController extends BaseController
             $passwordHash = password_hash($tempPassword, PASSWORD_DEFAULT);
 
             // Create user with must_change_password flag set to true
+            // Status is set to 'active' so user can login immediately with generated credentials
             $stmt = $this->db->prepare("
-                INSERT INTO users (username, email, password_hash, role_id, organization_id, status, must_change_password, created_at)
-                VALUES (?, ?, ?, ?, ?, 'pending', 1, NOW())
+                INSERT INTO users (username, email, password_hash, organization_id, status, must_change_password, created_at)
+                VALUES (?, ?, ?, ?, 'active', 1, NOW())
             ");
-            $stmt->execute([$username, $email, $passwordHash, $roleId, $organizationId]);
+            $stmt->execute([$username, $email, $passwordHash, $organizationId]);
             $userId = $this->db->lastInsertId();
 
-            // Assign individual permissions if provided
+            // Assign role via user_roles table
+            $roleAssignStmt = $this->db->prepare("
+                INSERT INTO user_roles (user_id, role_id, created_at)
+                VALUES (?, ?, NOW())
+            ");
+            $roleAssignStmt->execute([$userId, $roleId]);
+
+            // Initialize permission service
+            $permissionService = new \App\Services\PermissionService($this->db);
+            $currentAdminId = $this->getCurrentUserId();
+
+            // Note: assignRolePermissionsToUser is optional since permissions are inherited from role
+            // Only use if you need to copy role permissions to user_permissions table
+            if (method_exists($permissionService, 'assignRolePermissionsToUser')) {
+                $permissionService->assignRolePermissionsToUser($userId, $roleId, $currentAdminId);
+            }
+
+            // Assign additional individual permissions if provided (beyond role permissions)
             if (!empty($permissions)) {
-                $permissionService = new \App\Services\PermissionService($this->db);
-                $currentAdminId = $this->getCurrentUserId();
                 foreach ($permissions as $permission) {
                     $permissionService->grantPermission($userId, $permission, $currentAdminId);
                 }
@@ -4792,14 +4853,15 @@ class AdminController extends BaseController
 
             // Determine login URL based on role
             // Get role information to check if it's an admin role
-            $stmt = $this->db->prepare("SELECT slug FROM roles WHERE id = ?");
+            $stmt = $this->db->prepare("SELECT name FROM roles WHERE id = ?");
             $stmt->execute([$roleId]);
             $role = $stmt->fetch();
 
             $baseUrl = $_ENV['FRONTEND_URL'] ?? 'http://localhost:5173';
 
-            // If role is admin or super-admin, send to /admin, otherwise send to /login
-            if ($role && in_array($role['slug'], ['admin', 'super-admin'])) {
+            // If role is admin, super-admin, editor, moderator, or hr_manager, send to /admin
+            // All staff/management roles should use /admin login
+            if ($role && in_array($role['name'], ['admin', 'super_admin', 'super-admin', 'editor', 'moderator', 'hr_manager', 'content_editor', 'content_moderator'])) {
                 $loginUrl = $baseUrl . '/admin';
                 $accountType = 'Admin';
             } else {
@@ -4861,9 +4923,10 @@ class AdminController extends BaseController
             $input = json_decode(file_get_contents('php://input'), true);
 
             $role = $input['role'] ?? '';
+            $roleId = $input['role_id'] ?? null;
             $organizationId = $input['organization_id'] ?? null;
 
-            if (empty($role)) {
+            if (empty($role) && empty($roleId)) {
                 $this->errorResponse('Role is required', 400);
                 return;
             }
@@ -4876,19 +4939,10 @@ class AdminController extends BaseController
                 return;
             }
 
-            // Check if roles and user_roles tables exist
-            $stmt = $this->db->prepare("SHOW TABLES LIKE 'roles'");
-            $stmt->execute();
-            $hasRoles = $stmt->rowCount() > 0;
-
-            $stmt = $this->db->prepare("SHOW TABLES LIKE 'user_roles'");
-            $stmt->execute();
-            $hasUserRoles = $stmt->rowCount() > 0;
-
-            if ($hasRoles && $hasUserRoles) {
-                // Get role ID from role name
-                $stmt = $this->db->prepare("SELECT id FROM roles WHERE name = ?");
-                $stmt->execute([$role]);
+            // Get role ID from role name if not provided
+            if (!$roleId && $role) {
+                $stmt = $this->db->prepare("SELECT id FROM roles WHERE name = ? OR slug = ?");
+                $stmt->execute([$role, $role]);
                 $roleData = $stmt->fetch();
 
                 if (!$roleData) {
@@ -4897,25 +4951,33 @@ class AdminController extends BaseController
                 }
 
                 $roleId = $roleData['id'];
-
-                // Remove existing role assignments
-                $stmt = $this->db->prepare("DELETE FROM user_roles WHERE user_id = ?");
-                $stmt->execute([$userId]);
-
-                // Assign new role
-                $stmt = $this->db->prepare("INSERT INTO user_roles (user_id, role_id, assigned_at) VALUES (?, ?, NOW())");
-                $stmt->execute([$userId, $roleId]);
-            } else {
-                // Fallback to updating role column directly in users table
-                $stmt = $this->db->prepare("UPDATE users SET role = ?, updated_at = NOW() WHERE id = ?");
-                $stmt->execute([$role, $userId]);
             }
 
-            // Update organization_id in users table
+            // Delete existing role assignment
+            $stmt = $this->db->prepare("DELETE FROM user_roles WHERE user_id = ?");
+            $stmt->execute([$userId]);
+
+            // Insert new role assignment
+            $stmt = $this->db->prepare("INSERT INTO user_roles (user_id, role_id, created_at) VALUES (?, ?, NOW())");
+            $stmt->execute([$userId, $roleId]);
+
+            // Update organization_id if provided
             if ($organizationId !== null) {
                 $stmt = $this->db->prepare("UPDATE users SET organization_id = ?, updated_at = NOW() WHERE id = ?");
                 $stmt->execute([$organizationId, $userId]);
             }
+
+            // Sync user permissions with new role permissions
+            // Clear existing role-based permissions and assign new ones
+            $permissionService = new \App\Services\PermissionService($this->db);
+            $currentAdminId = $this->getCurrentUserId();
+            
+            // Clear existing permissions for this user
+            $stmt = $this->db->prepare("DELETE FROM user_permissions WHERE user_id = ?");
+            $stmt->execute([$userId]);
+            
+            // Assign new role permissions
+            $permissionService->assignRolePermissionsToUser($userId, $roleId, $currentAdminId);
 
             $this->successResponse('User role updated successfully');
         } catch (Exception $e) {
@@ -4933,19 +4995,34 @@ class AdminController extends BaseController
 
             $permissions = $input['permissions'] ?? [];
 
-            // Update the permissions field in the users table as JSON
-            $permissionsJson = !empty($permissions) ? json_encode($permissions) : null;
-
-            $stmt = $this->db->prepare("
-                UPDATE users
-                SET permissions = ?, updated_at = NOW()
-                WHERE id = ?
-            ");
-            $stmt->execute([$permissionsJson, $userId]);
-
-            if ($stmt->rowCount() === 0) {
+            // Check if user exists
+            $stmt = $this->db->prepare("SELECT id FROM users WHERE id = ?");
+            $stmt->execute([$userId]);
+            if (!$stmt->fetch()) {
                 $this->errorResponse('User not found', 404);
                 return;
+            }
+
+            // Clear existing direct permissions for this user
+            $stmt = $this->db->prepare("DELETE FROM user_permissions WHERE user_id = ?");
+            $stmt->execute([$userId]);
+
+            // Insert new direct permissions (override role permissions)
+            if (!empty($permissions)) {
+                foreach ($permissions as $permissionName) {
+                    // Get permission ID
+                    $permStmt = $this->db->prepare("SELECT id FROM permissions WHERE name = ?");
+                    $permStmt->execute([$permissionName]);
+                    $perm = $permStmt->fetch();
+
+                    if ($perm) {
+                        $insertStmt = $this->db->prepare("
+                            INSERT INTO user_permissions (user_id, permission_id, created_at)
+                            VALUES (?, ?, NOW())
+                        ");
+                        $insertStmt->execute([$userId, $perm['id']]);
+                    }
+                }
             }
 
             $this->successResponse('User permissions updated successfully');
@@ -5503,7 +5580,8 @@ class AdminController extends BaseController
                     o.id as organization_id,
                     o.name as organization_name
                 FROM users u
-                LEFT JOIN roles r ON u.role_id = r.id
+                LEFT JOIN user_roles ur ON u.id = ur.user_id
+                LEFT JOIN roles r ON ur.role_id = r.id
                 LEFT JOIN organizations o ON u.organization_id = o.id
                 ORDER BY u.created_at DESC
             ");

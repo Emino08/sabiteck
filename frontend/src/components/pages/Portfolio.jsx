@@ -37,8 +37,8 @@ const Portfolio = () => {
       description: 'Full-stack e-commerce solution with React, Node.js, and Stripe integration. Features include inventory management, order processing, and analytics dashboard.',
       image: '/api/placeholder/600/400',
       technologies: ['React', 'Node.js', 'MongoDB', 'Stripe', 'Redux'],
-      liveUrl: 'https://demo-ecommerce.devco.com',
-      githubUrl: 'https://github.com/devco/ecommerce-platform',
+      liveUrl: 'https://demo-ecommerce.sabiteck.com',
+      githubUrl: 'https://github.com/sabiteck/ecommerce-platform',
       clientType: 'Startup',
       duration: '4 months',
       teamSize: 5,
@@ -65,7 +65,7 @@ const Portfolio = () => {
       description: 'HIPAA-compliant patient management system with appointment scheduling, medical records, and telemedicine capabilities.',
       image: '/api/placeholder/600/400',
       technologies: ['Vue.js', 'Laravel', 'PostgreSQL', 'Docker', 'AWS'],
-      liveUrl: 'https://healthcare-demo.devco.com',
+      liveUrl: 'https://healthcare-demo.sabiteck.com',
       githubUrl: null,
       clientType: 'Healthcare',
       duration: '12 months',
@@ -79,8 +79,8 @@ const Portfolio = () => {
       description: 'Analytics dashboard for social media management with automated posting, engagement tracking, and performance insights.',
       image: '/api/placeholder/600/400',
       technologies: ['Angular', 'Python', 'Redis', 'Chart.js', 'Twitter API'],
-      liveUrl: 'https://social-dashboard.devco.com',
-      githubUrl: 'https://github.com/devco/social-dashboard',
+      liveUrl: 'https://social-dashboard.sabiteck.com',
+      githubUrl: 'https://github.com/sabiteck/social-dashboard',
       clientType: 'Marketing Agency',
       duration: '3 months',
       teamSize: 4,
@@ -93,7 +93,7 @@ const Portfolio = () => {
       description: 'Online education platform with video streaming, interactive quizzes, progress tracking, and certification management.',
       image: '/api/placeholder/600/400',
       technologies: ['Next.js', 'Express', 'MySQL', 'Video.js', 'Stripe'],
-      liveUrl: 'https://lms-demo.devco.com',
+      liveUrl: 'https://lms-demo.sabiteck.com',
       githubUrl: null,
       clientType: 'Education',
       duration: '6 months',
@@ -107,7 +107,7 @@ const Portfolio = () => {
       description: 'Real-time fleet tracking and management system with GPS monitoring, maintenance scheduling, and driver behavior analysis.',
       image: '/api/placeholder/600/400',
       technologies: ['React', 'Python', 'InfluxDB', 'MQTT', 'Mapbox'],
-      liveUrl: 'https://fleet-demo.devco.com',
+      liveUrl: 'https://fleet-demo.sabiteck.com',
       githubUrl: null,
       clientType: 'Logistics',
       duration: '10 months',
@@ -121,7 +121,7 @@ const Portfolio = () => {
       description: 'Native iOS and Android fitness app with workout tracking, nutrition logging, and social features for fitness enthusiasts.',
       image: '/api/placeholder/600/400',
       technologies: ['Swift', 'Kotlin', 'Firebase', 'HealthKit', 'Google Fit'],
-      liveUrl: 'https://fitness-app.devco.com',
+      liveUrl: 'https://fitness-app.sabiteck.com',
       githubUrl: null,
       clientType: 'Health & Fitness',
       duration: '5 months',
@@ -135,8 +135,8 @@ const Portfolio = () => {
       description: 'Property listing and management platform with virtual tours, mortgage calculator, and CRM integration.',
       image: '/api/placeholder/600/400',
       technologies: ['React', 'Django', 'PostgreSQL', 'Mapbox', 'Stripe'],
-      liveUrl: 'https://realestate-demo.devco.com',
-      githubUrl: 'https://github.com/devco/realestate-platform',
+      liveUrl: 'https://realestate-demo.sabiteck.com',
+      githubUrl: 'https://github.com/sabiteck/realestate-platform',
       clientType: 'Real Estate',
       duration: '7 months',
       teamSize: 8,
@@ -236,9 +236,9 @@ const Portfolio = () => {
   ]
 
   return (
-    <div className="min-h-screen pt-20">
+    <div className="min-h-screen">
       {/* Enhanced Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 pt-24">
         <div className="absolute inset-0 opacity-20">
           <div className="w-full h-full bg-repeat bg-[length:60px_60px]"
                style={{
@@ -254,16 +254,16 @@ const Portfolio = () => {
           <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl animate-pulse" style={{animationDelay: '4s'}}></div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 text-white py-12 md:py-20">
           <ScrollReveal>
-            <div className="inline-flex items-center px-6 py-3 bg-blue-600/20 backdrop-blur-sm rounded-full text-blue-200 text-sm font-medium mb-8 border border-blue-400/20">
-              <Trophy className="h-4 w-4 mr-2" />
+            <div className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 bg-blue-600/20 backdrop-blur-sm rounded-full text-blue-200 text-xs sm:text-sm font-medium mb-6 sm:mb-8 border border-blue-400/20">
+              <Trophy className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
               Our Work Portfolio
             </div>
           </ScrollReveal>
 
           <ScrollReveal delay={200}>
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-4 sm:mb-6 leading-tight px-4">
               Showcasing Our
               <span className="block bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
                 Digital Masterpieces
@@ -272,16 +272,16 @@ const Portfolio = () => {
           </ScrollReveal>
 
           <ScrollReveal delay={300}>
-            <p className="text-xl md:text-2xl text-blue-100 mb-12 leading-relaxed max-w-4xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-blue-100 mb-8 sm:mb-12 leading-relaxed max-w-4xl mx-auto px-4">
               Explore our successful projects and see how we've helped businesses
               transform their ideas into powerful digital solutions across various industries.
             </p>
           </ScrollReveal>
 
           <ScrollReveal delay={400}>
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center mb-12 sm:mb-16 px-4">
               <button
-                className="bg-white text-blue-900 hover:bg-blue-50 px-10 py-5 rounded-2xl font-bold text-lg shadow-2xl hover:scale-105 transition-all duration-300 group flex items-center"
+                className="w-full sm:w-auto bg-white text-blue-900 hover:bg-blue-50 px-8 sm:px-10 py-4 sm:py-5 rounded-2xl font-bold text-base sm:text-lg shadow-2xl hover:scale-105 transition-all duration-300 group flex items-center justify-center"
                 onClick={handleStartProject}
               >
                 <Lightbulb className="mr-3 h-6 w-6" />
@@ -289,7 +289,7 @@ const Portfolio = () => {
                 <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
               </button>
               <button
-                className="border-2 border-white/30 text-white hover:bg-white/10 px-10 py-5 rounded-2xl font-bold text-lg backdrop-blur-sm hover:scale-105 transition-all duration-300 flex items-center"
+                className="border-2 border-white text-white hover:bg-white hover:text-blue-600 px-10 py-5 rounded-2xl font-bold text-lg backdrop-blur-sm bg-white/5 hover:scale-105 transition-all duration-300 flex items-center"
                 onClick={handleScheduleConsultation}
               >
                 <Play className="mr-3 h-6 w-6" />
@@ -686,7 +686,7 @@ const Portfolio = () => {
                 <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
               </button>
               <button
-                className="border-2 border-white/30 text-white hover:bg-white/10 px-10 py-5 rounded-2xl font-bold text-lg backdrop-blur-sm hover:scale-105 transition-all duration-300 flex items-center justify-center"
+                className="border-2 border-white text-white hover:bg-white hover:text-blue-600 px-10 py-5 rounded-2xl font-bold text-lg backdrop-blur-sm bg-white/5 hover:scale-105 transition-all duration-300 flex items-center justify-center"
                 onClick={handleScheduleConsultation}
               >
                 <Phone className="mr-3 h-6 w-6" />

@@ -8,7 +8,7 @@ import { useAuth } from '../../contexts/AuthContext';
 const Login = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { login, isAuthenticated, isAdmin, loading } = useAuth();
+    const { login, isAuthenticated, isAdmin, loading, user } = useAuth();
     const [formData, setFormData] = useState({
         username: '',
         password: ''
@@ -21,14 +21,18 @@ const Login = () => {
     const fromRegistration = location.state?.fromRegistration;
     const isLikeAction = returnTo.includes('autoLike=true');
 
-    // Redirect authenticated users
+    // Redirect authenticated users (REGULAR USERS ONLY - not admin)
     useEffect(() => {
         if (!loading && isAuthenticated()) {
+            // If user is admin, they should use /admin login
             if (isAdmin()) {
-                navigate('/dashboard', { replace: true });
-            } else {
-                navigate('/', { replace: true });
+                toast.info('Admin users should login at /admin');
+                navigate('/admin', { replace: true });
+                return;
             }
+            
+            // Regular users - redirect to home
+            navigate('/', { replace: true });
         }
     }, [loading, isAuthenticated, isAdmin, navigate]);
 
@@ -63,8 +67,31 @@ const Login = () => {
             });
 
             if (response.success) {
-                // Use the AuthContext login function
-                login(response.data.user, response.data.token);
+                // Check user role - prevent admin login on regular login page
+                const userRole = response.data.user.role || response.data.user.role_name;
+                const userPermissions = response.data.permissions || [];
+                
+                // Check if this is an admin/staff user
+                const isAdminUser = ['admin', 'super_admin', 'super-admin', 'Administrator'].includes(userRole) || 
+                    userPermissions.some(p => 
+                        (typeof p === 'string' && (p === 'users.view' || p === 'manage-users')) ||
+                        (typeof p === 'object' && (p.name === 'users.view' || p.name === 'manage-users'))
+                    );
+                
+                if (isAdminUser) {
+                    toast.error('Admin users should login at /admin');
+                    navigate('/admin', { replace: true });
+                    setSubmitting(false);
+                    return;
+                }
+
+                // Use the AuthContext login function with permissions and modules
+                login(
+                    response.data.user, 
+                    response.data.token,
+                    response.data.permissions,
+                    response.data.modules
+                );
 
                 // Check if user must change password (first-time login)
                 if (response.data.user.must_change_password || response.action_required === 'change_password') {
@@ -80,14 +107,8 @@ const Login = () => {
                     toast.success(response.message || 'Login successful!');
                 }
 
-                // Redirect based on user role
-                const userRole = response.data.user.role;
-                if (['admin', 'super_admin'].includes(userRole)) {
-                    navigate('/dashboard', { replace: true });
-                } else {
-                    // Regular users always go to home page
-                    navigate('/', { replace: true });
-                }
+                // Regular users always go to home page
+                navigate('/', { replace: true });
             } else {
                 toast.error(response.message || 'Login failed');
             }
@@ -289,6 +310,16 @@ const Login = () => {
                                     </>
                                 )}
                             </button>
+                        </div>
+
+                        <div className="text-center">
+                            <Link
+                                to="/forgot-password"
+                                className="inline-flex items-center text-gray-300 hover:text-indigo-300 transition-colors text-sm font-medium"
+                            >
+                                <Lock className="w-4 h-4 mr-2" />
+                                Forgot Password?
+                            </Link>
                         </div>
                     </form>
 

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Routes Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .credentials {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            font-family: monospace;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1976D2;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            background: #f5f5f5;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        .success {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+        .error {
+            background: #ffcdd2;
+            color: #c62828;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Routes Authentication Test</h1>
+        
+        <div class="credentials">
+            <strong>Test Admin Credentials:</strong><br>
+            Username: test_admin_1759682447<br>
+            Email: test_admin_1759682447@test.com<br>
+            Password: Admin@123456<br>
+            Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiMzgiLCJ1c2VybmFtZSI6InRlc3RfYWRtaW5fMTc1OTY4MjQ0NyIsImVtYWlsIjoidGVzdF9hZG1pbl8xNzU5NjgyNDQ3QHRlc3QuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzU5NjgyNDQ3LCJleHAiOjE3NjIyNzQ0NDd9.azo3TRwtqanJjMwAWsFVCOLwnOZ4Oa9ALcHWDcG2va4
+        </div>
+
+        <div class="test-section">
+            <h2>Test Admin Routes</h2>
+            <button onclick="testRoute('/backend/public/api/admin/services', 'GET')">Test Admin Services</button>
+            <button onclick="testRoute('/backend/public/api/admin/portfolio', 'GET')">Test Admin Portfolio</button>
+            <button onclick="testRoute('/backend/public/api/admin/jobs', 'GET')">Test Admin Jobs</button>
+            <button onclick="testRoute('/backend/public/api/admin/team', 'GET')">Test Admin Team</button>
+            <button onclick="testRoute('/backend/public/api/admin/scholarships', 'GET')">Test Admin Scholarships</button>
+            <button onclick="testRoute('/backend/public/api/admin/content', 'GET')">Test Admin Content</button>
+            <div id="result" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Test Public Routes (No Auth Required)</h2>
+            <button onclick="testRoute('/backend/public/api/services', 'GET', false)">Test Public Services</button>
+            <button onclick="testRoute('/backend/public/api/portfolio', 'GET', false)">Test Public Portfolio</button>
+            <button onclick="testRoute('/backend/public/api/test', 'GET', false)">Test Database</button>
+            <div id="publicResult" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        const token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiMzgiLCJ1c2VybmFtZSI6InRlc3RfYWRtaW5fMTc1OTY4MjQ0NyIsImVtYWlsIjoidGVzdF9hZG1pbl8xNzU5NjgyNDQ3QHRlc3QuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzU5NjgyNDQ3LCJleHAiOjE3NjIyNzQ0NDd9.azo3TRwtqanJjMwAWsFVCOLwnOZ4Oa9ALcHWDcG2va4';
+
+        async function testRoute(url, method = 'GET', requiresAuth = true) {
+            const resultDiv = requiresAuth ? document.getElementById('result') : document.getElementById('publicResult');
+            resultDiv.textContent = `Testing ${method} ${url}...\n`;
+            
+            try {
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+
+                if (requiresAuth) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: headers
+                });
+
+                const data = await response.json();
+                
+                resultDiv.className = response.ok ? 'result success' : 'result error';
+                resultDiv.textContent = `Status: ${response.status} ${response.statusText}\n\n`;
+                resultDiv.textContent += `Response:\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        // Auto-test on load
+        window.addEventListener('load', () => {
+            testRoute('/backend/public/api/test', 'GET', false);
+        });
+    </script>
+</body>
+</html>

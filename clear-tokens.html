@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear Old Tokens - Fresh Login Required</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #856404;
+        }
+        .error {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #721c24;
+        }
+        .success {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #155724;
+        }
+        .token-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            word-break: break-all;
+        }
+        .token-info strong {
+            color: #dc3545;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin: 10px 0;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102,126,234,0.4);
+        }
+        button.secondary {
+            background: #6c757d;
+        }
+        button.secondary:hover {
+            background: #5a6268;
+        }
+        button.danger {
+            background: #dc3545;
+        }
+        button.danger:hover {
+            background: #c82333;
+        }
+        .step {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+        }
+        .step h3 {
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+        ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        li {
+            margin: 5px 0;
+        }
+        .credentials {
+            background: #212529;
+            color: #28a745;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+        }
+        .credentials div {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Token Cleanup Required</h1>
+        
+        <div class="error">
+            <strong>⚠️ OLD TOKEN DETECTED!</strong><br>
+            You are using a non-JWT token from the old authentication system.
+        </div>
+
+        <div class="token-info" id="currentToken">
+            <strong>Current Token:</strong><br>
+            Checking...
+        </div>
+
+        <div class="warning">
+            <strong>Why this is needed:</strong><br>
+            The authentication system was upgraded to use JWT tokens. Your browser still has an old-format token that cannot be decoded by the new system.
+        </div>
+
+        <button onclick="analyzeToken()" class="secondary">🔍 Analyze Current Token</button>
+        <button onclick="clearAllTokens()" class="danger">🗑️ Clear All Old Tokens</button>
+        <button onclick="goToLogin()">🔐 Go to Fresh Login</button>
+
+        <div id="analysis"></div>
+
+        <div class="step">
+            <h3>📋 What This Will Do:</h3>
+            <ul>
+                <li>Clear all tokens from localStorage</li>
+                <li>Clear all tokens from sessionStorage</li>
+                <li>Clear user data</li>
+                <li>Clear browser cache</li>
+                <li>Redirect to clean login page</li>
+            </ul>
+        </div>
+
+        <div class="credentials">
+            <strong style="color: #ffc107;">🔑 Your Login Credentials:</strong>
+            <div>Email: koromaemmanuel66@gmail.com</div>
+            <div>Password: 2d5838dc71aacf3b</div>
+            <div>Login at: /admin</div>
+        </div>
+    </div>
+
+    <script>
+        function analyzeToken() {
+            const authToken = localStorage.getItem('auth_token');
+            const adminToken = localStorage.getItem('admin_token');
+            const token = localStorage.getItem('token');
+            
+            let html = '<div class="token-info">';
+            html += '<strong>Token Analysis:</strong><br><br>';
+            
+            // Check auth_token
+            if (authToken) {
+                const parts = authToken.split('.');
+                html += `<strong>auth_token:</strong><br>`;
+                html += `Length: ${authToken.length}<br>`;
+                html += `Parts: ${parts.length}<br>`;
+                html += `Preview: ${authToken.substring(0, 50)}...<br>`;
+                html += `Format: ${parts.length === 3 ? '✅ Valid JWT' : '❌ INVALID (not JWT)'}<br><br>`;
+            }
+            
+            // Check admin_token
+            if (adminToken) {
+                const parts = adminToken.split('.');
+                html += `<strong>admin_token:</strong><br>`;
+                html += `Length: ${adminToken.length}<br>`;
+                html += `Parts: ${parts.length}<br>`;
+                html += `Preview: ${adminToken.substring(0, 50)}...<br>`;
+                html += `Format: ${parts.length === 3 ? '✅ Valid JWT' : '❌ INVALID (not JWT)'}<br><br>`;
+            }
+            
+            // Check token
+            if (token) {
+                const parts = token.split('.');
+                html += `<strong>token:</strong><br>`;
+                html += `Length: ${token.length}<br>`;
+                html += `Parts: ${parts.length}<br>`;
+                html += `Preview: ${token.substring(0, 50)}...<br>`;
+                html += `Format: ${parts.length === 3 ? '✅ Valid JWT' : '❌ INVALID (not JWT)'}<br><br>`;
+            }
+            
+            if (!authToken && !adminToken && !token) {
+                html += '<strong style="color: #28a745;">✅ No tokens found - ready for fresh login!</strong>';
+            }
+            
+            html += '</div>';
+            
+            document.getElementById('analysis').innerHTML = html;
+        }
+
+        function clearAllTokens() {
+            // Get all localStorage keys
+            const keys = Object.keys(localStorage);
+            
+            console.log('Clearing tokens...');
+            console.log('Found keys:', keys);
+            
+            // Clear specific token keys
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('admin_token');
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('remember_token');
+            
+            // Clear sessionStorage
+            sessionStorage.clear();
+            
+            // Show success
+            document.getElementById('analysis').innerHTML = `
+                <div class="success">
+                    <strong>✅ Success!</strong><br>
+                    All tokens have been cleared from browser storage.<br>
+                    <strong>Next step:</strong> Click "Go to Fresh Login" below.
+                </div>
+            `;
+            
+            // Update current token display
+            document.getElementById('currentToken').innerHTML = `
+                <strong>Current Token:</strong><br>
+                <span style="color: #28a745;">✅ No tokens - Clean state!</span>
+            `;
+            
+            console.log('✅ All tokens cleared!');
+        }
+
+        function goToLogin() {
+            // Clear everything one more time
+            clearAllTokens();
+            
+            // Wait a moment then redirect
+            setTimeout(() => {
+                window.location.href = 'http://localhost:5173/admin';
+            }, 500);
+        }
+
+        // Run analysis on load
+        window.onload = function() {
+            analyzeToken();
+            
+            // Update current token display
+            const authToken = localStorage.getItem('auth_token');
+            if (authToken) {
+                const parts = authToken.split('.');
+                document.getElementById('currentToken').innerHTML = `
+                    <strong>Current Token:</strong><br>
+                    Length: ${authToken.length} characters<br>
+                    Parts: ${parts.length} (Expected: 3)<br>
+                    Status: ${parts.length === 3 ? '<span style="color:#28a745;">✅ Valid JWT</span>' : '<span style="color:#dc3545;">❌ INVALID - Not a JWT!</span>'}<br>
+                    Preview: ${authToken.substring(0, 64)}...
+                `;
+            } else {
+                document.getElementById('currentToken').innerHTML = `
+                    <strong>Current Token:</strong><br>
+                    <span style="color: #28a745;">✅ No auth_token found</span>
+                `;
+            }
+        };
+    </script>
+</body>
+</html>

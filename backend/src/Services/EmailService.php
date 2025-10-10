@@ -109,6 +109,111 @@ class EmailService
     }
 
     /**
+     * Send user creation notification email
+     */
+    public function sendUserCreationEmail(
+        string $email,
+        string $name,
+        string $username,
+        string $password,
+        string $roleName,
+        string $roleDisplayName,
+        array $permissions = []
+    ): bool {
+        $subject = "Welcome to Sabiteck - Your Account Details";
+
+        // Group permissions by category
+        $permissionsByCategory = [];
+        foreach ($permissions as $perm) {
+            $category = $perm['category'] ?? 'general';
+            if (!isset($permissionsByCategory[$category])) {
+                $permissionsByCategory[$category] = [];
+            }
+            $permissionsByCategory[$category][] = $perm['display_name'] ?? $perm['name'];
+        }
+
+        // Build permissions HTML
+        $permissionsHtml = '';
+        foreach ($permissionsByCategory as $category => $perms) {
+            $permissionsHtml .= '<li><strong>' . ucfirst($category) . ':</strong> ' . implode(', ', $perms) . '</li>';
+        }
+
+        $body = "
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+        .credentials { background: white; padding: 20px; border-left: 4px solid #667eea; margin: 20px 0; border-radius: 5px; }
+        .credentials p { margin: 10px 0; }
+        .credentials strong { color: #667eea; }
+        .button { display: inline-block; padding: 12px 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        .permissions { background: white; padding: 20px; margin: 20px 0; border-radius: 5px; }
+        .permissions ul { list-style: none; padding: 0; }
+        .permissions li { padding: 8px 0; border-bottom: 1px solid #eee; }
+        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+        .warning { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='header'>
+            <h1>Welcome to Sabiteck!</h1>
+            <p>Your account has been created</p>
+        </div>
+        <div class='content'>
+            <p>Hello <strong>{$name}</strong>,</p>
+
+            <p>Your account has been created on the Sabiteck admin platform. You have been assigned the role of <strong>{$roleDisplayName}</strong>.</p>
+
+            <div class='credentials'>
+                <h3>Your Login Credentials</h3>
+                <p><strong>Username:</strong> {$username}</p>
+                <p><strong>Email:</strong> {$email}</p>
+                <p><strong>Temporary Password:</strong> {$password}</p>
+                <p><strong>Role:</strong> {$roleDisplayName}</p>
+            </div>
+
+            <div class='warning'>
+                <strong>⚠️ Important Security Notice:</strong>
+                <p>For security reasons, you will be required to change your password upon your first login. Please keep your credentials secure and do not share them with anyone.</p>
+            </div>
+
+            <div class='permissions'>
+                <h3>Your Permissions & Access</h3>
+                <p>As a <strong>{$roleDisplayName}</strong>, you have access to the following features:</p>
+                <ul>
+                    {$permissionsHtml}
+                </ul>
+            </div>
+
+            <p style='text-align: center;'>
+                <a href='" . ($_ENV['FRONTEND_URL'] ?? 'http://localhost:5173') . "/admin' class='button'>Login to Admin Panel</a>
+            </p>
+
+            <p>If you have any questions or need assistance, please contact your administrator.</p>
+
+            <p>Best regards,<br>
+            <strong>Sabiteck Team</strong></p>
+        </div>
+        <div class='footer'>
+            <p>&copy; " . date('Y') . " Sabiteck Limited. All rights reserved.</p>
+            <p>This is an automated message. Please do not reply to this email.</p>
+        </div>
+    </div>
+</body>
+</html>
+        ";
+
+        return $this->sendEmail($email, $subject, $body, true, $name);
+    }
+
+    /**
      * Test SMTP connection
      */
     public function testConnection(): array

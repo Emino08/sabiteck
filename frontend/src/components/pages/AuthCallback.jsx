@@ -60,7 +60,7 @@ const AuthCallback = () => {
     }, [location, login, navigate]);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900 flex flex-col justify-center items-center px-6">
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900 flex flex-col justify-center items-center px-6 pt-24">
             <div className="max-w-md w-full bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl text-center">
                 {status === 'processing' && (
                     <>

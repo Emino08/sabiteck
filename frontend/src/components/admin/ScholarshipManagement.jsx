@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import {
     Plus,
@@ -46,6 +46,8 @@ import { apiRequest } from '../../utils/api';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import ErrorMessage from '../ui/ErrorMessage';
 import ScholarshipEditor from './ScholarshipEditor';
+import EnhancedSearchBar, { AdvancedFiltersPanel } from '../ui/EnhancedSearchBar';
+import FilterBasedSearch, { scholarshipFilters } from '../ui/FilterBasedSearch';
 import { toast } from 'sonner';
 
 const ScholarshipManagement = () => {
@@ -65,6 +67,32 @@ const ScholarshipManagement = () => {
     const [showBulkActions, setShowBulkActions] = useState(false);
     const [showEditor, setShowEditor] = useState(false);
     const [editingScholarship, setEditingScholarship] = useState(null);
+    
+    // Enhanced search features
+    const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+    const [advancedFilters, setAdvancedFilters] = useState({
+        amount_min: '',
+        amount_max: '',
+        deadline_from: '',
+        deadline_to: '',
+        location: '',
+        level: ''
+    });
+    const [searchSuggestions, setSearchSuggestions] = useState([]);
+    
+    // Filter-based search
+    const [filterBasedFilters, setFilterBasedFilters] = useState({
+        status: '',
+        category: '',
+        amount_min: '',
+        amount_max: '',
+        deadline_from: '',
+        deadline_to: '',
+        location: '',
+        level: '',
+        featured: false
+    });
+    const [showFilterPanel, setShowFilterPanel] = useState(false);
 
     // Categories - ALWAYS ENSURE ARRAY
     const [categories, setCategories] = useState([]);
@@ -85,7 +113,7 @@ const ScholarshipManagement = () => {
         loadScholarships();
         loadCategories();
         loadStats();
-    }, [currentPage, searchTerm, selectedStatus, selectedCategory]);
+    }, [currentPage, searchTerm, selectedStatus, selectedCategory, advancedFilters, filterBasedFilters]);
 
     const loadCategories = async () => {
         try {
@@ -137,6 +165,26 @@ const ScholarshipManagement = () => {
             if (searchTerm) params.append('search', searchTerm);
             if (selectedStatus) params.append('status', selectedStatus);
             if (selectedCategory) params.append('category', selectedCategory);
+            
+            // Add advanced filters if active
+            if (advancedFilters.amount_min) params.append('amount_min', advancedFilters.amount_min);
+            if (advancedFilters.amount_max) params.append('amount_max', advancedFilters.amount_max);
+            if (advancedFilters.deadline_from) params.append('deadline_from', advancedFilters.deadline_from);
+            if (advancedFilters.deadline_to) params.append('deadline_to', advancedFilters.deadline_to);
+            if (advancedFilters.location) params.append('location', advancedFilters.location);
+            if (advancedFilters.level) params.append('level', advancedFilters.level);
+            
+            // Add filter-based search parameters
+            Object.entries(filterBasedFilters).forEach(([key, value]) => {
+                if (value && value !== '' && value !== false && (!Array.isArray(value) || value.length > 0)) {
+                    if (Array.isArray(value)) {
+                        params.append(key, value.join(','));
+                    } else {
+                        params.append(key, value);
+                    }
+                }
+            });
+            
             params.append('page', currentPage.toString());
             params.append('limit', '10');
 
@@ -154,6 +202,15 @@ const ScholarshipManagement = () => {
                 setScholarships(scholarshipData);
                 setTotalCount(response.total || scholarshipData.length);
                 setTotalPages(response.total_pages || Math.ceil((response.total || scholarshipData.length) / 10));
+                
+                // Generate search suggestions from scholarship titles
+                if (scholarshipData.length > 0) {
+                    const suggestions = scholarshipData
+                        .slice(0, 5)
+                        .map(s => s.title)
+                        .filter(Boolean);
+                    setSearchSuggestions(suggestions);
+                }
 
                 // Show success toast when data loads successfully
                 if (scholarshipData.length > 0) {
@@ -212,20 +269,81 @@ const ScholarshipManagement = () => {
     };
 
     // Event handlers
-    const handleSearch = (e) => {
-        setSearchTerm(e.target.value);
+    const handleSearch = useCallback((value) => {
+        setSearchTerm(value);
         setCurrentPage(1);
-    };
+    }, []);
 
-    const handleStatusFilter = (status) => {
-        setSelectedStatus(selectedStatus === status ? '' : status);
+    const handleStatusFilter = useCallback((status) => {
+        setSelectedStatus(prev => prev === status ? '' : status);
         setCurrentPage(1);
-    };
+    }, []);
 
-    const handleCategoryFilter = (e) => {
+    const handleCategoryFilter = useCallback((e) => {
         setSelectedCategory(e.target.value);
         setCurrentPage(1);
-    };
+    }, []);
+    
+    const handleToggleAdvancedFilters = useCallback(() => {
+        setShowAdvancedFilters(prev => !prev);
+    }, []);
+    
+    const handleApplyAdvancedFilters = useCallback((filters) => {
+        setAdvancedFilters(filters);
+        setCurrentPage(1);
+        setShowAdvancedFilters(false);
+        toast.success('Advanced filters applied', {
+            description: 'Search results updated with your filters',
+            duration: 2000
+        });
+    }, []);
+    
+    const handleResetAdvancedFilters = useCallback(() => {
+        setAdvancedFilters({
+            amount_min: '',
+            amount_max: '',
+            deadline_from: '',
+            deadline_to: '',
+            location: '',
+            level: ''
+        });
+        setCurrentPage(1);
+        toast.info('Filters reset', {
+            description: 'All advanced filters have been cleared',
+            duration: 2000
+        });
+    }, []);
+    
+    // Filter-based search handlers
+    const handleFilterChange = useCallback((filters) => {
+        setFilterBasedFilters(filters);
+        setCurrentPage(1);
+    }, []);
+    
+    const handleResetFilters = useCallback(() => {
+        setFilterBasedFilters({
+            status: '',
+            category: '',
+            amount_min: '',
+            amount_max: '',
+            deadline_from: '',
+            deadline_to: '',
+            location: '',
+            level: '',
+            featured: false
+        });
+        setCurrentPage(1);
+        toast.info('All filters cleared', {
+            description: 'Filter-based search reset',
+            duration: 2000
+        });
+    }, []);
+    
+    const getActiveFiltersCount = useCallback(() => {
+        return Object.values(filterBasedFilters).filter(v => 
+            v && v !== '' && v !== false && (!Array.isArray(v) || v.length > 0)
+        ).length;
+    }, [filterBasedFilters]);
 
     // CRUD handlers
     const handleEditScholarship = (scholarship) => {
@@ -1344,10 +1462,10 @@ const ScholarshipManagement = () => {
                 </p>
 
                 {/* Elite Action Buttons */}
-                <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-                    <button className="inline-flex items-center px-6 py-3 bg-black/30 backdrop-blur-lg border border-white/20 text-white hover:bg-white/10 font-semibold rounded-2xl transition-all duration-300 hover:scale-105">
-                        <Download className="w-5 h-5 mr-2" />
-                        Export Elite Data
+                <div className="flex flex-col sm:flex-row justify-center items-center gap-3 md:gap-4 px-4">
+                    <button className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 md:px-6 md:py-3 bg-black/30 backdrop-blur-lg border border-white/20 text-white hover:bg-white/10 font-semibold rounded-xl md:rounded-2xl transition-all duration-300 hover:scale-105">
+                        <Download className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+                        <span className="text-sm md:text-base">Export Elite Data</span>
                     </button>
 
                     <button
@@ -1358,46 +1476,48 @@ const ScholarshipManagement = () => {
                                 duration: 2000
                             });
                         }}
-                        className="inline-flex items-center px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105"
+                        className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-2 md:px-8 md:py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold rounded-xl md:rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105"
                     >
-                        <Plus className="w-5 h-5 mr-2" />
-                        Create Elite Scholarship
+                        <Plus className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+                        <span className="text-sm md:text-base">Create Elite Scholarship</span>
                     </button>
                 </div>
             </div>
 
             {/* Elite Stats Dashboard */}
-            <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl mb-8">
-                <div className="flex items-center mb-8">
-                    <div className="p-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl mr-4">
-                        <TrendingUp className="w-6 h-6 text-white" />
+            <div className="bg-black/30 backdrop-blur-xl rounded-2xl md:rounded-3xl border border-white/10 p-4 md:p-8 shadow-2xl mb-4 md:mb-8">
+                <div className="flex flex-col md:flex-row md:items-center mb-4 md:mb-8 gap-4">
+                    <div className="flex items-center">
+                        <div className="p-2 md:p-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl md:rounded-2xl mr-3 md:mr-4">
+                            <TrendingUp className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg md:text-2xl font-black text-white mb-1 md:mb-2">Elite Analytics Dashboard</h3>
+                            <p className="text-gray-300 text-xs md:text-base">Real-time insights into your premium scholarship ecosystem</p>
+                        </div>
                     </div>
-                    <div>
-                        <h3 className="text-2xl font-black text-white mb-2">Elite Analytics Dashboard</h3>
-                        <p className="text-gray-300">Real-time insights into your premium scholarship ecosystem</p>
-                    </div>
-                    <div className="ml-auto">
+                    <div className="md:ml-auto">
                         <span className="px-3 py-1 bg-gradient-to-r from-emerald-400 to-teal-400 text-black rounded-full text-xs font-black">
                             LIVE DATA
                         </span>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                    <div className="bg-black/40 backdrop-blur-lg overflow-hidden shadow-xl rounded-2xl cursor-pointer transition-all duration-300 hover:scale-105 border border-white/10 hover:border-white/20">
-                        <div className="p-6">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+                    <div className="bg-black/40 backdrop-blur-lg overflow-hidden shadow-xl rounded-xl md:rounded-2xl cursor-pointer transition-all duration-300 hover:scale-105 border border-white/10 hover:border-white/20">
+                        <div className="p-3 md:p-6">
                             <div className="flex items-center">
                                 <div className="flex-shrink-0">
-                                    <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl">
-                                        <GraduationCap className="h-6 w-6 text-white" />
+                                    <div className="p-1.5 md:p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg md:rounded-xl">
+                                        <GraduationCap className="h-4 w-4 md:h-6 md:w-6 text-white" />
                                     </div>
                                 </div>
-                                <div className="ml-4 w-0 flex-1">
+                                <div className="ml-2 md:ml-4 w-0 flex-1">
                                     <dl>
-                                        <dt className="text-sm font-bold text-gray-300 truncate">
-                                            Total Elite Scholarships
+                                        <dt className="text-xs md:text-sm font-bold text-gray-300 truncate">
+                                            Total Elite
                                         </dt>
-                                        <dd className="text-2xl font-black text-white">
+                                        <dd className="text-lg md:text-2xl font-black text-white">
                                             {stats.total}
                                         </dd>
                                     </dl>
@@ -1406,20 +1526,20 @@ const ScholarshipManagement = () => {
                         </div>
                     </div>
 
-                    <div className="bg-black/40 backdrop-blur-lg overflow-hidden shadow-xl rounded-2xl cursor-pointer transition-all duration-300 hover:scale-105 border border-white/10 hover:border-white/20">
-                        <div className="p-6">
+                    <div className="bg-black/40 backdrop-blur-lg overflow-hidden shadow-xl rounded-xl md:rounded-2xl cursor-pointer transition-all duration-300 hover:scale-105 border border-white/10 hover:border-white/20">
+                        <div className="p-3 md:p-6">
                             <div className="flex items-center">
                                 <div className="flex-shrink-0">
-                                    <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl">
-                                        <Rocket className="h-6 w-6 text-white" />
+                                    <div className="p-1.5 md:p-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg md:rounded-xl">
+                                        <Rocket className="h-4 w-4 md:h-6 md:w-6 text-white" />
                                     </div>
                                 </div>
-                                <div className="ml-4 w-0 flex-1">
+                                <div className="ml-2 md:ml-4 w-0 flex-1">
                                     <dl>
-                                        <dt className="text-sm font-bold text-gray-300 truncate">
-                                            Active Elite
+                                        <dt className="text-xs md:text-sm font-bold text-gray-300 truncate">
+                                            Active
                                         </dt>
-                                        <dd className="text-2xl font-black text-white">
+                                        <dd className="text-lg md:text-2xl font-black text-white">
                                             {stats.active}
                                         </dd>
                                     </dl>
@@ -1428,20 +1548,20 @@ const ScholarshipManagement = () => {
                         </div>
                     </div>
 
-                    <div className="bg-black/40 backdrop-blur-lg overflow-hidden shadow-xl rounded-2xl cursor-pointer transition-all duration-300 hover:scale-105 border border-white/10 hover:border-white/20">
-                        <div className="p-6">
+                    <div className="bg-black/40 backdrop-blur-lg overflow-hidden shadow-xl rounded-xl md:rounded-2xl cursor-pointer transition-all duration-300 hover:scale-105 border border-white/10 hover:border-white/20">
+                        <div className="p-3 md:p-6">
                             <div className="flex items-center">
                                 <div className="flex-shrink-0">
-                                    <div className="p-2 bg-gradient-to-r from-yellow-500 to-amber-500 rounded-xl">
-                                        <Edit className="h-6 w-6 text-white" />
+                                    <div className="p-1.5 md:p-2 bg-gradient-to-r from-yellow-500 to-amber-500 rounded-lg md:rounded-xl">
+                                        <Edit className="h-4 w-4 md:h-6 md:w-6 text-white" />
                                     </div>
                                 </div>
-                                <div className="ml-4 w-0 flex-1">
+                                <div className="ml-2 md:ml-4 w-0 flex-1">
                                     <dl>
-                                        <dt className="text-sm font-bold text-gray-300 truncate">
-                                            Elite Drafts
+                                        <dt className="text-xs md:text-sm font-bold text-gray-300 truncate">
+                                            Drafts
                                         </dt>
-                                        <dd className="text-2xl font-black text-white">
+                                        <dd className="text-lg md:text-2xl font-black text-white">
                                             {stats.draft}
                                         </dd>
                                     </dl>
@@ -1450,20 +1570,20 @@ const ScholarshipManagement = () => {
                         </div>
                     </div>
 
-                    <div className="bg-black/40 backdrop-blur-lg overflow-hidden shadow-xl rounded-2xl cursor-pointer transition-all duration-300 hover:scale-105 border border-white/10 hover:border-white/20">
-                        <div className="p-6">
+                    <div className="bg-black/40 backdrop-blur-lg overflow-hidden shadow-xl rounded-xl md:rounded-2xl cursor-pointer transition-all duration-300 hover:scale-105 border border-white/10 hover:border-white/20">
+                        <div className="p-3 md:p-6">
                             <div className="flex items-center">
                                 <div className="flex-shrink-0">
-                                    <div className="p-2 bg-gradient-to-r from-red-500 to-pink-500 rounded-xl">
-                                        <Clock className="h-6 w-6 text-white" />
+                                    <div className="p-1.5 md:p-2 bg-gradient-to-r from-red-500 to-pink-500 rounded-lg md:rounded-xl">
+                                        <Clock className="h-4 w-4 md:h-6 md:w-6 text-white" />
                                     </div>
                                 </div>
-                                <div className="ml-4 w-0 flex-1">
+                                <div className="ml-2 md:ml-4 w-0 flex-1">
                                     <dl>
-                                        <dt className="text-sm font-bold text-gray-300 truncate">
+                                        <dt className="text-xs md:text-sm font-bold text-gray-300 truncate">
                                             Expired
                                         </dt>
-                                        <dd className="text-2xl font-black text-white">
+                                        <dd className="text-lg md:text-2xl font-black text-white">
                                             {stats.expired}
                                         </dd>
                                     </dl>
@@ -1472,20 +1592,20 @@ const ScholarshipManagement = () => {
                         </div>
                     </div>
 
-                    <div className="bg-black/40 backdrop-blur-lg overflow-hidden shadow-xl rounded-2xl cursor-pointer transition-all duration-300 hover:scale-105 border border-white/10 hover:border-white/20">
-                        <div className="p-6">
+                    <div className="bg-black/40 backdrop-blur-lg overflow-hidden shadow-xl rounded-xl md:rounded-2xl cursor-pointer transition-all duration-300 hover:scale-105 border border-white/10 hover:border-white/20 col-span-2 md:col-span-1">
+                        <div className="p-3 md:p-6">
                             <div className="flex items-center">
                                 <div className="flex-shrink-0">
-                                    <div className="p-2 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-xl">
-                                        <Star className="h-6 w-6 text-white fill-current animate-pulse" />
+                                    <div className="p-1.5 md:p-2 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-lg md:rounded-xl">
+                                        <Star className="h-4 w-4 md:h-6 md:w-6 text-white fill-current animate-pulse" />
                                     </div>
                                 </div>
-                                <div className="ml-4 w-0 flex-1">
+                                <div className="ml-2 md:ml-4 w-0 flex-1">
                                     <dl>
-                                        <dt className="text-sm font-bold text-gray-300 truncate">
-                                            Featured Elite
+                                        <dt className="text-xs md:text-sm font-bold text-gray-300 truncate">
+                                            Featured
                                         </dt>
-                                        <dd className="text-2xl font-black text-white">
+                                        <dd className="text-lg md:text-2xl font-black text-white">
                                             {stats.featured}
                                         </dd>
                                     </dl>
@@ -1497,126 +1617,168 @@ const ScholarshipManagement = () => {
             </div>
 
             {/* Elite Search & Filter Hub */}
-            <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl mb-8">
-                <div className="flex items-center mb-8">
-                    <div className="p-3 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-2xl mr-4">
-                        <Search className="w-6 h-6 text-white" />
+            <div className="bg-black/30 backdrop-blur-xl rounded-2xl md:rounded-3xl border border-white/10 p-4 md:p-8 shadow-2xl mb-4 md:mb-8">
+                <div className="flex flex-col md:flex-row md:items-center mb-4 md:mb-8 gap-3 md:gap-0">
+                    <div className="flex items-center">
+                        <div className="p-2 md:p-3 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl md:rounded-2xl mr-3 md:mr-4">
+                            <Search className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg md:text-2xl font-black text-white mb-1 md:mb-2">Enhanced Elite Search Console</h3>
+                            <p className="text-gray-300 text-xs md:text-base hidden sm:block">Advanced search with filters, suggestions & history</p>
+                        </div>
                     </div>
-                    <div>
-                        <h3 className="text-2xl font-black text-white mb-2">Elite Search & Filter Console</h3>
-                        <p className="text-gray-300">Advanced tools for precision scholarship discovery</p>
-                    </div>
-                    <div className="ml-auto flex items-center space-x-3">
+                    <div className="md:ml-auto flex flex-wrap items-center gap-2 md:gap-3">
                         {/* Active Filters Indicator */}
-                        {(searchTerm || selectedStatus || selectedCategory) && (
-                            <span className="px-3 py-1 bg-gradient-to-r from-green-400 to-emerald-400 text-black rounded-full text-xs font-black">
-                                {[searchTerm, selectedStatus, selectedCategory].filter(Boolean).length} FILTER{[searchTerm, selectedStatus, selectedCategory].filter(Boolean).length > 1 ? 'S' : ''} ACTIVE
+                        {(searchTerm || selectedStatus || selectedCategory || Object.values(advancedFilters).some(v => v)) && (
+                            <span className="px-2 md:px-3 py-1 bg-gradient-to-r from-green-400 to-emerald-400 text-black rounded-full text-xs font-black">
+                                {[searchTerm, selectedStatus, selectedCategory, ...Object.values(advancedFilters)].filter(Boolean).length} FILTER{[searchTerm, selectedStatus, selectedCategory, ...Object.values(advancedFilters)].filter(Boolean).length > 1 ? 'S' : ''} ACTIVE
                             </span>
                         )}
-                        <span className="px-3 py-1 bg-gradient-to-r from-cyan-400 to-blue-400 text-black rounded-full text-xs font-black">
-                            SEARCH ENGINE
+                        <span className="px-2 md:px-3 py-1 bg-gradient-to-r from-cyan-400 to-blue-400 text-black rounded-full text-xs font-black">
+                            ENHANCED SEARCH
                         </span>
                     </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0 sm:space-x-6">
-                    {/* Elite Search */}
-                    <div className="flex-1 max-w-lg">
-                        <div className="relative">
-                            <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
-                                <Search className="h-5 w-5 text-cyan-400" />
-                                <Zap className="h-4 w-4 text-blue-400 animate-pulse" />
-                            </div>
-                            <input
-                                type="text"
-                                placeholder="Search elite scholarships..."
-                                value={searchTerm}
-                                onChange={handleSearch}
-                                className="block w-full pl-16 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-400 text-white placeholder-gray-400 text-lg transition-all duration-300"
-                            />
+                {/* Enhanced Search Bar */}
+                <EnhancedSearchBar
+                    searchValue={searchTerm}
+                    onSearchChange={handleSearch}
+                    placeholder="Search scholarships by title, description, category, amount..."
+                    suggestions={searchSuggestions}
+                    resultsCount={totalCount}
+                    showAdvancedFilters={showAdvancedFilters}
+                    onToggleAdvancedFilters={handleToggleAdvancedFilters}
+                    debounceTime={500}
+                    filters={[
+                        {
+                            label: 'All Status',
+                            active: selectedStatus === '',
+                            count: stats.total,
+                            icon: Layers
+                        },
+                        {
+                            label: 'Active',
+                            active: selectedStatus === 'active',
+                            count: stats.active,
+                            icon: CheckCircle2
+                        },
+                        {
+                            label: 'Draft',
+                            active: selectedStatus === 'draft',
+                            count: stats.draft,
+                            icon: Edit
+                        },
+                        {
+                            label: 'Expired',
+                            active: selectedStatus === 'expired',
+                            count: stats.expired,
+                            icon: Clock
+                        },
+                        {
+                            label: 'Featured',
+                            active: selectedStatus === 'featured',
+                            count: stats.featured,
+                            icon: Star
+                        }
+                    ]}
+                    onFilterChange={(filter) => {
+                        const statusMap = {
+                            'All Status': '',
+                            'Active': 'active',
+                            'Draft': 'draft',
+                            'Expired': 'expired',
+                            'Featured': 'featured'
+                        };
+                        handleStatusFilter(statusMap[filter.label]);
+                    }}
+                    className="mb-4"
+                />
+
+                {/* Category Filter */}
+                <div className="flex flex-col sm:flex-row gap-2 md:gap-4">
+                    <div className="relative flex-1">
+                        <div className="absolute left-3 md:left-4 top-1/2 transform -translate-y-1/2">
+                            <Target className="w-3 h-3 md:w-4 md:h-4 text-cyan-400" />
                         </div>
+                        <select
+                            value={selectedCategory}
+                            onChange={handleCategoryFilter}
+                            disabled={categoriesLoading}
+                            className="w-full pl-10 md:pl-12 pr-3 md:pr-4 py-2.5 md:py-3 bg-black/50 border border-white/20 rounded-xl md:rounded-2xl text-white text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-400 transition-all duration-300"
+                        >
+                            <option value="">{categoriesLoading ? 'Loading...' : 'All Elite Categories'}</option>
+                            {renderCategoriesOptions()}
+                        </select>
                     </div>
 
-                    {/* Elite Filters */}
-                    <div className="flex items-center space-x-4">
-                        {/* Status Filter */}
-                        <div className="relative">
-                            <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                                <CheckCircle2 className="w-4 h-4 text-green-400" />
-                            </div>
-                            <select
-                                value={selectedStatus}
-                                onChange={(e) => {
-                                    setSelectedStatus(e.target.value);
-                                    setCurrentPage(1);
-                                }}
-                                className="pl-12 pr-4 py-3 bg-black/50 border border-white/20 rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-400 transition-all duration-300"
-                            >
-                                <option value="">All Status Types</option>
-                                <option value="active">🟢 Active</option>
-                                <option value="draft">🟡 Draft</option>
-                                <option value="inactive">🔴 Inactive</option>
-                                <option value="deleted">🗑️ Deleted</option>
-                            </select>
-                        </div>
-
-                        {/* Category Filter */}
-                        <div className="relative">
-                            <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                                <Target className="w-4 h-4 text-cyan-400" />
-                            </div>
-                            <select
-                                value={selectedCategory}
-                                onChange={handleCategoryFilter}
-                                disabled={categoriesLoading}
-                                className="pl-12 pr-4 py-3 bg-black/50 border border-white/20 rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-400 transition-all duration-300"
-                            >
-                                <option value="">{categoriesLoading ? 'Loading elite categories...' : 'All Elite Categories'}</option>
-                                {renderCategoriesOptions()}
-                            </select>
-                        </div>
-
-                        <button className="inline-flex items-center px-6 py-3 bg-black/50 backdrop-blur-lg border border-white/20 text-white hover:bg-white/10 font-semibold rounded-2xl transition-all duration-300 hover:scale-105">
-                            <Filter className="w-5 h-5 mr-2" />
-                            Advanced Filters
+                    {/* Clear All Filters Button */}
+                    {(searchTerm || selectedStatus || selectedCategory || Object.values(advancedFilters).some(v => v)) && (
+                        <button
+                            onClick={() => {
+                                setSearchTerm('');
+                                setSelectedStatus('');
+                                setSelectedCategory('');
+                                handleResetAdvancedFilters();
+                            }}
+                            className="w-full sm:w-auto inline-flex items-center justify-center px-4 md:px-6 py-2.5 md:py-3 bg-red-500/20 backdrop-blur-lg border border-red-500/30 text-red-300 hover:bg-red-500/30 font-semibold rounded-xl md:rounded-2xl transition-all duration-300 hover:scale-105 text-xs md:text-sm"
+                        >
+                            <X className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+                            Clear All Filters
                         </button>
-
-                        {/* Clear Filters Button */}
-                        {(searchTerm || selectedStatus || selectedCategory) && (
-                            <button
-                                onClick={() => {
-                                    setSearchTerm('');
-                                    setSelectedStatus('');
-                                    setSelectedCategory('');
-                                    setCurrentPage(1);
-                                    toast.info('🧹 Filters cleared', {
-                                        description: 'All filters have been reset',
-                                        duration: 2000
-                                    });
-                                }}
-                                className="inline-flex items-center px-6 py-3 bg-red-500/20 backdrop-blur-lg border border-red-400/50 text-red-300 hover:bg-red-500/30 font-semibold rounded-2xl transition-all duration-300 hover:scale-105"
-                            >
-                                <X className="w-5 h-5 mr-2" />
-                                Clear Filters
-                            </button>
-                        )}
-                    </div>
+                    )}
                 </div>
+
+                {/* Advanced Filters Panel */}
+                {showAdvancedFilters && (
+                    <div className="mt-4">
+                        <AdvancedFiltersPanel
+                            filters={advancedFilters}
+                            onApply={handleApplyAdvancedFilters}
+                            onReset={handleResetAdvancedFilters}
+                        />
+                    </div>
+                )}
             </div>
 
+            {/* Filter-Based Search Panel */}
+            <FilterBasedSearch
+                onFilterChange={handleFilterChange}
+                filters={filterBasedFilters}
+                availableFilters={scholarshipFilters.map(filter => {
+                    // Populate category options dynamically
+                    if (filter.key === 'category') {
+                        return {
+                            ...filter,
+                            options: categories.map(cat => ({
+                                value: cat.id || cat._id,
+                                label: cat.name
+                            }))
+                        };
+                    }
+                    return filter;
+                })}
+                activeFiltersCount={getActiveFiltersCount()}
+                onReset={handleResetFilters}
+                className="mb-4 md:mb-8"
+            />
+
             {/* Elite Scholarships Table */}
-            <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl overflow-hidden">
-                <div className="p-6 border-b border-white/10">
-                    <div className="flex items-center">
-                        <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl mr-4">
-                            <Award className="w-6 h-6 text-white" />
+            <div className="bg-black/30 backdrop-blur-xl rounded-2xl md:rounded-3xl border border-white/10 shadow-2xl overflow-hidden">
+                <div className="p-4 md:p-6 border-b border-white/10">
+                    <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-0">
+                        <div className="flex items-center">
+                            <div className="p-2 md:p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl md:rounded-2xl mr-3 md:mr-4">
+                                <Award className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg md:text-2xl font-black text-white mb-1 md:mb-2">Elite Scholarship Portfolio</h3>
+                                <p className="text-gray-300 text-xs md:text-base hidden sm:block">Premium academic opportunities management center</p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 className="text-2xl font-black text-white mb-2">Elite Scholarship Portfolio</h3>
-                            <p className="text-gray-300">Premium academic opportunities management center</p>
-                        </div>
-                        <div className="ml-auto">
-                            <span className="px-3 py-1 bg-gradient-to-r from-purple-400 to-pink-400 text-black rounded-full text-xs font-black">
+                        <div className="md:ml-auto">
+                            <span className="px-2 md:px-3 py-1 bg-gradient-to-r from-purple-400 to-pink-400 text-black rounded-full text-xs font-black">
                                 PORTFOLIO
                             </span>
                         </div>
@@ -1627,19 +1789,19 @@ const ScholarshipManagement = () => {
                     <table className="min-w-full divide-y divide-white/10">
                         <thead className="bg-black/40 backdrop-blur-lg">
                             <tr>
-                                <th className="px-6 py-4 text-left text-xs font-black text-purple-300 uppercase tracking-wider">
+                                <th className="px-3 md:px-6 py-3 md:py-4 text-left text-xs font-black text-purple-300 uppercase tracking-wider">
                                     🎓 Elite Scholarship
                                 </th>
-                                <th className="px-6 py-4 text-left text-xs font-black text-purple-300 uppercase tracking-wider">
+                                <th className="px-3 md:px-6 py-3 md:py-4 text-left text-xs font-black text-purple-300 uppercase tracking-wider">
                                     💰 Funding Amount
                                 </th>
-                                <th className="px-6 py-4 text-left text-xs font-black text-purple-300 uppercase tracking-wider">
+                                <th className="px-3 md:px-6 py-3 md:py-4 text-left text-xs font-black text-purple-300 uppercase tracking-wider">
                                     ⏰ Application Deadline
                                 </th>
-                                <th className="px-6 py-4 text-left text-xs font-black text-purple-300 uppercase tracking-wider">
+                                <th className="px-3 md:px-6 py-3 md:py-4 text-left text-xs font-black text-purple-300 uppercase tracking-wider">
                                     🚀 Status
                                 </th>
-                                <th className="px-6 py-4 text-right text-xs font-black text-purple-300 uppercase tracking-wider">
+                                <th className="px-3 md:px-6 py-3 md:py-4 text-right text-xs font-black text-purple-300 uppercase tracking-wider">
                                     ⚙️ Elite Actions
                                 </th>
                             </tr>
@@ -1648,34 +1810,34 @@ const ScholarshipManagement = () => {
                             {Array.isArray(scholarships) && scholarships.length > 0 ? (
                                 scholarships.map((scholarship) => (
                                     <tr key={scholarship.id} className="hover:bg-white/5 transition-all duration-300">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-lg font-bold text-white flex items-center">
-                                                <GraduationCap className="w-5 h-5 mr-3 text-purple-400" />
-                                                <Crown className="w-4 h-4 mr-2 text-yellow-400" />
-                                                {scholarship.title}
+                                        <td className="px-3 md:px-6 py-3 md:py-4">
+                                            <div className="text-sm md:text-lg font-bold text-white flex items-center min-w-[200px]">
+                                                <GraduationCap className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3 text-purple-400 flex-shrink-0" />
+                                                <Crown className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2 text-yellow-400 flex-shrink-0" />
+                                                <span className="truncate">{scholarship.title}</span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-lg font-bold text-white flex items-center">
-                                                <DollarSign className="w-5 h-5 mr-2 text-green-400" />
+                                        <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap">
+                                            <div className="text-sm md:text-lg font-bold text-white flex items-center">
+                                                <DollarSign className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2 text-green-400" />
                                                 {scholarship.amount}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-semibold text-white flex items-center">
-                                                <Calendar className="w-4 h-4 mr-2 text-cyan-400" />
+                                        <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap">
+                                            <div className="text-xs md:text-sm font-semibold text-white flex items-center">
+                                                <Calendar className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2 text-cyan-400" />
                                                 {scholarship.deadline}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`inline-flex items-center px-3 py-2 text-xs font-bold rounded-xl border backdrop-blur-lg ${
+                                        <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap">
+                                            <span className={`inline-flex items-center px-2 md:px-3 py-1 md:py-2 text-xs font-bold rounded-lg md:rounded-xl border backdrop-blur-lg ${
                                                 scholarship.status === 'active' ? 'bg-green-500/20 text-green-300 border-green-400/30' :
                                                 scholarship.status === 'draft' ? 'bg-yellow-500/20 text-yellow-300 border-yellow-400/30' :
                                                 scholarship.status === 'inactive' ? 'bg-orange-500/20 text-orange-300 border-orange-400/30' :
                                                 scholarship.status === 'deleted' ? 'bg-gray-500/20 text-gray-300 border-gray-400/30' :
                                                 'bg-red-500/20 text-red-300 border-red-400/30'
                                             }`}>
-                                                <div className={`w-2 h-2 rounded-full mr-2 ${
+                                                <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full mr-1 md:mr-2 ${
                                                     scholarship.status === 'active' ? 'bg-green-400 animate-pulse' :
                                                     scholarship.status === 'draft' ? 'bg-yellow-400' :
                                                     scholarship.status === 'inactive' ? 'bg-orange-400' :
@@ -1685,49 +1847,49 @@ const ScholarshipManagement = () => {
                                                 {scholarship.status.toUpperCase()}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <div className="flex items-center justify-end space-x-2">
+                                        <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <div className="flex items-center justify-end space-x-1 md:space-x-2">
                                                 <button
                                                     onClick={() => copyScholarshipLink(scholarship)}
-                                                    className="p-2 bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-400/30 rounded-xl text-green-400 hover:text-green-300 backdrop-blur-lg transition-all duration-300 hover:scale-110"
+                                                    className="p-1.5 md:p-2 bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-400/30 rounded-lg md:rounded-xl text-green-400 hover:text-green-300 backdrop-blur-lg transition-all duration-300 hover:scale-110"
                                                     title="Copy Elite Scholarship Link"
                                                 >
-                                                    <Copy className="w-4 h-4" />
+                                                    <Copy className="w-3 h-3 md:w-4 md:h-4" />
                                                 </button>
                                                 <button
                                                     onClick={() => generateSingleScholarshipDetail(scholarship, 'pdf')}
-                                                    className="p-2 bg-gradient-to-r from-orange-500/20 to-amber-500/20 border border-orange-400/30 rounded-xl text-orange-400 hover:text-orange-300 backdrop-blur-lg transition-all duration-300 hover:scale-110"
+                                                    className="p-1.5 md:p-2 bg-gradient-to-r from-orange-500/20 to-amber-500/20 border border-orange-400/30 rounded-lg md:rounded-xl text-orange-400 hover:text-orange-300 backdrop-blur-lg transition-all duration-300 hover:scale-110"
                                                     title="Generate Full Detail PDF"
                                                 >
-                                                    <FileText className="w-4 h-4" />
+                                                    <FileText className="w-3 h-3 md:w-4 md:h-4" />
                                                 </button>
                                                 <button
                                                     onClick={() => generateSingleScholarshipDetail(scholarship, 'image')}
-                                                    className="p-2 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-400/30 rounded-xl text-purple-400 hover:text-purple-300 backdrop-blur-lg transition-all duration-300 hover:scale-110"
+                                                    className="p-1.5 md:p-2 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-400/30 rounded-lg md:rounded-xl text-purple-400 hover:text-purple-300 backdrop-blur-lg transition-all duration-300 hover:scale-110"
                                                     title="Generate Full Detail JPEG"
                                                 >
-                                                    <Image className="w-4 h-4" />
+                                                    <Image className="w-3 h-3 md:w-4 md:h-4" />
                                                 </button>
                                                 <button
                                                     onClick={() => handleViewScholarship(scholarship)}
-                                                    className="p-2 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-400/30 rounded-xl text-blue-400 hover:text-blue-300 backdrop-blur-lg transition-all duration-300 hover:scale-110"
+                                                    className="p-1.5 md:p-2 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-400/30 rounded-lg md:rounded-xl text-blue-400 hover:text-blue-300 backdrop-blur-lg transition-all duration-300 hover:scale-110"
                                                     title="View Elite Scholarship"
                                                 >
-                                                    <Eye className="w-4 h-4" />
+                                                    <Eye className="w-3 h-3 md:w-4 md:h-4" />
                                                 </button>
                                                 <button
                                                     onClick={() => handleEditScholarship(scholarship)}
-                                                    className="p-2 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-400/30 rounded-xl text-purple-400 hover:text-purple-300 backdrop-blur-lg transition-all duration-300 hover:scale-110"
+                                                    className="p-1.5 md:p-2 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-400/30 rounded-lg md:rounded-xl text-purple-400 hover:text-purple-300 backdrop-blur-lg transition-all duration-300 hover:scale-110"
                                                     title="Edit Elite Scholarship"
                                                 >
-                                                    <Edit className="w-4 h-4" />
+                                                    <Edit className="w-3 h-3 md:w-4 md:h-4" />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeleteScholarship(scholarship.id)}
-                                                    className="p-2 bg-gradient-to-r from-red-500/20 to-pink-500/20 border border-red-400/30 rounded-xl text-red-400 hover:text-red-300 backdrop-blur-lg transition-all duration-300 hover:scale-110"
+                                                    className="p-1.5 md:p-2 bg-gradient-to-r from-red-500/20 to-pink-500/20 border border-red-400/30 rounded-lg md:rounded-xl text-red-400 hover:text-red-300 backdrop-blur-lg transition-all duration-300 hover:scale-110"
                                                     title="Delete Elite Scholarship"
                                                 >
-                                                    <Trash2 className="w-4 h-4" />
+                                                    <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
                                                 </button>
                                             </div>
                                         </td>
@@ -1735,12 +1897,12 @@ const ScholarshipManagement = () => {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="5" className="px-6 py-12 text-center">
+                                    <td colSpan="5" className="px-4 md:px-6 py-8 md:py-12 text-center">
                                         <div className="flex flex-col items-center">
-                                            <div className="p-4 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full border border-purple-400/30 backdrop-blur-lg mb-4">
-                                                <GraduationCap className="w-12 h-12 text-purple-400" />
+                                            <div className="p-3 md:p-4 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full border border-purple-400/30 backdrop-blur-lg mb-3 md:mb-4">
+                                                <GraduationCap className="w-8 h-8 md:w-12 md:h-12 text-purple-400" />
                                             </div>
-                                            <h3 className="text-lg font-bold text-white mb-2">
+                                            <h3 className="text-base md:text-lg font-bold text-white mb-2">
                                                 {loading ? 'Loading Elite Scholarships...' : 'No Elite Scholarships Found'}
                                             </h3>
                                             <p className="text-gray-300">
@@ -1853,47 +2015,47 @@ const ScholarshipManagement = () => {
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse animation-delay-4000"></div>
             </div>
 
-            <div className="container mx-auto px-6 py-8 relative z-10 space-y-8">
+            <div className="container mx-auto px-4 md:px-6 py-4 md:py-8 relative z-10 space-y-4 md:space-y-8">
                 {/* Elite Header */}
-                <div className="text-center mb-8">
-                    <div className="flex justify-center mb-6">
+                <div className="text-center mb-4 md:mb-8">
+                    <div className="flex justify-center mb-4 md:mb-6">
                         <div className="relative group">
                             <div className="absolute -inset-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 animate-pulse"></div>
-                            <div className="relative p-4 bg-black/50 backdrop-blur-lg rounded-full border border-white/20">
-                                <GraduationCap className="w-12 h-12 text-purple-400" />
+                            <div className="relative p-3 md:p-4 bg-black/50 backdrop-blur-lg rounded-full border border-white/20">
+                                <GraduationCap className="w-8 h-8 md:w-12 md:h-12 text-purple-400" />
                             </div>
                         </div>
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-black mb-4 bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent">
+                    <h1 className="text-2xl md:text-4xl lg:text-5xl font-black mb-3 md:mb-4 bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent px-4">
                         Elite Scholarship Management Hub
                     </h1>
-                    <div className="flex justify-center items-center gap-2 mb-6">
-                        <Star className="w-5 h-5 text-yellow-400 fill-current" />
-                        <span className="text-yellow-400 font-semibold">Professional Academic Opportunity Center</span>
-                        <Star className="w-5 h-5 text-yellow-400 fill-current" />
+                    <div className="flex justify-center items-center gap-2 mb-4 md:mb-6 px-4">
+                        <Star className="w-4 h-4 md:w-5 md:h-5 text-yellow-400 fill-current" />
+                        <span className="text-yellow-400 font-semibold text-sm md:text-base">Professional Academic Opportunity Center</span>
+                        <Star className="w-4 h-4 md:w-5 md:h-5 text-yellow-400 fill-current" />
                     </div>
-                    <p className="text-gray-300 max-w-2xl mx-auto mb-8">
+                    <p className="text-gray-300 max-w-2xl mx-auto mb-4 md:mb-8 px-4 text-sm md:text-base">
                         Orchestrate exceptional academic opportunities and manage elite scholarship programs with our premium management suite
                     </p>
                 </div>
 
                 {/* Tab Navigation */}
-                <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-6 shadow-2xl mb-8">
-                    <div className="flex items-center justify-center space-x-4">
+                <div className="bg-black/30 backdrop-blur-xl rounded-2xl md:rounded-3xl border border-white/10 p-3 md:p-6 shadow-2xl mb-4 md:mb-8">
+                    <div className="flex items-center justify-start md:justify-center space-x-2 md:space-x-4 overflow-x-auto scrollbar-hide pb-2 md:pb-0">
                         {tabs.map((tab) => {
                             const Icon = tab.icon;
                             return (
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
-                                    className={`flex items-center px-6 py-3 rounded-2xl font-semibold transition-all duration-300 ${
+                                    className={`flex items-center px-3 py-2 md:px-6 md:py-3 rounded-xl md:rounded-2xl font-semibold transition-all duration-300 whitespace-nowrap ${
                                         activeTab === tab.id
                                             ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg scale-105'
                                             : 'bg-black/20 text-gray-300 hover:bg-white/10 hover:text-white hover:scale-102'
                                     }`}
                                 >
-                                    <Icon className="w-5 h-5 mr-2" />
-                                    {tab.label}
+                                    <Icon className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
+                                    <span className="text-xs md:text-sm lg:text-base">{tab.label}</span>
                                 </button>
                             );
                         })}

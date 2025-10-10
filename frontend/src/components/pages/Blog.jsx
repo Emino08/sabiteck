@@ -397,7 +397,7 @@ const Blog = ({ contentType = 'blog' }) => {
   }, [])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900 relative overflow-hidden pt-24">
       {/* Elite Background Effects */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
@@ -406,7 +406,7 @@ const Blog = ({ contentType = 'blog' }) => {
         <div className="absolute bottom-1/4 right-1/4 w-40 h-40 bg-yellow-500 rounded-full mix-blend-multiply filter blur-xl opacity-15 animate-pulse animation-delay-6000"></div>
       </div>
       {/* Elite Hero Section */}
-      <section className="relative pt-32 pb-20 overflow-hidden z-10">
+      <section className="relative pt-8 pb-20 overflow-hidden z-10">
         {/* Elite Background Overlay */}
         <div className="absolute inset-0 bg-black/30 backdrop-blur-xl"></div>
 
@@ -707,24 +707,28 @@ const Blog = ({ contentType = 'blog' }) => {
                             </div>
 
                             <div className="lg:w-3/5 p-8">
-                              <div className="flex items-center text-sm text-slate-500 mb-4">
-                                <Calendar className="h-4 w-4 mr-2" />
-                                {formatDate(post.created_at)}
-                                <Clock className="h-4 w-4 ml-4 mr-2" />
-                                {getReadingTime(post.content)} min read
+                              <div className="flex items-center text-sm text-white/90 mb-4 flex-wrap gap-3">
+                                <div className="flex items-center bg-black/40 px-3 py-1 rounded-xl border border-white/20">
+                                  <Calendar className="h-4 w-4 mr-2 text-blue-400" />
+                                  <span className="font-semibold text-white">{formatDate(post.created_at)}</span>
+                                </div>
+                                <div className="flex items-center bg-black/40 px-3 py-1 rounded-xl border border-white/20">
+                                  <Clock className="h-4 w-4 mr-2 text-green-400" />
+                                  <span className="font-semibold text-white">{getReadingTime(post.content)} min read</span>
+                                </div>
                                 {post.views && (
-                                  <>
-                                    <TrendingUp className="h-4 w-4 ml-4 mr-2" />
-                                    {post.views.toLocaleString()} views
-                                  </>
+                                  <div className="flex items-center bg-black/40 px-3 py-1 rounded-xl border border-white/20">
+                                    <TrendingUp className="h-4 w-4 mr-2 text-purple-400" />
+                                    <span className="font-semibold text-white">{post.views.toLocaleString()} views</span>
+                                  </div>
                                 )}
                               </div>
 
-                              <h3 className="text-2xl font-bold text-slate-900 mb-4 group-hover:text-blue-600 transition-colors leading-tight">
+                              <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-yellow-400 transition-colors leading-tight">
                                 {post.title}
                               </h3>
 
-                              <p className="text-slate-600 mb-6 line-clamp-3 leading-relaxed text-lg">
+                              <p className="text-gray-300 mb-6 line-clamp-3 leading-relaxed text-lg">
                                 {post.excerpt || (post.content ? post.content.substring(0, 200) + '...' : 'No description available')}
                               </p>
 
@@ -732,7 +736,7 @@ const Blog = ({ contentType = 'blog' }) => {
                               {post.tags && (
                                 <div className="flex flex-wrap gap-2 mb-6">
                                   {(typeof post.tags === 'string' ? JSON.parse(post.tags) : post.tags).slice(0, 3).map((tag) => (
-                                    <span key={tag} className="inline-flex items-center px-3 py-1 bg-slate-100 text-slate-700 text-sm rounded-full hover:bg-blue-100 hover:text-blue-700 transition-colors">
+                                    <span key={tag} className="inline-flex items-center px-3 py-1 bg-black/40 backdrop-blur-lg text-indigo-300 text-sm rounded-full hover:bg-indigo-500/20 hover:text-indigo-200 transition-colors border border-indigo-500/30">
                                       <Tag className="h-3 w-3 mr-1" />
                                       {tag}
                                     </span>
@@ -742,52 +746,52 @@ const Blog = ({ contentType = 'blog' }) => {
 
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center">
-                                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
+                                  <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold border-2 border-white/20">
                                     {(post.author || 'ST').charAt(0)}
                                   </div>
                                   <div className="ml-3">
-                                    <div className="text-sm font-medium text-slate-900">{post.author || 'Sabiteck Team'}</div>
+                                    <div className="text-sm font-bold text-white">{post.author || 'Sabiteck Team'}</div>
                                     {post.author_role && (
-                                      <div className="text-xs text-slate-500">{post.author_role}</div>
+                                      <div className="text-xs text-gray-400">{post.author_role}</div>
                                     )}
                                   </div>
                                 </div>
 
-                                <Button
+                                <button
                                   onClick={() => openPost(post)}
-                                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                                  className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-bold px-6 py-3 rounded-2xl transition-all duration-300 hover:scale-105 flex items-center space-x-2"
                                 >
-                                  Read Article
-                                  <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                                </Button>
+                                  <span>Read Elite</span>
+                                  <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                                </button>
                               </div>
 
                               {/* Engagement Metrics */}
-                              <div className="flex items-center justify-between mt-6 pt-6 border-t border-slate-100 text-sm text-slate-500">
-                                <div className="flex items-center space-x-6">
-                                  <span className="flex items-center hover:text-blue-600 transition-colors cursor-pointer">
-                                    <Eye className="w-4 h-4 mr-1" />
-                                    {post.views || 0} views
-                                  </span>
-                                  <span className="flex items-center hover:text-red-600 transition-colors cursor-pointer">
-                                    <Heart className="w-4 h-4 mr-1" />
-                                    {post.like_count || 0} likes
-                                  </span>
-                                  <span className="flex items-center hover:text-green-600 transition-colors cursor-pointer">
-                                    <MessageCircle className="w-4 h-4 mr-1" />
-                                    {post.comment_count || 0} comments
-                                  </span>
+                              <div className="flex items-center justify-between mt-6 pt-6 border-t border-white/20">
+                                <div className="flex items-center space-x-4">
+                                  <div className="flex items-center bg-black/40 px-3 py-1 rounded-xl border border-blue-500/30 hover:bg-blue-500/20 transition-colors cursor-pointer">
+                                    <Eye className="w-4 h-4 mr-1 text-blue-400" />
+                                    <span className="text-sm text-blue-400 font-semibold">{post.views || 0}</span>
+                                  </div>
+                                  <div className="flex items-center bg-black/40 px-3 py-1 rounded-xl border border-red-500/30 hover:bg-red-500/20 transition-colors cursor-pointer">
+                                    <Heart className="w-4 h-4 mr-1 text-red-400" />
+                                    <span className="text-sm text-red-400 font-semibold">{post.like_count || 0}</span>
+                                  </div>
+                                  <div className="flex items-center bg-black/40 px-3 py-1 rounded-xl border border-green-500/30 hover:bg-green-500/20 transition-colors cursor-pointer">
+                                    <MessageCircle className="w-4 h-4 mr-1 text-green-400" />
+                                    <span className="text-sm text-green-400 font-semibold">{post.comment_count || 0}</span>
+                                  </div>
                                 </div>
 
                                 {/* Share Button with Dropdown */}
                                 <div className="relative share-dropdown-container">
-                                  <span
-                                    className="flex items-center hover:text-purple-600 transition-colors cursor-pointer"
+                                  <button
+                                    className="flex items-center bg-black/40 px-3 py-1 rounded-xl border border-purple-500/30 hover:bg-purple-500/20 transition-colors cursor-pointer"
                                     onClick={(e) => toggleShareDropdown(post.id, e)}
                                   >
-                                    <Share2 className="w-4 h-4 mr-1" />
-                                    Share
-                                  </span>
+                                    <Share2 className="w-4 h-4 mr-1 text-purple-400" />
+                                    <span className="text-sm text-purple-400 font-semibold">Share</span>
+                                  </button>
 
                                   {/* Share Dropdown */}
                                   <div className={`absolute right-0 bottom-full mb-2 bg-white rounded-xl shadow-2xl border border-gray-200 p-2 transition-all duration-200 z-[9999] min-w-48 backdrop-blur-sm transform will-change-transform ${

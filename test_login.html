@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Login for koromaemmanuel66@gmail.com</title>
+    <style>
+        body {
+            font-family: monospace;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #00ff00;
+        }
+        .box {
+            border: 2px solid #00ff00;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        h1, h2 { color: #00ffff; }
+        .success { color: #00ff00; }
+        .error { color: #ff0000; }
+        .info { color: #ffff00; }
+        button {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #00cc00; }
+        input {
+            background: #2a2a2a;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 10px;
+            margin: 5px 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        pre {
+            background: #0a0a0a;
+            padding: 10px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔐 Login Test for koromaemmanuel66@gmail.com</h1>
+    
+    <div class="box">
+        <h2>Step 1: Test Login API</h2>
+        <input type="text" id="username" value="koromaemmanuel66@gmail.com" placeholder="Username or Email">
+        <input type="password" id="password" value="Admin@123" placeholder="Password">
+        <button onclick="testLogin()">Test Login</button>
+        <button onclick="testAdminLogin()">Test Admin Login</button>
+        <div id="loginResult"></div>
+    </div>
+
+    <div class="box">
+        <h2>Step 2: Check Stored User Data</h2>
+        <button onclick="checkLocalStorage()">Check LocalStorage</button>
+        <div id="storageResult"></div>
+    </div>
+
+    <div class="box">
+        <h2>Step 3: Test Redirect Logic</h2>
+        <button onclick="testRedirectLogic()">Test Redirect</button>
+        <div id="redirectResult"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8002';
+
+        async function testLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('loginResult');
+            
+            resultDiv.innerHTML = '<p class="info">Testing regular login...</p>';
+            
+            try {
+                const response = await fetch(`${API_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ LOGIN SUCCESSFUL!</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                        <p class="success">User Role: ${data.data.user.role || data.data.user.role_name}</p>
+                        <p class="success">Permissions Count: ${data.data.permissions?.length || 0}</p>
+                        <p class="success">Has dashboard.view: ${data.data.permissions?.some(p => p.name === 'dashboard.view' || p === 'dashboard.view') ? 'YES ✅' : 'NO ❌'}</p>
+                    `;
+                    
+                    // Store in localStorage
+                    localStorage.setItem('auth_token', data.data.token);
+                    localStorage.setItem('user', JSON.stringify({
+                        ...data.data.user,
+                        permissions: data.data.permissions,
+                        modules: data.data.modules
+                    }));
+                } else {
+                    resultDiv.innerHTML = `<p class="error">❌ LOGIN FAILED: ${data.error || 'Unknown error'}</p>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ ERROR: ${error.message}</p>`;
+            }
+        }
+
+        async function testAdminLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('loginResult');
+            
+            resultDiv.innerHTML = '<p class="info">Testing admin login...</p>';
+            
+            try {
+                const response = await fetch(`${API_URL}/api/admin/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ ADMIN LOGIN SUCCESSFUL!</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                        <p class="success">User Role: ${data.data.user.role || data.data.user.role_name}</p>
+                        <p class="success">Permissions Count: ${data.data.permissions?.length || 0}</p>
+                    `;
+                    
+                    // Store in localStorage
+                    localStorage.setItem('auth_token', data.data.token);
+                    localStorage.setItem('user', JSON.stringify({
+                        ...data.data.user,
+                        permissions: data.data.permissions,
+                        modules: data.data.modules
+                    }));
+                } else {
+                    resultDiv.innerHTML = `<p class="error">❌ ADMIN LOGIN FAILED: ${data.error || 'Unknown error'}</p>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ ERROR: ${error.message}</p>`;
+            }
+        }
+
+        function checkLocalStorage() {
+            const resultDiv = document.getElementById('storageResult');
+            const token = localStorage.getItem('auth_token');
+            const userStr = localStorage.getItem('user');
+            
+            if (!token || !userStr) {
+                resultDiv.innerHTML = '<p class="error">❌ No data in localStorage. Login first!</p>';
+                return;
+            }
+            
+            const user = JSON.parse(userStr);
+            
+            resultDiv.innerHTML = `
+                <p class="success">✅ Data found in localStorage</p>
+                <h3>Token:</h3>
+                <pre>${token.substring(0, 50)}...</pre>
+                <h3>User Data:</h3>
+                <pre>${JSON.stringify(user, null, 2)}</pre>
+                <p class="success">Role: ${user.role || user.role_name}</p>
+                <p class="success">Permissions: ${user.permissions?.length || 0}</p>
+                <p class="success">Modules: ${user.modules?.length || 0}</p>
+            `;
+        }
+
+        function testRedirectLogic() {
+            const resultDiv = document.getElementById('redirectResult');
+            const userStr = localStorage.getItem('user');
+            
+            if (!userStr) {
+                resultDiv.innerHTML = '<p class="error">❌ No user data. Login first!</p>';
+                return;
+            }
+            
+            const user = JSON.parse(userStr);
+            const userRole = user.role || user.role_name;
+            const permissions = user.permissions || [];
+            
+            // Check if admin
+            const isAdmin = ['super_admin', 'admin', 'Administrator'].includes(userRole);
+            
+            // Check if has dashboard.view permission
+            const hasDashboardView = permissions.some(p => 
+                (typeof p === 'string' && p === 'dashboard.view') ||
+                (typeof p === 'object' && p.name === 'dashboard.view')
+            );
+            
+            // Check if has dashboard role
+            const hasDashboardRole = ['admin', 'super_admin', 'super-admin', 'Administrator', 'editor', 'moderator', 'hr_manager', 'Content Editor'].includes(userRole);
+            
+            const shouldRedirectToDashboard = isAdmin || hasDashboardView || hasDashboardRole;
+            
+            resultDiv.innerHTML = `
+                <h3>Redirect Logic Test:</h3>
+                <p>User Role: <span class="info">${userRole}</span></p>
+                <p>Is Admin: ${isAdmin ? '<span class="success">YES ✅</span>' : '<span class="error">NO ❌</span>'}</p>
+                <p>Has dashboard.view: ${hasDashboardView ? '<span class="success">YES ✅</span>' : '<span class="error">NO ❌</span>'}</p>
+                <p>Has Dashboard Role: ${hasDashboardRole ? '<span class="success">YES ✅</span>' : '<span class="error">NO ❌</span>'}</p>
+                <h3>Decision:</h3>
+                <p class="${shouldRedirectToDashboard ? 'success' : 'error'}">
+                    ${shouldRedirectToDashboard ? '✅ SHOULD REDIRECT TO: /dashboard' : '❌ WOULD REDIRECT TO: / (home)'}
+                </p>
+                ${shouldRedirectToDashboard ? '<button onclick="goToDashboard()">Go to Dashboard Now</button>' : ''}
+            `;
+        }
+
+        function goToDashboard() {
+            window.location.href = 'http://localhost:5173/dashboard';
+        }
+
+        // Auto-check on load
+        window.onload = function() {
+            const stored = localStorage.getItem('user');
+            if (stored) {
+                checkLocalStorage();
+                testRedirectLogic();
+            }
+        };
+    </script>
+</body>
+</html>

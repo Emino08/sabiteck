@@ -3,13 +3,14 @@ import {
   Plus, Search, Edit, Trash2, Save, X, User, Mail, Phone, Star,
   Linkedin, Twitter, Globe, MapPin, Award, Briefcase, Users,
   Eye, EyeOff, Filter, TrendingUp, Building, Calendar,
-  GraduationCap, Zap, Heart, CheckCircle, AlertCircle
+  GraduationCap, Zap, Heart, CheckCircle, AlertCircle, Upload, Image as ImageIcon
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { apiRequest } from '../../utils/api';
+import { toast } from 'sonner';
 
 const TeamManagement = () => {
   const [teamMembers, setTeamMembers] = useState([]);
@@ -20,6 +21,8 @@ const TeamManagement = () => {
   const [filterDepartment, setFilterDepartment] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [stats, setStats] = useState({ total: 0, active: 0, featured: 0, departments: 0 });
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState(null);
   const [currentMember, setCurrentMember] = useState({
     name: '',
     position: '',
@@ -54,11 +57,42 @@ const TeamManagement = () => {
     setLoading(true);
     try {
       const response = await apiRequest('/api/admin/team');
+      console.log('API Response:', response); // Debug log
+      
       if (response.success) {
         const members = response.data || [];
-        setTeamMembers(members);
-        updateStats(members);
+        console.log('Raw members from API:', members); // Debug log
+        
+        // Map fields for consistency
+        const mappedMembers = members.map(member => {
+          const mapped = {
+            ...member,
+            photo_url: member.photo_url || member.avatar || '',
+            phone: member.phone || '',
+            location: member.location || '',
+            department: member.department || '',
+            // Extract social links from JSON if they exist
+            linkedin_url: member.social_links?.linkedin || member.linkedin_url || '',
+            twitter_url: member.social_links?.twitter || member.twitter_url || '',
+            website_url: member.social_links?.website || member.website_url || '',
+            // Ensure skills is always an array
+            skills: Array.isArray(member.skills) ? member.skills : (member.skills ? member.skills.split(',').map(s => s.trim()) : []),
+            // Ensure other fields exist
+            years_experience: member.years_experience || '',
+            education: member.education || '',
+            certifications: Array.isArray(member.certifications) ? member.certifications : [],
+            active: member.active !== undefined ? Boolean(member.active) : true,
+            featured: member.featured !== undefined ? Boolean(member.featured) : false,
+            order_position: member.order_position || member.sort_order || 0
+          };
+          console.log('Mapped member:', mapped); // Debug log
+          return mapped;
+        });
+        
+        setTeamMembers(mappedMembers);
+        updateStats(mappedMembers);
       } else {
+        console.error('API returned unsuccessful response:', response);
         // Set fallback data with enhanced sample team
         const fallbackData = [
           {
@@ -68,11 +102,12 @@ const TeamManagement = () => {
             department: 'Executive',
             bio: 'Visionary leader driving innovation in education technology with 15+ years of experience in transforming how students access global opportunities.',
             email: 'alpha@sabiteck.com',
+            phone: '+232 78 618435',
             location: '🇸🇱 Sierra Leone',
             photo_url: '/api/placeholder/150/150',
             linkedin_url: 'https://linkedin.com/in/alpha-barrie',
             skills: ['Leadership', 'Strategy', 'EdTech Innovation'],
-            years_experience: 15,
+            years_experience: '15',
             active: true,
             featured: true,
             order_position: 1
@@ -84,10 +119,11 @@ const TeamManagement = () => {
             department: 'Study Abroad',
             bio: 'Expert in international education with a passion for helping students achieve their global academic dreams and cultural exchange.',
             email: 'sarah@sabiteck.com',
+            phone: '+44 20 7946 0958',
             location: '🇬🇧 London, UK',
             photo_url: '/api/placeholder/150/150',
             skills: ['Education Consulting', 'Student Support', 'Cultural Affairs'],
-            years_experience: 10,
+            years_experience: '10',
             active: true,
             featured: true,
             order_position: 2
@@ -99,9 +135,10 @@ const TeamManagement = () => {
             department: 'Technology',
             bio: 'Full-stack developer specializing in modern web technologies and educational platform development.',
             email: 'mohamed@sabiteck.com',
-            location: '🇸🇱 Freetown',
+            phone: '+232 76 123456',
+            location: '🇸🇱 Freetown, Sierra Leone',
             skills: ['React', 'Node.js', 'Database Design'],
-            years_experience: 8,
+            years_experience: '8',
             active: true,
             featured: false,
             order_position: 3
@@ -127,7 +164,7 @@ const TeamManagement = () => {
 
   const saveTeamMember = async () => {
     if (!currentMember.name || !currentMember.position) {
-      alert('Please fill in name and position');
+      toast.error('Please fill in name and position');
       return;
     }
 
@@ -136,15 +173,72 @@ const TeamManagement = () => {
       const endpoint = editingMember ? `/api/admin/team/${editingMember.id}` : '/api/admin/team';
       const method = editingMember ? 'PUT' : 'POST';
 
+      // Process skills properly to avoid double encoding
+      let processedSkills = [];
+      
+      if (typeof currentMember.skills === 'string') {
+        const trimmed = currentMember.skills.trim();
+        
+        if (!trimmed) {
+          processedSkills = [];
+        } else if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+          // It looks like JSON, try to parse it
+          try {
+            const parsed = JSON.parse(trimmed);
+            if (Array.isArray(parsed)) {
+              // Clean each skill - remove extra quotes or brackets
+              processedSkills = parsed
+                .map(s => {
+                  if (typeof s === 'string') {
+                    // Remove any wrapping quotes or brackets
+                    return s.replace(/^[\["\s]+|[\]"\s]+$/g, '').trim();
+                  }
+                  return String(s).trim();
+                })
+                .filter(s => s.length > 0);
+            } else {
+              processedSkills = [];
+            }
+          } catch (e) {
+            // If parsing fails, treat as comma-separated
+            processedSkills = trimmed
+              .replace(/[\[\]"]/g, '') // Remove brackets and quotes
+              .split(',')
+              .map(s => s.trim())
+              .filter(s => s);
+          }
+        } else {
+          // Treat as comma-separated string
+          processedSkills = trimmed
+            .split(',')
+            .map(s => s.trim())
+            .filter(s => s);
+        }
+      } else if (Array.isArray(currentMember.skills)) {
+        // Already an array - clean each item
+        processedSkills = currentMember.skills
+          .map(s => {
+            if (typeof s === 'string') {
+              // Remove any wrapping quotes or brackets
+              return s.replace(/^[\["\s]+|[\]"\s]+$/g, '').trim();
+            }
+            return String(s).trim();
+          })
+          .filter(s => s.length > 0);
+      }
+
+      console.log('Original skills:', currentMember.skills);
+      console.log('Processed skills:', processedSkills);
+
       const processedMember = {
         ...currentMember,
-        skills: typeof currentMember.skills === 'string'
-          ? currentMember.skills.split(',').map(s => s.trim()).filter(s => s)
-          : currentMember.skills,
+        skills: processedSkills,  // Send as clean array
         certifications: typeof currentMember.certifications === 'string'
           ? currentMember.certifications.split('\n').filter(c => c.trim())
           : currentMember.certifications
       };
+
+      console.log('Sending to API:', processedMember);
 
       await apiRequest(endpoint, {
         method,
@@ -177,34 +271,155 @@ const TeamManagement = () => {
   };
 
   const deleteTeamMember = async (memberId) => {
-    if (!confirm('Are you sure you want to remove this team member?')) return;
+    const member = teamMembers.find(m => m.id === memberId);
+    const memberName = member ? member.name : 'this team member';
 
-    try {
-      await apiRequest(`/api/admin/team/${memberId}`, {
-        method: 'DELETE'
-      });
-      await loadTeamMembers();
-    } catch (error) {
-      console.error('Failed to remove team member:', error);
-      // For demo, remove from local state
-      setTeamMembers(prev => prev.filter(member => member.id !== memberId));
-    }
+    toast.custom((t) => (
+      <div className="bg-white rounded-lg shadow-xl border border-gray-200 p-5 max-w-md">
+        <div className="flex items-start gap-3 mb-4">
+          <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-gray-900 text-lg mb-1">Remove Team Member</h3>
+            <p className="text-sm text-gray-600">Are you sure you want to remove <strong className="text-gray-900">{memberName}</strong>?</p>
+            <p className="text-xs text-gray-500 mt-2">This action cannot be undone.</p>
+          </div>
+        </div>
+        <div className="flex gap-2 justify-end">
+          <button
+            onClick={() => toast.dismiss(t)}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={async () => {
+              toast.dismiss(t);
+              try {
+                await apiRequest(`/api/admin/team/${memberId}`, {
+                  method: 'DELETE'
+                });
+                toast.success('Team member removed successfully');
+                await loadTeamMembers();
+              } catch (error) {
+                console.error('Failed to remove team member:', error);
+                toast.error('Failed to remove team member');
+                // For demo, remove from local state
+                setTeamMembers(prev => prev.filter(member => member.id !== memberId));
+              }
+            }}
+            className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+          >
+            Remove
+          </button>
+        </div>
+      </div>
+    ), {
+      duration: Infinity,
+      position: 'top-center'
+    });
   };
 
   const editTeamMember = (member) => {
     setEditingMember(member);
     setCurrentMember({
       ...member,
+      // Ensure all fields are properly set
+      name: member.name || '',
+      position: member.position || '',
+      department: member.department || '',
+      bio: member.bio || '',
+      email: member.email || '',
+      phone: member.phone || '',
+      location: member.location || '',
+      photo_url: member.photo_url || member.avatar || '',
+      linkedin_url: member.linkedin_url || '',
+      twitter_url: member.twitter_url || '',
+      website_url: member.website_url || '',
+      years_experience: member.years_experience || '',
+      education: member.education || '',
+      active: member.active !== undefined ? member.active : true,
+      featured: member.featured !== undefined ? member.featured : false,
+      order_position: member.order_position || member.sort_order || 0,
+      // Convert arrays to comma-separated strings for text inputs
       skills: Array.isArray(member.skills) ? member.skills.join(', ') : (member.skills || ''),
       certifications: Array.isArray(member.certifications)
         ? member.certifications.join('\n')
         : (member.certifications || '')
     });
+    setPhotoPreview(null); // Reset photo preview
     setShowEditor(true);
+  };
+
+  const handlePhotoUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Invalid file type. Please upload JPG, PNG, or WebP images only.');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      toast.error('File size exceeds 5MB. Please upload a smaller image.');
+      return;
+    }
+
+    // Validate image dimensions
+    const img = new Image();
+    img.src = URL.createObjectURL(file);
+
+    img.onload = async () => {
+      if (img.width > 2000 || img.height > 2000) {
+        toast.error('Image dimensions too large. Maximum size is 2000x2000px. Recommended: 800x800px for best quality.');
+        URL.revokeObjectURL(img.src);
+        return;
+      }
+
+      // Show preview
+      setPhotoPreview(img.src);
+
+      // Upload photo
+      setUploadingPhoto(true);
+      try {
+        const formData = new FormData();
+        formData.append('photo', file);
+
+        // Use direct endpoint URL for photo upload
+        const response = await fetch('http://localhost:8002/team-upload-photo.php', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          setCurrentMember({ ...currentMember, photo_url: data.data.url });
+          toast.success('Photo uploaded successfully!');
+        } else {
+          toast.error(data.error || 'Failed to upload photo');
+          setPhotoPreview(null);
+        }
+      } catch (error) {
+        console.error('Photo upload error:', error);
+        toast.error('Failed to upload photo. Please try again.');
+        setPhotoPreview(null);
+      } finally {
+        setUploadingPhoto(false);
+      }
+    };
   };
 
   const resetForm = () => {
     setEditingMember(null);
+    setPhotoPreview(null);
     setCurrentMember({
       name: '',
       position: '',
@@ -498,16 +713,73 @@ const TeamManagement = () => {
                 </CardHeader>
                 <CardContent className="p-6">
                   <div className="space-y-4">
-                    <Input
-                      value={currentMember.photo_url}
-                      onChange={(e) => setCurrentMember({...currentMember, photo_url: e.target.value})}
-                      placeholder="https://example.com/photo.jpg"
-                      className="border-2 border-gray-200 rounded-xl p-4 text-lg focus:border-blue-500 transition-all"
-                    />
-                    {currentMember.photo_url ? (
+                    {/* Photo Upload Button */}
+                    <div className="space-y-2">
+                      <label className="block text-sm font-bold text-gray-700 mb-2">
+                        Upload Photo
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/jpg,image/png,image/webp"
+                          onChange={handlePhotoUpload}
+                          className="hidden"
+                          id="photo-upload"
+                          disabled={uploadingPhoto}
+                        />
+                        <label
+                          htmlFor="photo-upload"
+                          className={`flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all ${
+                            uploadingPhoto ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
+                        >
+                          {uploadingPhoto ? (
+                            <>
+                              <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-600 border-t-transparent mr-2"></div>
+                              <span className="text-sm text-gray-600">Uploading...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="h-5 w-5 text-gray-500 mr-2" />
+                              <span className="text-sm text-gray-600">Click to upload photo</span>
+                            </>
+                          )}
+                        </label>
+                      </div>
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-700">
+                        <div className="font-semibold mb-1">📋 Photo Requirements:</div>
+                        <ul className="list-disc list-inside space-y-1">
+                          <li>Max size: <strong>5MB</strong></li>
+                          <li>Max dimensions: <strong>2000x2000px</strong></li>
+                          <li>Recommended: <strong>800x800px</strong></li>
+                          <li>Formats: JPG, PNG, WebP</li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* Photo URL Input */}
+                    <div className="space-y-2">
+                      <label className="block text-sm font-bold text-gray-700">
+                        Or enter photo URL
+                      </label>
+                      <Input
+                        value={currentMember.photo_url}
+                        onChange={(e) => setCurrentMember({...currentMember, photo_url: e.target.value})}
+                        placeholder="https://example.com/photo.jpg"
+                        className="border-2 border-gray-200 rounded-xl p-4 text-lg focus:border-blue-500 transition-all"
+                      />
+                    </div>
+
+                    {/* Photo Preview */}
+                    {(photoPreview || currentMember.photo_url) ? (
                       <div className="relative">
                         <img
-                          src={currentMember.photo_url}
+                          src={
+                            photoPreview ||
+                            (currentMember.photo_url.startsWith('http')
+                              ? currentMember.photo_url
+                              : `http://localhost:8002${currentMember.photo_url}`)
+                          }
                           alt="Preview"
                           className="w-full h-48 object-cover rounded-xl shadow-lg"
                           onError={(e) => {
@@ -521,7 +793,10 @@ const TeamManagement = () => {
                       </div>
                     ) : (
                       <div className="w-full h-48 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center">
-                        <User className="h-16 w-16 text-gray-400" />
+                        <div className="text-center">
+                          <ImageIcon className="h-16 w-16 text-gray-400 mx-auto mb-2" />
+                          <p className="text-sm text-gray-500">No photo uploaded</p>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -760,7 +1035,7 @@ const TeamManagement = () => {
                       <div className="text-center">
                         {member.photo_url ? (
                           <img
-                            src={member.photo_url}
+                            src={member.photo_url.startsWith('http') ? member.photo_url : `http://localhost:8002${member.photo_url}`}
                             alt={member.name}
                             className="w-24 h-24 rounded-full mx-auto mb-4 object-cover border-4 border-white/20 shadow-lg"
                             onError={(e) => {
@@ -923,3 +1198,4 @@ const TeamManagement = () => {
 };
 
 export default TeamManagement;
+

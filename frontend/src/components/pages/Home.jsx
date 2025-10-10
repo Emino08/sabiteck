@@ -13,6 +13,7 @@ import { DataRenderer, DataGrid, MetricCard, useAsyncData, formatData } from '@/
 import { LoadingSpinner, SkeletonGrid, ErrorMessage } from '@/components/ui/loading'
 import SEOHead from '../SEO/SEOHead'
 import SabiteckLogo from '../../assets/icons/Sabitek Logo.png'
+import HeroImage from '../../assets/images/hero.jpg'
 import ApiService from '../../services/api'
 
 const Home = () => {
@@ -206,7 +207,19 @@ const Home = () => {
 
       {/* Enhanced Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 pt-32">
-        <div className="absolute inset-0 opacity-20">
+        {/* Hero Background Image */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src={HeroImage} 
+            alt="Sabiteck Technology Solutions" 
+            className="w-full h-full object-cover"
+          />
+          {/* Dark overlay for better text readability */}
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-900/90 via-blue-900/85 to-slate-900/90"></div>
+        </div>
+
+        {/* Dotted pattern overlay */}
+        <div className="absolute inset-0 opacity-20 z-10">
           <div className="w-full h-full bg-repeat bg-[length:60px_60px]"
                style={{
                  backgroundImage: `radial-gradient(circle at 30px 30px, white 2px, transparent 2px)`
@@ -215,21 +228,21 @@ const Home = () => {
         </div>
 
         {/* Animated floating elements */}
-        <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden z-10">
           <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute top-3/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
           <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl animate-pulse" style={{animationDelay: '4s'}}></div>
         </div>
 
-        <div className="container-responsive relative z-10 text-white">
+        <div className="container-responsive relative z-20 text-white py-12 sm:py-0">
           <div className="text-center max-w-5xl mx-auto">
             <ScrollReveal>
-              <div className="mb-8 flex justify-center">
+              <div className="mb-6 sm:mb-8 flex justify-center">
                 <div className="relative">
                   <img
                     src={SabiteckLogo}
                     alt="Sabiteck Limited Logo"
-                    className="h-24 w-auto animate-float drop-shadow-2xl"
+                    className="h-16 sm:h-20 md:h-24 w-auto animate-float drop-shadow-2xl"
                   />
                   <div className="absolute inset-0 bg-white/20 rounded-full blur-xl -z-10"></div>
                 </div>
@@ -237,69 +250,72 @@ const Home = () => {
             </ScrollReveal>
 
             <ScrollReveal delay={200}>
-              <div className="inline-flex items-center px-6 py-3 bg-blue-600/20 backdrop-blur-sm rounded-full text-blue-200 text-sm font-medium mb-8 border border-blue-400/20">
-                <Star className="h-4 w-4 mr-2" />
-                Leading Technology Solutions in Sierra Leone
+              <div className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 bg-blue-600/20 backdrop-blur-sm rounded-full text-blue-200 text-xs sm:text-sm font-medium mb-6 sm:mb-8 border border-blue-400/20">
+                <Star className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+                <span className="hidden xs:inline">Leading Technology Solutions in Sierra Leone</span>
+                <span className="xs:hidden">Tech Solutions in SL</span>
               </div>
             </ScrollReveal>
 
             <ScrollReveal delay={300}>
-              <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+              <h1 className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-4 sm:mb-6 leading-tight px-4">
                 Transform Your Business with
-                <span className="block bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
+                <span className="block bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent mt-2">
                   Cutting-Edge Technology
                 </span>
               </h1>
             </ScrollReveal>
 
             <ScrollReveal delay={400}>
-              <p className="text-xl md:text-2xl text-blue-100 mb-12 leading-relaxed max-w-4xl mx-auto">
+              <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-blue-100 mb-8 sm:mb-12 leading-relaxed max-w-4xl mx-auto px-4">
                 We specialize in software development, digital innovation, and tech education
                 to drive your success in the digital age.
               </p>
             </ScrollReveal>
 
             <ScrollReveal delay={500}>
-              <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
+              <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center mb-12 sm:mb-16 px-4">
                 <Button
                   size="lg"
-                  className="bg-white text-blue-900 hover:bg-blue-50 px-10 py-5 rounded-2xl font-bold text-lg shadow-2xl hover:scale-105 transition-all duration-300 group"
+                  className="w-full sm:w-auto bg-white text-blue-900 hover:bg-blue-50 px-8 sm:px-10 py-4 sm:py-5 rounded-2xl font-bold text-base sm:text-lg shadow-2xl hover:scale-105 transition-all duration-300 group"
                   onClick={() => navigate('/services')}
                 >
-                  <Zap className="mr-3 h-6 w-6" />
-                  Explore Our Services
-                  <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
+                  <Zap className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
+                  <span className="hidden xs:inline">Explore Our Services</span>
+                  <span className="xs:hidden">Our Services</span>
+                  <ArrowRight className="ml-2 sm:ml-3 h-5 w-5 sm:h-6 sm:w-6 group-hover:translate-x-1 transition-transform" />
                 </Button>
                 <Button
                   variant="outline"
                   size="lg"
-                  className="border-2 border-white/30 text-blue-900 hover:bg-white/10 px-10 py-5 rounded-2xl font-bold text-lg backdrop-blur-sm hover:scale-105 transition-all duration-300 group"
+                  className="w-full sm:w-auto border-2 border-white text-white hover:bg-white hover:text-blue-600 px-8 sm:px-10 py-4 sm:py-5 rounded-2xl font-bold text-base sm:text-lg backdrop-blur-sm bg-white/5 hover:scale-105 transition-all duration-300 group"
                   onClick={() => navigate('/portfolio')}
                 >
-                  <Play className="mr-3 h-6 w-6" />
-                  View Our Work
+                  <Play className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
+                  <span className="hidden xs:inline">View Our Work</span>
+                  <span className="xs:hidden">Our Work</span>
                 </Button>
               </div>
             </ScrollReveal>
 
             {/* Trust indicators */}
             <ScrollReveal delay={600}>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8 max-w-4xl mx-auto px-4">
                 <div className="text-center">
-                  <div className="text-3xl md:text-4xl font-bold text-white mb-2">50+</div>
-                  <div className="text-blue-200 text-sm">Projects Delivered</div>
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-1 sm:mb-2">50+</div>
+                  <div className="text-blue-200 text-xs sm:text-sm">Projects Delivered</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl md:text-4xl font-bold text-white mb-2">5+</div>
-                  <div className="text-blue-200 text-sm">Years Experience</div>
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-1 sm:mb-2">5+</div>
+                  <div className="text-blue-200 text-xs sm:text-sm">Years Experience</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl md:text-4xl font-bold text-white mb-2">30+</div>
-                  <div className="text-blue-200 text-sm">Happy Clients</div>
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-1 sm:mb-2">30+</div>
+                  <div className="text-blue-200 text-xs sm:text-sm">Happy Clients</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl md:text-4xl font-bold text-white mb-2">24/7</div>
-                  <div className="text-blue-200 text-sm">Support Available</div>
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-1 sm:mb-2">24/7</div>
+                  <div className="text-blue-200 text-xs sm:text-sm">Support Available</div>
                 </div>
               </div>
             </ScrollReveal>
@@ -437,7 +453,7 @@ const Home = () => {
                     <Button
                       size="lg"
                       variant="outline"
-                      className="border-2 border-white/30 text-white hover:bg-white/10 px-8 py-4 rounded-xl font-semibold hover:scale-105 transition-all duration-300"
+                      className="border-2 border-white text-white hover:bg-white hover:text-blue-600 px-8 py-4 rounded-xl font-semibold hover:scale-105 transition-all duration-300 backdrop-blur-sm bg-white/5"
                       onClick={() => navigate('/services')}
                     >
                       View All Services

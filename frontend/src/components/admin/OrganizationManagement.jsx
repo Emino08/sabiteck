@@ -128,24 +128,55 @@ const OrganizationManagement = () => {
     };
 
     const handleDelete = async (id, name) => {
-        if (!confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) {
-            return;
-        }
+        toast.custom((t) => (
+            <div className="bg-white rounded-lg shadow-xl border border-gray-200 p-5 max-w-md">
+                <div className="flex items-start gap-3 mb-4">
+                    <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </div>
+                    <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900 text-lg mb-1">Delete Organization</h3>
+                        <p className="text-sm text-gray-600">Are you sure you want to delete <strong className="text-gray-900">{name}</strong>?</p>
+                        <p className="text-xs text-gray-500 mt-2">This action cannot be undone.</p>
+                    </div>
+                </div>
+                <div className="flex gap-2 justify-end">
+                    <button
+                        onClick={() => toast.dismiss(t)}
+                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={async () => {
+                            toast.dismiss(t);
+                            try {
+                                const response = await apiRequest(`/api/admin/organizations/${id}`, {
+                                    method: 'DELETE'
+                                });
 
-        try {
-            const response = await apiRequest(`/api/admin/organizations/${id}`, {
-                method: 'DELETE'
-            });
-
-            if (response.success) {
-                toast.success('Organization deleted successfully');
-                loadOrganizations();
-            } else {
-                toast.error(response.message || 'Delete failed');
-            }
-        } catch (error) {
-            toast.error('Delete failed');
-        }
+                                if (response.success) {
+                                    toast.success('Organization deleted successfully');
+                                    loadOrganizations();
+                                } else {
+                                    toast.error(response.message || 'Delete failed');
+                                }
+                            } catch (error) {
+                                toast.error('Delete failed');
+                            }
+                        }}
+                        className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+                    >
+                        Delete
+                    </button>
+                </div>
+            </div>
+        ), {
+            duration: Infinity,
+            position: 'top-center'
+        });
     };
 
     const resetForm = () => {
@@ -363,7 +394,7 @@ const OrganizationManagement = () => {
             {showModal && (
                 <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
                     <div className="relative min-h-screen flex items-center justify-center p-4">
-                        <div className="relative bg-white rounded-lg shadow-xl w-full max-w-2xl">
+                        <div className="relative bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
                             <div className="flex justify-between items-center p-6 border-b">
                                 <h3 className="text-lg font-medium text-gray-900">
                                     {editingOrg ? 'Edit Organization' : 'Add New Organization'}
@@ -380,7 +411,7 @@ const OrganizationManagement = () => {
                                 </button>
                             </div>
 
-                            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                            <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto max-h-[calc(90vh-8rem)]">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="md:col-span-2">
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
