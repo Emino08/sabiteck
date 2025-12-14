@@ -468,18 +468,18 @@ const Portfolio = () => {
       </section>
 
       {/* Enhanced All Projects */}
-      <section className="py-20 bg-white relative">
+      <section className="py-20 bg-gradient-to-br from-slate-900 via-blue-900 to-black relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
             <div className="text-center mb-20">
-              <div className="inline-flex items-center px-4 py-2 bg-green-600/10 rounded-full text-green-600 text-sm font-medium mb-6">
+              <div className="inline-flex items-center px-4 py-2 bg-green-600/20 backdrop-blur-sm rounded-full text-green-300 text-sm font-medium mb-6 border border-green-500/20">
                 <Code className="h-4 w-4 mr-2" />
                 Complete Portfolio
               </div>
-              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
                 Browse All Projects
               </h2>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-12 leading-relaxed">
+              <p className="text-xl text-blue-100 max-w-3xl mx-auto mb-12 leading-relaxed">
                 Explore our complete portfolio organized by category and technology.
                 Each project represents our commitment to excellence and innovation.
               </p>

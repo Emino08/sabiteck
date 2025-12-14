@@ -12,7 +12,7 @@ import { AnimatedBackground } from '@/components/ui/animated-background'
 import { DataRenderer, DataGrid, MetricCard, useAsyncData, formatData } from '@/components/ui/data-display'
 import { LoadingSpinner, SkeletonGrid, ErrorMessage } from '@/components/ui/loading'
 import SEOHead from '../SEO/SEOHead'
-import SabiteckLogo from '../../assets/icons/Sabitek Logo.png'
+import SabiteckLogo from '../../assets/icons/SabitekLogo.png'
 import HeroImage from '../../assets/images/hero.jpg'
 import ApiService from '../../services/api'
 

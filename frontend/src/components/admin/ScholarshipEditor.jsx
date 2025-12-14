@@ -37,11 +37,13 @@ import { sanitizeHTML, secureLog } from '../../utils/security';
 
 const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
     const isEditing = !!scholarship;
+    const FALLBACK_IMAGE = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500"><rect width="800" height="500" fill="%23222"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23aaa" font-size="32" font-family="Arial">Scholarship</text></svg>';
     
     // Editor state
     const editorRef = useRef(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setSaving] = useState(false);
+    const [isImageProcessing, setIsImageProcessing] = useState(false);
     const [error, setError] = useState(null);
     const [previewMode, setPreviewMode] = useState(false);
 
@@ -54,6 +56,7 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
         content: '',
         provider: '',
         provider_logo: '',
+        image_url: '',
         website_url: '',
         application_url: '',
         application_deadline: '',
@@ -140,6 +143,25 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
         setEditorInitialized(true);
     };
 
+    const handleImageUpload = (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        setIsImageProcessing(true);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const result = e.target?.result;
+            if (typeof result === 'string') {
+                setFormData(prev => ({ ...prev, image_url: result }));
+            }
+            setIsImageProcessing(false);
+        };
+        reader.onerror = () => {
+            setIsImageProcessing(false);
+            setError('Failed to read image file. Please try again.');
+        };
+        reader.readAsDataURL(file);
+    };
+
     const loadLookupData = async () => {
         try {
             const [categoriesRes, regionsRes, levelsRes] = await Promise.all([
@@ -224,6 +246,7 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                 content: scholarshipData.requirements || '',
                 provider: scholarshipData.organization || '',
                 provider_logo: scholarshipData.provider_logo || '',
+                image_url: scholarshipData.image_url || '',
                 website_url: scholarshipData.website_url || '',
                 application_url: scholarshipData.application_url || '',
                 application_deadline: scholarshipData.deadline || '',
@@ -487,11 +510,17 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
         if (!formData.title.trim()) errors.push('Title is required');
         if (!formData.slug.trim()) errors.push('Slug is required');
         if (!formData.short_description.trim()) errors.push('Short description is required');
+        if (!formData.image_url.trim()) {
+            errors.push('Scholarship cover image is required');
+        } else if (formData.image_url.includes('placehold.co')) {
+            errors.push('Replace placeholder with a real image before publishing');
+        }
         if (!formData.provider.trim()) errors.push('Provider is required');
         if (formData.category_ids.length === 0) errors.push('At least one category is required');
         if (formData.education_level_ids.length === 0) errors.push('At least one education level is required');
         if (!formData.funding_type_id) errors.push('Funding type is required');
         if (formData.regions.length === 0) errors.push('At least one region is required');
+        if (isImageProcessing) errors.push('Please wait for the image upload to finish');
         
         return errors;
     };
@@ -500,6 +529,10 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
         const errors = validateForm();
         if (errors.length > 0) {
             setError(errors.join(', '));
+            return;
+        }
+        if (isImageProcessing) {
+            setError('Please wait for the image upload to finish');
             return;
         }
 
@@ -1021,17 +1054,72 @@ const ScholarshipEditor = ({ scholarship, onSave, onCancel }) => {
                                     <Shield className="w-3 h-3 mr-1" />
                                     💎 Elite HTML formatting supported. Content automatically secured.
                                 </p>
-                                <div className="text-xs text-gray-400">
-                                    Elite Content Studio v2.0
-                                </div>
-                            </div>
+                        <div className="text-xs text-gray-400">
+                            Elite Content Studio v2.0
                         </div>
+                    </div>
+                </div>
 
-                        {/* Elite Provider Information */}
-                        <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl">
-                            <div className="flex items-center mb-8">
-                                <div className="p-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl mr-4">
-                                    <Building className="w-6 h-6 text-white" />
+                {/* Scholarship Cover Image */}
+                <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl">
+                    <div className="flex items-center mb-6">
+                        <div className="p-3 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl mr-4">
+                            <Upload className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-black text-white mb-2">Cover Image</h2>
+                            <p className="text-gray-300">Showcase the scholarship with a hero visual</p>
+                        </div>
+                        <div className="ml-auto">
+                            <span className="px-3 py-1 bg-gradient-to-r from-indigo-400 to-purple-400 text-black rounded-full text-xs font-black">
+                                REQUIRED
+                            </span>
+                        </div>
+                    </div>
+                    <div className="relative">
+                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2 pointer-events-none z-10">
+                            <Sparkles className="w-5 h-5 text-yellow-400 animate-pulse" />
+                            <Shield className="w-4 h-4 text-emerald-400" />
+                        </div>
+                        <input
+                            type="url"
+                            name="image_url"
+                            value={formData.image_url}
+                            onChange={handleInputChange}
+                            className="w-full pl-16 pr-4 py-4 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-400 text-white placeholder-gray-400 transition-all duration-300 relative z-20"
+                            placeholder="https://cdn.example.com/scholarships/cover.jpg"
+                        />
+                        <div className="mt-4 flex flex-col sm:flex-row gap-4">
+                            <label className="inline-flex items-center px-4 py-3 bg-black/40 border border-white/15 rounded-2xl cursor-pointer hover:border-emerald-400 transition-all duration-300">
+                                <Upload className="w-4 h-4 text-emerald-300 mr-2" />
+                                <span className="text-sm text-white">Upload image file</span>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={handleImageUpload}
+                                />
+                            </label>
+                            <p className="text-xs text-gray-400 flex-1">You can paste a URL or upload an image (stored as a data URL for quick preview).</p>
+                        </div>
+                    </div>
+                    {formData.image_url && (
+                        <div className="mt-4 bg-black/40 border border-white/10 rounded-2xl overflow-hidden shadow-lg">
+                            <img
+                                src={formData.image_url || FALLBACK_IMAGE}
+                                alt="Scholarship cover preview"
+                                className="w-full h-64 object-cover"
+                                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_IMAGE; }}
+                            />
+                        </div>
+                    )}
+                </div>
+
+                {/* Elite Provider Information */}
+                <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl">
+                    <div className="flex items-center mb-8">
+                        <div className="p-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl mr-4">
+                            <Building className="w-6 h-6 text-white" />
                                 </div>
                                 <div>
                                     <h2 className="text-2xl font-black text-white mb-2">Elite Provider Hub</h2>

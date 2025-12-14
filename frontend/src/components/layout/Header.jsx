@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '../../contexts/AuthContext'
 import { useRouteSettings } from '../../contexts/RouteSettingsContext'
-import SabiteckLogo from '../../assets/icons/Sabitek Logo.png'
+import SabiteckLogo from '../../assets/icons/SabitekLogo.png'
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)

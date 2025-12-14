@@ -346,122 +346,224 @@ const Jobs = () => {
         );
     }
 
+    // Stats for hero section
+    const stats = [
+        { label: 'Active Jobs', value: `${jobs.length}+` },
+        { label: 'Employers', value: '200+' },
+        { label: 'Successful Hires', value: '1K+' },
+        { label: 'Countries', value: '15+' }
+    ];
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white relative overflow-hidden pt-24">
-            {/* Elite Background Effects */}
-            <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
-                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse animation-delay-2000"></div>
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse animation-delay-4000"></div>
-            </div>
-            {/* Elite Hero Section */}
-            <section className="relative z-10 pt-8 pb-20">
-                <div className="container mx-auto px-6">
-                    <div className="max-w-6xl mx-auto text-center">
-                        <div className="mb-12">
-                            {/* Elite Crown Icon */}
-                            <div className="flex justify-center mb-8">
-                                <div className="relative group">
-                                    <div className="absolute -inset-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 animate-pulse"></div>
-                                    <div className="relative p-6 bg-black/50 backdrop-blur-lg rounded-full border border-white/20 shadow-2xl">
-                                        <Crown className="w-16 h-16 text-yellow-400" />
-                                    </div>
+        <div className="min-h-screen">
+            {/* Enhanced Hero Section - Matching Portfolio/Team/Tools Style */}
+            <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 pt-24">
+                <div className="absolute inset-0 opacity-20">
+                    <div className="w-full h-full bg-repeat bg-[length:60px_60px]"
+                         style={{
+                             backgroundImage: `radial-gradient(circle at 30px 30px, white 2px, transparent 2px)`
+                         }}>
+                    </div>
+                </div>
+
+                {/* Animated floating elements */}
+                <div className="absolute inset-0 overflow-hidden">
+                    <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+                    <div className="absolute top-3/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
+                    <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl animate-pulse" style={{animationDelay: '4s'}}></div>
+                </div>
+
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 text-white py-12 md:py-20">
+                    <div className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 bg-blue-600/20 backdrop-blur-sm rounded-full text-blue-200 text-xs sm:text-sm font-medium mb-6 sm:mb-8 border border-blue-400/20">
+                        <Briefcase className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+                        Career Opportunities
+                    </div>
+
+                    <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-4 sm:mb-6 leading-tight px-4">
+                        Find Your Dream
+                        <span className="block bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
+                            Career Opportunity
+                        </span>
+                    </h1>
+
+                    <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-blue-100 mb-8 sm:mb-12 leading-relaxed max-w-4xl mx-auto px-4">
+                        Discover exciting job opportunities from top employers. Whether you're a student seeking internships or a professional looking for your next role, we've got you covered.
+                    </p>
+
+                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center mb-12 sm:mb-16 px-4">
+                        <button
+                            className="w-full sm:w-auto bg-white text-blue-900 hover:bg-blue-50 px-8 sm:px-10 py-4 sm:py-5 rounded-2xl font-bold text-base sm:text-lg shadow-2xl hover:scale-105 transition-all duration-300 group flex items-center justify-center"
+                            onClick={() => document.querySelector('.jobs-content')?.scrollIntoView({ behavior: 'smooth' })}
+                        >
+                            <Search className="mr-3 h-6 w-6" />
+                            Browse Jobs
+                            <ChevronDown className="ml-3 h-6 w-6 group-hover:translate-y-1 transition-transform" />
+                        </button>
+                        <button
+                            className="w-full sm:w-auto border-2 border-white text-white hover:bg-white hover:text-blue-900 px-8 sm:px-10 py-4 sm:py-5 rounded-2xl font-bold text-base sm:text-lg backdrop-blur-sm bg-white/5 hover:scale-105 transition-all duration-300 flex items-center justify-center"
+                            onClick={() => navigate('/contact')}
+                        >
+                            <Building2 className="mr-3 h-6 w-6" />
+                            Post a Job
+                        </button>
+                    </div>
+
+                    {/* Stats Cards */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8 max-w-4xl mx-auto px-4">
+                        {stats.map((stat, index) => (
+                            <div key={index} className="text-center bg-white/10 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-white/20 hover:bg-white/15 transition-all duration-300">
+                                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2">
+                                    {stat.value}
+                                </div>
+                                <div className="text-xs sm:text-sm text-blue-200 font-medium">
+                                    {stat.label}
                                 </div>
                             </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
 
-                            {/* Elite Badge */}
-                            <div className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-lg border border-purple-400/30 text-purple-200 text-sm font-bold mb-8">
-                                <Diamond className="w-4 h-4 mr-2 animate-pulse" />
-                                {jobs.length}+ ELITE OPPORTUNITIES AVAILABLE
-                            </div>
+            {/* Filter Section - Matching Portfolio/Team/Tools Style */}
+            <section className="jobs-content py-12 sm:py-16 md:py-20 bg-gradient-to-br from-slate-900 via-blue-900 to-black relative overflow-hidden">
+                <div className="absolute inset-0 opacity-10">
+                    <div className="w-full h-full bg-repeat bg-[length:40px_40px]"
+                         style={{
+                             backgroundImage: `radial-gradient(circle at 20px 20px, #60A5FA 1px, transparent 1px)`
+                         }}>
+                    </div>
+                </div>
 
-                            <h1 className="text-6xl md:text-8xl font-black mb-8 bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent leading-tight tracking-tight">
-                                Elite Career Nexus
-                            </h1>
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                    <div className="text-center mb-12 sm:mb-16">
+                        <div className="inline-flex items-center px-4 py-2 bg-purple-600/20 backdrop-blur-sm rounded-full text-purple-300 text-sm font-medium mb-6 border border-purple-400/20">
+                            <Filter className="h-4 w-4 mr-2" />
+                            Job Categories
+                        </div>
+                        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 sm:mb-6">
+                            Browse by Category
+                        </h2>
+                        <p className="text-lg sm:text-xl md:text-2xl text-blue-100 max-w-4xl mx-auto leading-relaxed">
+                            Find opportunities that match your skills and interests across various industries.
+                        </p>
+                    </div>
 
-                            <div className="flex justify-center items-center gap-3 mb-8">
-                                <Star className="w-6 h-6 text-yellow-400 fill-current animate-pulse" />
-                                <span className="text-yellow-400 font-bold text-lg">Premium Professional Network</span>
-                                <Star className="w-6 h-6 text-yellow-400 fill-current animate-pulse" />
-                            </div>
-
-                            <p className="text-xl md:text-2xl mb-12 text-gray-300 max-w-4xl mx-auto leading-relaxed">
-                                Connect with industry titans, revolutionary startups, and game-changing organizations
-                                defining the future of innovation and technology excellence.
-                            </p>
+                    {/* Search and Filters */}
+                    <div className="max-w-5xl mx-auto mb-12 space-y-6">
+                        <div className="relative">
+                            <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                            <input
+                                type="text"
+                                placeholder="Search jobs by title, company, or skills..."
+                                value={filters.search}
+                                onChange={(e) => handleFilterChange('search', e.target.value)}
+                                className="w-full pl-14 pr-6 py-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400 text-white placeholder-gray-300 transition-all duration-300 shadow-lg"
+                            />
                         </div>
 
-                        {/* Elite Search Interface */}
-                        <div className="bg-black/30 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/10 p-8">
-                            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                                <div className="lg:col-span-2 relative group">
-                                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
-                                        <Search className="w-5 h-5 text-purple-400 group-focus-within:text-purple-300 transition-colors" />
-                                        <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
-                                    </div>
-                                    <input
-                                        type="text"
-                                        placeholder="Search elite roles, prestigious companies, premium skills..."
-                                        value={filters.search}
-                                        onChange={(e) => handleFilterChange('search', e.target.value)}
-                                        className="w-full pl-16 pr-4 py-5 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-400 text-white placeholder-gray-400 text-lg transition-all duration-300"
-                                    />
-                                </div>
-
-                                <div className="relative group">
-                                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
-                                        <MapPin className="w-5 h-5 text-purple-400 group-focus-within:text-purple-300 transition-colors" />
-                                        <Globe className="w-4 h-4 text-purple-400 animate-pulse" />
-                                    </div>
-                                    <select
-                                        value={filters.location}
-                                        onChange={(e) => handleFilterChange('location', e.target.value)}
-                                        className="w-full pl-16 pr-12 py-5 bg-black/50 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-400 text-white text-lg appearance-none transition-all duration-300 cursor-pointer"
-                                    >
-                                        <option value="">Elite Global Locations</option>
-                                        {locations.map((location, index) => (
-                                            <option key={location.name || index} value={location.name}>
-                                                {location.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-purple-400 pointer-events-none" />
-                                </div>
-
-                                <button
-                                    onClick={() => handleFilterChange('page', 1)}
-                                    className="bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 hover:from-purple-700 hover:via-purple-600 hover:to-pink-600 text-white px-8 py-5 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-2xl hover:shadow-purple-500/25 transform hover:-translate-y-1 hover:scale-105"
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="relative">
+                                <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+                                <select
+                                    value={filters.location}
+                                    onChange={(e) => handleFilterChange('location', e.target.value)}
+                                    className="w-full pl-12 pr-10 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400 text-white appearance-none transition-all duration-300 cursor-pointer"
                                 >
-                                    <Rocket className="w-5 h-5 mr-2" />
-                                    Discover Elite Roles
-                                </button>
+                                    <option value="">All Locations</option>
+                                    {locations.map((location, index) => (
+                                        <option key={location.name || index} value={location.name}>
+                                            {location.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+                            </div>
+
+                            <div className="relative">
+                                <Briefcase className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+                                <select
+                                    value={filters.job_type}
+                                    onChange={(e) => handleFilterChange('job_type', e.target.value)}
+                                    className="w-full pl-12 pr-10 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400 text-white appearance-none transition-all duration-300 cursor-pointer"
+                                >
+                                    {jobTypes.map((type) => (
+                                        <option key={type.value} value={type.value}>
+                                            {type.label}
+                                        </option>
+                                    ))}
+                                </select>
+                                <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+                            </div>
+
+                            <div className="relative">
+                                <TrendingUp className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+                                <select
+                                    value={filters.sort}
+                                    onChange={(e) => handleFilterChange('sort', e.target.value)}
+                                    className="w-full pl-12 pr-10 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400 text-white appearance-none transition-all duration-300 cursor-pointer"
+                                >
+                                    {sortOptions.map((option) => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
+                                <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
                             </div>
                         </div>
+                    </div>
 
-                        {/* Elite Stats Row */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16">
-                            {[
-                                { label: 'Elite Positions', value: `${jobs.length}+`, icon: Target, color: 'purple' },
-                                { label: 'Premium Partners', value: '50+', icon: Shield, color: 'blue' },
-                                { label: 'Success Rate', value: '95%', icon: Award, color: 'green' },
-                                { label: 'Response Time', value: '24h', icon: Zap, color: 'yellow' }
-                            ].map((stat, index) => (
-                                <div key={index} className="text-center group">
-                                    <div className="bg-black/30 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:border-white/20 transition-all duration-300 hover:scale-105">
-                                        <div className="flex justify-center mb-4">
-                                            <div className={`p-3 bg-gradient-to-r from-${stat.color}-500 to-${stat.color}-600 rounded-xl`}>
-                                                <stat.icon className="w-6 h-6 text-white" />
-                                            </div>
-                                        </div>
-                                        <div className="text-3xl font-black text-white mb-2">{stat.value}</div>
-                                        <div className="text-gray-300 font-semibold text-sm">{stat.label}</div>
-                                    </div>
-                                </div>
-                            ))}
+                    {/* Category Pills */}
+                    <div className="flex justify-center">
+                        <div className="inline-flex flex-wrap gap-3 sm:gap-4 bg-white/10 backdrop-blur-lg p-4 sm:p-6 rounded-2xl shadow-2xl border border-white/20">
+                            <button
+                                onClick={() => handleFilterChange('category', '')}
+                                className={`group relative px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-sm sm:text-base font-bold transition-all duration-300 transform hover:scale-105 active:scale-95 whitespace-nowrap ${
+                                    filters.category === ''
+                                        ? 'text-white shadow-xl'
+                                        : 'bg-white/10 text-gray-200 hover:bg-white/20'
+                                }`}
+                                style={filters.category === '' ? { background: `linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)` } : {}}
+                            >
+                                <span className="relative z-10 flex items-center gap-2">
+                                    <Layers className="h-4 w-4 sm:h-5 sm:w-5" />
+                                    <span>All Jobs</span>
+                                    <span className={`text-xs px-2 py-1 rounded-full ${filters.category === '' ? 'bg-white/20 text-white' : 'bg-blue-400/20 text-blue-200'}`}>
+                                        {jobs.length}
+                                    </span>
+                                </span>
+                            </button>
+                            {categories.map(category => {
+                                const isActive = filters.category === category.name;
+                                return (
+                                    <button
+                                        key={category.name}
+                                        onClick={() => handleFilterChange('category', category.name)}
+                                        className={`group relative px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-sm sm:text-base font-bold transition-all duration-300 transform hover:scale-105 active:scale-95 whitespace-nowrap ${
+                                            isActive
+                                                ? 'text-white shadow-xl'
+                                                : 'bg-white/10 text-gray-200 hover:bg-white/20'
+                                        }`}
+                                        style={isActive ? { background: `linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)` } : {}}
+                                    >
+                                        <span className="relative z-10 flex items-center gap-2">
+                                            <Building2 className="h-4 w-4 sm:h-5 sm:w-5" />
+                                            <span>{category.name}</span>
+                                            {category.count > 0 && (
+                                                <span className={`text-xs px-2 py-1 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-blue-400/20 text-blue-200'}`}>
+                                                    {category.count}
+                                                </span>
+                                            )}
+                                        </span>
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
                 </div>
             </section>
+
+            {/* Jobs Content Section */}
             
             {/* Elite Featured Jobs Section */}
             {featuredJobs.length > 0 && (
@@ -590,15 +692,15 @@ const Jobs = () => {
             )}
 
             {/* Premium Filters and Results Section */}
-            <section className="py-12 bg-white">
+            <section className="py-12 bg-gradient-to-br from-slate-900 via-blue-900 to-black">
                 <div className="container mx-auto px-4">
                     {/* Results Header */}
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
                         <div>
-                            <h2 className="text-3xl font-bold text-slate-900 mb-2">
+                            <h2 className="text-3xl font-bold text-white mb-2">
                                 All Opportunities
                             </h2>
-                            <p className="text-slate-600">
+                            <p className="text-blue-100">
                                 {loading ? 'Loading...' : `${pagination.total || jobs.length} positions available`}
                             </p>
                         </div>

@@ -45,6 +45,8 @@ import AboutManagement from '../admin/AboutManagement';
 import PortfolioManagement from '../admin/PortfolioManagement';
 import AnnouncementManagement from '../admin/AnnouncementManagement';
 import ToolsManagement from '../admin/ToolsManagement';
+import ContactManagement from '../admin/ContactManagement.jsx';
+import SabiFootballBuilder from '../admin/SabiFootballBuilder.jsx';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8002';
 
@@ -114,6 +116,14 @@ const Admin = () => {
       icon: Megaphone,
       category: 'content',
       permissions: ['announcements.view'],
+      requireAll: false
+    },
+    {
+      id: 'contacts',
+      label: 'Contacts',
+      icon: Mail,
+      category: 'content',
+      permissions: ['contacts.view'],
       requireAll: false
     },
     {
@@ -187,6 +197,14 @@ const Admin = () => {
       category: 'system',
       permissions: ['settings.view', 'settings.edit'], // Only admins
       requireAll: false
+    },
+    {
+      id: 'football',
+      label: 'Football',
+      icon: Shield,
+      category: 'tools',
+      permissions: ['football.manage'],
+      requireAll: false
     }
   ];
 
@@ -195,6 +213,14 @@ const Admin = () => {
     if (!user) return [];
 
     return tabs.filter(tab => {
+      // Super admins have access to all tabs
+      if (isSuperAdmin || isAdmin()) {
+        return true;
+      }
+
+      if (tab.id === 'contacts' && (isAdmin || isSuperAdmin)) {
+        return true;
+      }
       // If no permissions required, show the tab
       if (!tab.permissions || tab.permissions.length === 0) return true;
 
@@ -223,7 +249,7 @@ const Admin = () => {
 
       return hasRequiredPermission;
     });
-  }, [user, tabs]);
+  }, [user, tabs, isAdmin, isSuperAdmin]);
 
   // Ensure active tab is accessible to the user (moved to top for consistent hook order)
   useEffect(() => {
@@ -891,6 +917,8 @@ const Admin = () => {
         return <TeamManagement />;
       case 'announcements':
         return <AnnouncementManagement />;
+      case 'contacts':
+        return <ContactManagement />;
       case 'jobs':
         return <JobManagement />;
       case 'scholarships':
@@ -909,6 +937,8 @@ const Admin = () => {
         return <RouteSettingsManager />;
       case 'settings':
         return <SettingsManager />;
+      case 'football':
+        return <SabiFootballBuilder />;
       default:
         return <DashboardOverview />;
     }
@@ -1005,3 +1035,4 @@ const Admin = () => {
 };
 
 export default Admin;
+

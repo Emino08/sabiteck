@@ -1,6 +1,6 @@
 import React from 'react'
 import { Mail, Phone, MapPin, Github, Twitter, Linkedin, Facebook, Instagram } from 'lucide-react'
-import SabiteckLogo from '../../assets/icons/Sabitek Logo.png'
+import SabiteckLogo from '../../assets/icons/SabitekLogo.png'
 
 const Footer = () => {
   return (

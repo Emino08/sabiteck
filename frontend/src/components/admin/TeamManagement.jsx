@@ -392,9 +392,13 @@ const TeamManagement = () => {
         const formData = new FormData();
         formData.append('photo', file);
 
-        // Use direct endpoint URL for photo upload
-        const response = await fetch('http://localhost:8002/team-upload-photo.php', {
+        // Use the correct API endpoint for photo upload
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:8002/api/admin/team/upload-photo', {
           method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
           body: formData,
         });
 

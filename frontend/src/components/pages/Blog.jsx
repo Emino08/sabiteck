@@ -396,125 +396,95 @@ const Blog = ({ contentType = 'blog' }) => {
     }
   }, [])
 
+  // Stats for hero section
+  const stats = [
+    { label: 'Articles Published', value: `${posts.length}+` },
+    { label: 'Monthly Readers', value: '25K+' },
+    { label: 'Contributors', value: '50+' },
+    { label: 'Topics Covered', value: '100+' }
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900 relative overflow-hidden pt-24">
-      {/* Elite Background Effects */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse animation-delay-2000"></div>
-        <div className="absolute top-1/3 left-1/3 w-60 h-60 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse animation-delay-4000"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-40 h-40 bg-yellow-500 rounded-full mix-blend-multiply filter blur-xl opacity-15 animate-pulse animation-delay-6000"></div>
-      </div>
-      {/* Elite Hero Section */}
-      <section className="relative pt-8 pb-20 overflow-hidden z-10">
-        {/* Elite Background Overlay */}
-        <div className="absolute inset-0 bg-black/30 backdrop-blur-xl"></div>
+    <div className="min-h-screen">
+      {/* Enhanced Hero Section - Matching Portfolio/Team/Tools Style */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 pt-24">
+        <div className="absolute inset-0 opacity-20">
+          <div className="w-full h-full bg-repeat bg-[length:60px_60px]"
+               style={{
+                 backgroundImage: `radial-gradient(circle at 30px 30px, white 2px, transparent 2px)`
+               }}>
+          </div>
+        </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            {/* Elite Title with Premium Badge */}
-            <div className="flex justify-center mb-8">
-              <div className="relative group">
-                <div className="absolute -inset-3 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 animate-pulse"></div>
-                <div className="relative p-6 bg-black/50 backdrop-blur-lg rounded-full border border-white/20">
-                  <Trophy className="w-16 h-16 text-yellow-400" />
-                </div>
-              </div>
-            </div>
-            <div className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-indigo-500/20 to-purple-500/20 backdrop-blur-sm border border-white/20 mb-8">
-              <Crown className="w-6 h-6 text-yellow-400 mr-3" />
-              <span className="text-lg font-bold text-white uppercase tracking-wider">
-                {contentType === 'blog' ? 'Elite Technology Blog' : 'Elite News & Updates'}
-              </span>
-              <Sparkles className="w-6 h-6 text-yellow-400 ml-3 animate-pulse" />
-            </div>
+        {/* Animated floating elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute top-3/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
+          <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl animate-pulse" style={{animationDelay: '4s'}}></div>
+        </div>
 
-            <h1 className="text-5xl md:text-7xl font-black mb-8">
-              <div className="flex justify-center items-center gap-4 mb-4">
-                <Star className="w-12 h-12 text-yellow-400 fill-current animate-pulse" />
-                <span className="bg-gradient-to-r from-white via-indigo-200 to-purple-200 bg-clip-text text-transparent">
-                  Elite
-                </span>
-                <Star className="w-12 h-12 text-yellow-400 fill-current animate-pulse" />
-              </div>
-              <span className="bg-gradient-to-r from-blue-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">
-                {contentType === 'blog' ? 'Insights & Innovation' : 'News & Updates'}
-              </span>
-            </h1>
-
-            <div className="flex justify-center items-center gap-3 mb-6">
-              <Diamond className="w-6 h-6 text-indigo-400" />
-              <span className="text-2xl font-bold text-indigo-400">Premium Content Hub</span>
-              <Diamond className="w-6 h-6 text-indigo-400" />
-            </div>
-            <p className="text-xl md:text-2xl text-gray-300 max-w-4xl mx-auto mb-12 leading-relaxed">
-              {contentType === 'blog'
-                ? 'Discover elite insights, expert analysis, and revolutionary solutions that define the future of technology.'
-                : 'Stay ahead with exclusive announcements, elite developments, and industry-leading innovations.'
-              }
-            </p>
-
-            {/* Elite Search Bar */}
-            <div className="max-w-3xl mx-auto relative group">
-              <div className="absolute -inset-2 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full blur opacity-50 group-hover:opacity-75 transition duration-500"></div>
-              <div className="relative flex items-center">
-                <div className="absolute left-6 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
-                  <Search className="h-6 w-6 text-indigo-400" />
-                  <Crown className="h-5 w-5 text-yellow-400 animate-pulse" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search elite articles, insights, and premium content..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-20 pr-32 py-6 text-lg bg-black/50 backdrop-blur-lg border border-white/20 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400 text-white placeholder-gray-400 transition-all duration-300"
-                />
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-bold py-3 px-8 rounded-full transition-all duration-300 hover:scale-105 flex items-center space-x-2">
-                  <Zap className="w-4 h-4" />
-                  <span>Search Elite</span>
-                </div>
-              </div>
-            </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 text-white py-12 md:py-20">
+          <div className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 bg-blue-600/20 backdrop-blur-sm rounded-full text-blue-200 text-xs sm:text-sm font-medium mb-6 sm:mb-8 border border-blue-400/20">
+            <BookOpen className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+            {contentType === 'blog' ? 'Our Blog' : 'Latest News'}
           </div>
 
-          {/* Elite Category Pills */}
-          <div className="flex flex-wrap justify-center gap-4 mb-12">
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => setSelectedCategory(category.id)}
-                className={`group relative px-8 py-4 rounded-2xl transition-all duration-500 transform hover:scale-105 ${
-                  selectedCategory === category.id
-                    ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-2xl scale-105'
-                    : 'bg-black/40 backdrop-blur-lg text-white border border-white/20 hover:border-indigo-500/30'
-                }`}
-              >
-                <div className="flex items-center space-x-2">
-                  <Award className="w-4 h-4" />
-                  <span className="relative z-10 font-bold">{category.name}</span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                    selectedCategory === category.id
-                      ? 'bg-white/20 text-white'
-                      : 'bg-white/10 text-gray-300'
-                  }`}>
-                    {category.count}
-                  </span>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-4 sm:mb-6 leading-tight px-4">
+            {contentType === 'blog' ? 'Insights & Stories' : 'Latest Updates'}
+            <span className="block bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
+              {contentType === 'blog' ? 'From Our Community' : '& Announcements'}
+            </span>
+          </h1>
+
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-blue-100 mb-8 sm:mb-12 leading-relaxed max-w-4xl mx-auto px-4">
+            {contentType === 'blog'
+              ? 'Explore articles, guides, and stories from students, professionals, and experts. Stay informed about education, careers, and opportunities worldwide.'
+              : 'Never miss important updates, events, and announcements. Stay informed about opportunities, deadlines, and community news.'
+            }
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center mb-12 sm:mb-16 px-4">
+            <button
+              className="w-full sm:w-auto bg-white text-blue-900 hover:bg-blue-50 px-8 sm:px-10 py-4 sm:py-5 rounded-2xl font-bold text-base sm:text-lg shadow-2xl hover:scale-105 transition-all duration-300 group flex items-center justify-center"
+              onClick={() => document.querySelector('.blog-content')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              <ArrowRight className="mr-3 h-6 w-6" />
+              {contentType === 'blog' ? 'Read Latest Posts' : 'View All News'}
+              <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
+            </button>
+            <button
+              className="w-full sm:w-auto border-2 border-white text-white hover:bg-white hover:text-blue-900 px-8 sm:px-10 py-4 sm:py-5 rounded-2xl font-bold text-base sm:text-lg backdrop-blur-sm bg-white/5 hover:scale-105 transition-all duration-300 flex items-center justify-center"
+              onClick={() => document.querySelector('.newsletter-section')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              <Bell className="mr-3 h-6 w-6" />
+              {contentType === 'blog' ? 'Subscribe Newsletter' : 'Subscribe Alerts'}
+            </button>
+          </div>
+
+          {/* Stats Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8 max-w-4xl mx-auto px-4">
+            {stats.map((stat, index) => (
+              <div key={index} className="text-center bg-white/10 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-white/20 hover:bg-white/15 transition-all duration-300">
+                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2">
+                  {stat.value}
                 </div>
-                {selectedCategory !== category.id && (
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-indigo-500/0 to-purple-500/0 group-hover:from-indigo-500/20 group-hover:to-purple-500/20 transition-all duration-500"></div>
-                )}
-              </button>
+                <div className="text-xs sm:text-sm text-blue-200 font-medium">
+                  {stat.label}
+                </div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      <div className="relative mt-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
-          {/* Main Content */}
-          <div className="lg:col-span-3 space-y-16">
-            {loading ? (
-              <div className="flex flex-col items-center justify-center py-20">
+      {/* Blog Content Section */}
+      <section className="py-16 sm:py-20 md:py-24 bg-gradient-to-br from-slate-900 via-blue-900 to-black relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
+            {/* Main Content */}
+            <div className="lg:col-span-3 space-y-16">
+              {loading ? (
+                <div className="flex flex-col items-center justify-center py-20">
                 <div className="relative mb-6">
                   <div className="w-20 h-20 border-4 border-indigo-500/30 rounded-full animate-spin"></div>
                   <div className="absolute top-0 left-0 w-20 h-20 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
@@ -1196,8 +1166,9 @@ const Blog = ({ contentType = 'blog' }) => {
           </div>
         </div>
       )}
+      </section>
     </div>
-  )
-}
+  );
+};
 
-export default Blog
+export default Blog;

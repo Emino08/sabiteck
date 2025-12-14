@@ -2,7 +2,7 @@ import React from 'react'
 import {
   Users, Award, Globe, Clock, Target, Heart, Lightbulb,
   Shield, ArrowRight, Star, MapPin, Mail,
-  Phone, Calendar, Briefcase, Trophy
+  Phone, Calendar, Briefcase, Trophy, ChevronRight
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { ScrollReveal } from '@/components/ui/scroll-reveal'
@@ -202,127 +202,75 @@ const About = () => {
       />
 
       <div className="min-h-screen bg-white">
-        {/* Ultra-Modern Hero Section */}
-        <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900 pt-24">
-          {/* Enhanced Background Pattern */}
-          <div className="absolute inset-0 opacity-10">
-            <div className="w-full h-full bg-repeat bg-[length:120px_120px]"
+        {/* Enhanced Hero Section - Matching Other Pages Style */}
+        <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 pt-24">
+          <div className="absolute inset-0 opacity-20">
+            <div className="w-full h-full bg-repeat bg-[length:60px_60px]"
                  style={{
-                   backgroundImage: `radial-gradient(circle at 60px 60px, rgba(147, 197, 253, 0.3) 2px, transparent 2px), radial-gradient(circle at 20px 80px, rgba(196, 181, 253, 0.2) 1px, transparent 1px)`
+                   backgroundImage: `radial-gradient(circle at 30px 30px, white 2px, transparent 2px)`
                  }}>
             </div>
           </div>
 
-          {/* Premium Floating Elements */}
+          {/* Animated floating elements */}
           <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-cyan-400/20 to-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
-            <div className="absolute top-1/3 right-10 w-96 h-96 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
-            <div className="absolute bottom-20 left-1/3 w-64 h-64 bg-gradient-to-br from-indigo-500/20 to-blue-600/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '4s'}}></div>
-            <div className="absolute top-1/2 right-1/3 w-48 h-48 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 rounded-full blur-2xl animate-pulse" style={{animationDelay: '6s'}}></div>
-
-            {/* Geometric Floating Elements */}
-            <div className="absolute top-40 right-40 w-8 h-8 bg-blue-400/30 rotate-45 animate-bounce" style={{animationDelay: '1s', animationDuration: '3s'}}></div>
-            <div className="absolute bottom-40 left-40 w-6 h-6 bg-purple-400/30 rounded-full animate-bounce" style={{animationDelay: '2s', animationDuration: '4s'}}></div>
-            <div className="absolute top-60 left-1/4 w-4 h-4 bg-cyan-400/30 rotate-12 animate-bounce" style={{animationDelay: '3s', animationDuration: '5s'}}></div>
+            <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+            <div className="absolute top-3/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
+            <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl animate-pulse" style={{animationDelay: '4s'}}></div>
           </div>
 
-          <div className="container-responsive relative z-10 text-white py-12 md:py-20">
-            <div className="text-center max-w-5xl mx-auto">
-              <ScrollReveal>
-                <div className="inline-flex items-center px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-indigo-600/20 backdrop-blur-lg rounded-full text-blue-200 text-xs sm:text-sm font-bold mb-8 sm:mb-12 border border-blue-400/30 shadow-2xl hover:scale-105 transition-all duration-500">
-                  <div className="w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full flex items-center justify-center mr-2 sm:mr-3">
-                    <Star className="h-2 w-2 sm:h-3 sm:w-3 text-white" />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 text-white py-12 md:py-20">
+            <div className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 bg-blue-600/20 backdrop-blur-sm rounded-full text-blue-200 text-xs sm:text-sm font-medium mb-6 sm:mb-8 border border-blue-400/20">
+              <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+              About Our Company
+            </div>
+
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-4 sm:mb-6 leading-tight px-4">
+              Meet {displayCompanyInfo.name}
+              <span className="block bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
+                {displayCompanyInfo.tagline}
+              </span>
+            </h1>
+
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-blue-100 mb-8 sm:mb-12 leading-relaxed max-w-4xl mx-auto px-4">
+              {aboutContent?.description || displayCompanyInfo.description}
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center mb-12 sm:mb-16 px-4">
+              <button
+                className="w-full sm:w-auto bg-white text-blue-900 hover:bg-blue-50 px-8 sm:px-10 py-4 sm:py-5 rounded-2xl font-bold text-base sm:text-lg shadow-2xl hover:scale-105 transition-all duration-300 group flex items-center justify-center"
+                onClick={() => navigate('/contact')}
+              >
+                <Mail className="mr-3 h-6 w-6" />
+                Get In Touch
+                <ChevronRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
+              </button>
+              <button
+                className="w-full sm:w-auto border-2 border-white text-white hover:bg-white hover:text-blue-900 px-8 sm:px-10 py-4 sm:py-5 rounded-2xl font-bold text-base sm:text-lg backdrop-blur-sm bg-white/5 hover:scale-105 transition-all duration-300 flex items-center justify-center"
+                onClick={() => navigate('/portfolio')}
+              >
+                <Award className="mr-3 h-6 w-6" />
+                View Portfolio
+              </button>
+            </div>
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8 max-w-4xl mx-auto px-4">
+              {[
+                { value: displayCompanyInfo.founded_year, label: 'Established' },
+                { value: displayCompanyInfo.location, label: 'Location' },
+                { value: '50+', label: 'Projects Delivered' },
+                { value: '10+', label: 'Team Members' }
+              ].map((stat, index) => (
+                <div key={index} className="text-center bg-white/10 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-white/20 hover:bg-white/15 transition-all duration-300">
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2">
+                    {stat.value}
                   </div>
-                  ✨ Discover Our Journey
-                </div>
-              </ScrollReveal>
-
-              <ScrollReveal delay={200}>
-                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black mb-6 sm:mb-8 leading-[0.9] tracking-tight px-4">
-                  <span className="block text-white mb-4">Meet</span>
-                  <span className="block bg-gradient-to-r from-cyan-400 via-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent animate-pulse">
-                    {displayCompanyInfo.name}
-                  </span>
-                </h1>
-              </ScrollReveal>
-
-              <ScrollReveal delay={300}>
-                <div className="relative mb-10">
-                  <p className="text-2xl md:text-3xl text-transparent bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text mb-8 leading-relaxed font-semibold">
-                    {displayCompanyInfo.tagline}
-                  </p>
-                  <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full"></div>
-                </div>
-              </ScrollReveal>
-
-              <ScrollReveal delay={400}>
-                <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 mb-12 border border-white/20 shadow-2xl">
-                  <p className="text-lg md:text-xl text-blue-100 max-w-4xl mx-auto leading-relaxed font-medium">
-                    {aboutContent?.description || displayCompanyInfo.description}
-                  </p>
-                </div>
-              </ScrollReveal>
-
-              <ScrollReveal delay={500}>
-                <div className="flex flex-col sm:flex-row gap-8 justify-center items-center mb-20">
-                  <Button
-                    size="lg"
-                    className="group bg-gradient-to-r from-white via-blue-50 to-white text-blue-900 hover:from-blue-50 hover:via-white hover:to-blue-50 px-12 py-6 rounded-3xl font-black text-xl shadow-2xl hover:shadow-cyan-500/25 hover:scale-110 transition-all duration-500 border-2 border-white/20"
-                    onClick={() => navigate('/contact')}
-                  >
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mr-4 group-hover:rotate-12 transition-transform duration-300">
-                        <Mail className="h-5 w-5 text-white" />
-                      </div>
-                      Let's Connect
-                      <ArrowRight className="ml-4 h-6 w-6 group-hover:translate-x-2 transition-transform duration-300" />
-                    </div>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="group border-3 border-white/40 text-white hover:bg-white/20 px-12 py-6 rounded-3xl font-black text-xl backdrop-blur-lg hover:scale-110 transition-all duration-500 hover:border-cyan-400/50"
-                    onClick={() => navigate('/portfolio')}
-                  >
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mr-4 group-hover:rotate-12 transition-transform duration-300">
-                        <Award className="h-5 w-5 text-white" />
-                      </div>
-                      Our Portfolio
-                    </div>
-                  </Button>
-                </div>
-              </ScrollReveal>
-
-              {/* Enhanced Company highlights */}
-              <ScrollReveal delay={600}>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                  <div className="group text-center bg-gradient-to-br from-white/15 to-white/5 backdrop-blur-lg rounded-3xl p-8 border border-white/30 hover:border-cyan-400/50 hover:shadow-2xl hover:shadow-cyan-500/20 hover:-translate-y-2 transition-all duration-500">
-                    <div className="w-16 h-16 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:rotate-12 group-hover:scale-110 transition-all duration-300 shadow-lg">
-                      <MapPin className="h-8 w-8 text-white" />
-                    </div>
-                    <p className="font-black text-white mb-3 text-lg">📍 Located in</p>
-                    <p className="text-cyan-200 text-xl font-semibold">{displayCompanyInfo.location}</p>
-                    <div className="mt-4 w-12 h-1 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full mx-auto"></div>
-                  </div>
-                  <div className="group text-center bg-gradient-to-br from-white/15 to-white/5 backdrop-blur-lg rounded-3xl p-8 border border-white/30 hover:border-purple-400/50 hover:shadow-2xl hover:shadow-purple-500/20 hover:-translate-y-2 transition-all duration-500">
-                    <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:rotate-12 group-hover:scale-110 transition-all duration-300 shadow-lg">
-                      <Calendar className="h-8 w-8 text-white" />
-                    </div>
-                    <p className="font-black text-white mb-3 text-lg">🎯 Established</p>
-                    <p className="text-purple-200 text-xl font-semibold">{displayCompanyInfo.founded_year}</p>
-                    <div className="mt-4 w-12 h-1 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full mx-auto"></div>
-                  </div>
-                  <div className="group text-center bg-gradient-to-br from-white/15 to-white/5 backdrop-blur-lg rounded-3xl p-8 border border-white/30 hover:border-emerald-400/50 hover:shadow-2xl hover:shadow-emerald-500/20 hover:-translate-y-2 transition-all duration-500">
-                    <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:rotate-12 group-hover:scale-110 transition-all duration-300 shadow-lg">
-                      <Users className="h-8 w-8 text-white" />
-                    </div>
-                    <p className="font-black text-white mb-3 text-lg">👥 Expert Team</p>
-                    <p className="text-emerald-200 text-xl font-semibold">10+ Professionals</p>
-                    <div className="mt-4 w-12 h-1 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full mx-auto"></div>
+                  <div className="text-xs sm:text-sm text-blue-200 font-medium">
+                    {stat.label}
                   </div>
                 </div>
-              </ScrollReveal>
+              ))}
             </div>
           </div>
         </section>

@@ -29,7 +29,7 @@ const Button = ({ children, onClick, disabled, variant, size, className = '', ..
 };
 
 const Card = ({ children, className = '', ...props }) => (
-  <div className={`bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-2xl ${className}`} {...props}>
+  <div className={`bg-slate-900/60 backdrop-blur-lg rounded-2xl border border-slate-700/50 shadow-2xl ${className}`} {...props}>
     {children}
   </div>
 );
@@ -54,7 +54,7 @@ const CardContent = ({ children, className = '', ...props }) => (
 
 const Input = ({ className = '', ...props }) => (
   <input
-    className={`w-full px-4 py-3 bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${className}`}
+    className={`w-full px-4 py-3 bg-slate-900/60 backdrop-blur-lg border border-slate-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${className}`}
     {...props}
   />
 );
@@ -572,7 +572,7 @@ const CurriculumViewer = () => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 bg-blue-900 p-4 rounded-2xl">
       {/* Header */}
       <div className={`text-center transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
         <div className="flex justify-center mb-6">
@@ -652,7 +652,7 @@ const CurriculumViewer = () => {
                 const category = categories.find(cat => cat.id === categoryId);
                 setSelectedCategory(category || null);
               }}
-              className="w-full pl-12 pr-4 py-3 bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+              className="w-full pl-12 pr-4 py-3 bg-slate-900/60 backdrop-blur-lg border border-slate-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
             >
               <option value="">All Categories</option>
               {categories.map(category => (

@@ -44,7 +44,7 @@ const Contact = () => {
       icon: Phone,
       title: 'Phone Support',
       description: 'Call us for immediate assistance',
-      contact: '+1 (555) 123-4567',
+      contact: '+232 (78) 618-435',
       availability: '24/7 Emergency Support',
       color: 'green'
     },
@@ -52,7 +52,7 @@ const Contact = () => {
       icon: Mail,
       title: 'Email Support',
       description: 'Send us an email anytime',
-      contact: 'hello@sabiteck.com',
+      contact: 'info@sabiteck.com',
       availability: 'Response within 24 hours',
       color: 'blue'
     },
@@ -61,7 +61,7 @@ const Contact = () => {
       title: 'Live Chat',
       description: 'Chat with our team in real-time',
       contact: 'Available on website',
-      availability: 'Mon-Fri: 9 AM - 6 PM PST',
+      availability: 'Mon-Fri: 9 AM - 6 PM GMT',
       color: 'purple'
     },
     {
@@ -308,17 +308,17 @@ const Contact = () => {
       </section>
 
       {/* Enhanced Main Contact Section */}
-      <section className="py-20 bg-white relative">
+      <section className="py-20 bg-gradient-to-br from-slate-900 via-blue-900 to-black relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center px-4 py-2 bg-purple-600/10 rounded-full text-purple-600 text-sm font-medium mb-6">
+            <div className="inline-flex items-center px-4 py-2 bg-purple-600/20 backdrop-blur-sm rounded-full text-purple-300 text-sm font-medium mb-6 border border-purple-500/20">
               <MessageSquare className="h-4 w-4 mr-2" />
               Get In Touch
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
               Send Us a Message
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
               Ready to discuss your project? Fill out the form below and we'll get back to you within 24 hours.
             </p>
           </div>
@@ -549,17 +549,17 @@ const Contact = () => {
       </section>
 
       {/* Enhanced FAQ Section */}
-      <section className="py-20 bg-white relative">
+      <section className="py-20 bg-gradient-to-br from-slate-900 via-blue-900 to-black relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center px-4 py-2 bg-yellow-600/10 rounded-full text-yellow-600 text-sm font-medium mb-6">
+            <div className="inline-flex items-center px-4 py-2 bg-yellow-600/20 backdrop-blur-sm rounded-full text-yellow-300 text-sm font-medium mb-6 border border-yellow-500/20">
               <Lightbulb className="h-4 w-4 mr-2" />
               Quick Answers
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
               Frequently Asked Questions
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
               Find quick answers to common questions about our services, process,
               and how we can help transform your business.
             </p>

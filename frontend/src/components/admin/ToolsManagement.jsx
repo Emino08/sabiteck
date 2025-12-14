@@ -1,5 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import {
+  Settings,
+  BookOpen,
+  Link,
+  Users,
+  Plus,
+  Eye,
+  EyeOff,
+  Edit,
+  Trash2,
+  FileText,
+  ExternalLink,
+  Download,
+  X,
+  Upload,
+  Wrench,
+  Calculator,
+  RefreshCw,
+  Monitor,
+  Briefcase,
+  Cog,
+  Heart,
+  GraduationCap,
+  Palette,
+  Star,
+  Database,
+  Globe,
+  Sparkles,
+  Zap
+} from 'lucide-react';
 
 // Custom UI Components
 const Button = ({ children, onClick, disabled, variant, size, className = '', ...props }) => {
@@ -28,7 +58,7 @@ const Button = ({ children, onClick, disabled, variant, size, className = '', ..
 };
 
 const Card = ({ children, className = '', ...props }) => (
-  <div className={`bg-white rounded-lg border border-gray-200 shadow-sm ${className}`} {...props}>
+  <div className={`bg-slate-800/50 backdrop-blur-sm rounded-lg border border-slate-700/50 shadow-lg ${className}`} {...props}>
     {children}
   </div>
 );
@@ -40,20 +70,20 @@ const CardHeader = ({ children, className = '', ...props }) => (
 );
 
 const CardTitle = ({ children, className = '', ...props }) => (
-  <h3 className={`text-lg font-semibold text-gray-900 ${className}`} {...props}>
+  <h3 className={`text-lg font-semibold text-white ${className}`} {...props}>
     {children}
   </h3>
 );
 
 const CardContent = ({ children, className = '', ...props }) => (
-  <div className={`px-6 pb-6 ${className}`} {...props}>
+  <div className={`px-6 pb-6 text-gray-200 ${className}`} {...props}>
     {children}
   </div>
 );
 
 const Input = ({ className = '', ...props }) => (
   <input
-    className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${className}`}
+    className={`w-full px-3 py-2 bg-slate-700/50 border border-slate-600 text-white placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${className}`}
     {...props}
   />
 );
@@ -61,7 +91,7 @@ const Input = ({ className = '', ...props }) => (
 const Textarea = ({ className = '', rows = 3, ...props }) => (
   <textarea
     rows={rows}
-    className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical ${className}`}
+    className={`w-full px-3 py-2 bg-slate-700/50 border border-slate-600 text-white placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical ${className}`}
     {...props}
   />
 );
@@ -93,11 +123,11 @@ const Switch = ({ checked, onChange, onCheckedChange, className = '', ...props }
 const Modal = ({ isOpen, onClose, title, children, className = '' }) => {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className={`bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto ${className}`}>
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+      <div className={`bg-slate-800 border border-slate-700 rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto shadow-2xl ${className}`}>
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-gray-900">{title}</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+          <h2 className="text-xl font-bold text-white">{title}</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-200 text-2xl leading-none">
             ×
           </button>
         </div>
@@ -107,42 +137,13 @@ const Modal = ({ isOpen, onClose, title, children, className = '' }) => {
   );
 };
 
-// Icons from lucide-react (imported at top now)
-import {
-  Settings,
-  Eye,
-  EyeOff,
-  Plus,
-  Edit,
-  Trash2,
-  Wrench,
-  Calculator,
-  RefreshCw,
-  BookOpen,
-  Monitor,
-  Briefcase,
-  Cog,
-  Heart,
-  GraduationCap,
-  Palette,
-  Upload,
-  Download,
-  FileText,
-  Star,
-  Users,
-  Database,
-  Globe,
-  Sparkles,
-  Zap,
-  Link,
-  ExternalLink
-} from 'lucide-react';
+// Icons from lucide-react (imported at top)
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 // Simple Label component
 const Label = ({ htmlFor, children, className = "" }) => (
-  <label htmlFor={htmlFor} className={`block text-sm font-medium text-gray-700 mb-1 ${className}`}>
+  <label htmlFor={htmlFor} className={`block text-sm font-medium text-gray-200 mb-1 ${className}`}>
     {children}
   </label>
 );
@@ -152,7 +153,7 @@ const Select = ({ value, onChange, children, className = "" }) => (
   <select
     value={value}
     onChange={(e) => onChange(e.target.value)}
-    className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${className}`}
+    className={`w-full px-3 py-2 bg-slate-700/50 border border-slate-600 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${className}`}
   >
     {children}
   </select>
@@ -1072,23 +1073,42 @@ const ToolsManagement = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex justify-center items-center p-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-400 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-white text-lg">Loading Tools Management...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 space-y-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-6 space-y-8 relative overflow-hidden">
+      {/* Dotted pattern overlay */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none">
+        <div className="w-full h-full bg-repeat bg-[length:60px_60px]"
+             style={{
+               backgroundImage: `radial-gradient(circle at 30px 30px, white 2px, transparent 2px)`
+             }}>
+        </div>
+      </div>
+
+      {/* Animated floating elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-3/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
+        <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl animate-pulse" style={{animationDelay: '4s'}}></div>
+      </div>
+
+      <div className="flex items-center justify-between relative z-10">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
           Tools & Curriculum Management
         </h1>
-        <div className="flex gap-2">
+        <div className="flex gap-2 relative z-10">
           <Button
             variant={activeTab === 'tools' ? 'default' : 'outline'}
             onClick={() => setActiveTab('tools')}
-            className="flex items-center gap-2"
+            className={`flex items-center gap-2 ${activeTab === 'tools' ? '' : 'border-blue-400 text-blue-300 hover:bg-blue-600 hover:border-blue-500'}`}
           >
             <Settings className="w-4 h-4" />
             Tools
@@ -1096,7 +1116,7 @@ const ToolsManagement = () => {
           <Button
             variant={activeTab === 'curriculum' ? 'default' : 'outline'}
             onClick={() => setActiveTab('curriculum')}
-            className="flex items-center gap-2"
+            className={`flex items-center gap-2 ${activeTab === 'curriculum' ? '' : 'border-blue-400 text-blue-300 hover:bg-blue-600 hover:border-blue-500'}`}
           >
             <BookOpen className="w-4 h-4" />
             Curriculum
@@ -1104,10 +1124,10 @@ const ToolsManagement = () => {
           <Button
             variant={activeTab === 'important-links' ? 'default' : 'outline'}
             onClick={() => setActiveTab('important-links')}
-            className="flex items-center gap-2"
+            className={`flex items-center gap-2 ${activeTab === 'important-links' ? '' : 'border-blue-400 text-blue-300 hover:bg-blue-600 hover:border-blue-500'}`}
           >
             <Link className="w-4 h-4" />
-            Important Links
+            <span>Important Links</span>
           </Button>
           {/* Temporary login button for debugging */}
           <Button
@@ -1122,9 +1142,9 @@ const ToolsManagement = () => {
       </div>
 
       {/* Authentication Status Debug Info */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h3 className="font-semibold text-blue-800 mb-2">Debug Info:</h3>
-        <div className="text-sm text-blue-700 space-y-1">
+      <div className="bg-blue-900/30 border border-blue-500/30 rounded-lg p-4 backdrop-blur-sm relative z-10">
+        <h3 className="font-semibold text-blue-300 mb-2">Debug Info:</h3>
+        <div className="text-sm text-blue-200 space-y-1">
           <p>Auth Token: {localStorage.getItem('auth_token') ? '✓ Present' : '✗ Missing'}</p>
           <p>Categories: {curriculumCategories.length} loaded</p>
           <p>Subjects: {curriculumSubjects.length} loaded</p>
@@ -1133,9 +1153,9 @@ const ToolsManagement = () => {
       </div>
 
       {activeTab === 'tools' && (
-        <div className="space-y-6">
+        <div className="space-y-6 relative z-10">
           <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-semibold">Tools Configuration</h2>
+            <h2 className="text-2xl font-semibold text-white">Tools Configuration</h2>
             <Button
               onClick={() => setIsAddToolOpen(true)}
               className="flex items-center gap-2"
@@ -1157,13 +1177,13 @@ const ToolsManagement = () => {
                           <IconComponent className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                          <h3 className="text-lg font-semibold">{tool.name}</h3>
-                          <p className="text-gray-600">{tool.description}</p>
-                          <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                          <h3 className="text-lg font-semibold text-white">{tool.name}</h3>
+                          <p className="text-gray-300">{tool.description}</p>
+                          <div className="flex items-center gap-4 mt-2 text-sm text-gray-400">
                             <span>Component: {tool.component || 'None'}</span>
                             <span>Order: {tool.display_order}</span>
                             {tool.featured && (
-                              <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">
+                              <span className="px-2 py-1 bg-yellow-900/50 text-yellow-300 border border-yellow-700 rounded-full text-xs">
                                 Featured
                               </span>
                             )}
@@ -1175,7 +1195,7 @@ const ToolsManagement = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleToggleToolVisibility(tool.id, tool.visible)}
-                          className={tool.visible ? 'text-green-600' : 'text-gray-400'}
+                          className={tool.visible ? 'text-green-400 hover:text-green-300 hover:bg-green-900/30' : 'text-gray-400 hover:text-gray-300 hover:bg-gray-700/30'}
                         >
                           {tool.visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                         </Button>
@@ -1183,6 +1203,7 @@ const ToolsManagement = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => openEditTool(tool)}
+                          className="text-blue-400 hover:text-blue-300 hover:bg-blue-900/30"
                         >
                           <Edit className="w-4 h-4" />
                         </Button>
@@ -1190,7 +1211,7 @@ const ToolsManagement = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDeleteTool(tool.id)}
-                          className="text-red-600"
+                          className="text-red-400 hover:text-red-300 hover:bg-red-900/30"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -1205,14 +1226,14 @@ const ToolsManagement = () => {
       )}
 
       {activeTab === 'curriculum' && (
-        <div className="space-y-6">
+        <div className="space-y-6 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Categories */}
             <Card>
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <CardTitle className="flex items-center gap-2">
-                    <BookOpen className="w-5 h-5" />
+                    <BookOpen className="w-5 h-5 text-blue-400" />
                     Categories
                   </CardTitle>
                   <Button
@@ -1231,19 +1252,19 @@ const ToolsManagement = () => {
                     <div
                       key={category.id}
                       className={`p-4 border rounded-lg cursor-pointer transition-all ${
-                        selectedCategory === category.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+                        selectedCategory === category.id ? 'border-blue-500 bg-blue-900/30' : 'border-slate-600 hover:border-slate-500 bg-slate-700/30'
                       }`}
                       onClick={() => setSelectedCategory(selectedCategory === category.id ? null : category.id)}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
-                          <div className={`p-2 rounded-lg bg-${category.color}-100`}>
-                            <IconComponent className={`w-5 h-5 text-${category.color}-600`} />
+                          <div className={`p-2 rounded-lg bg-${category.color}-900/30 border border-${category.color}-700`}>
+                            <IconComponent className={`w-5 h-5 text-${category.color}-400`} />
                           </div>
                           <div>
-                            <h4 className="font-semibold">{category.name}</h4>
-                            <p className="text-sm text-gray-600">{category.description}</p>
-                            <span className="text-xs text-gray-500">{category.subject_count} subjects</span>
+                            <h4 className="font-semibold text-white">{category.name}</h4>
+                            <p className="text-sm text-gray-300">{category.description}</p>
+                            <span className="text-xs text-gray-400">{category.subject_count} subjects</span>
                           </div>
                         </div>
                         <Button
@@ -1253,7 +1274,7 @@ const ToolsManagement = () => {
                             e.stopPropagation();
                             handleDeleteCategory(category.id);
                           }}
-                          className="text-red-600"
+                          className="text-red-400 hover:text-red-300 hover:bg-red-900/30"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -1269,7 +1290,7 @@ const ToolsManagement = () => {
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <CardTitle className="flex items-center gap-2">
-                    <FileText className="w-5 h-5" />
+                    <FileText className="w-5 h-5 text-blue-400" />
                     Subjects {selectedCategory && `(${curriculumCategories.find(c => c.id === selectedCategory)?.name})`}
                   </CardTitle>
                   <Button
@@ -1283,24 +1304,24 @@ const ToolsManagement = () => {
               </CardHeader>
               <CardContent className="space-y-3">
                 {getFilteredSubjects().map((subject) => (
-                  <div key={subject.id} className="p-4 border rounded-lg hover:border-gray-300 transition-all">
+                  <div key={subject.id} className="p-4 border border-slate-600 rounded-lg hover:border-slate-500 transition-all bg-slate-700/30">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <h4 className="font-semibold">{subject.name}</h4>
+                          <h4 className="font-semibold text-white">{subject.name}</h4>
                           {subject.code && (
-                            <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                            <span className="px-2 py-1 bg-blue-900/50 text-blue-300 border border-blue-700 rounded-full text-xs">
                               {subject.code}
                             </span>
                           )}
                           {subject.credit_hours && (
-                            <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
+                            <span className="px-2 py-1 bg-green-900/50 text-green-300 border border-green-700 rounded-full text-xs">
                               {subject.credit_hours} credits
                             </span>
                           )}
                         </div>
-                        <p className="text-sm text-gray-600 mb-2">{subject.description}</p>
-                        <span className="text-xs text-gray-500">Category: {subject.category_name}</span>
+                        <p className="text-sm text-gray-300 mb-2">{subject.description}</p>
+                        <span className="text-xs text-gray-400">Category: {subject.category_name}</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         {subject.file_path && (
@@ -1333,7 +1354,7 @@ const ToolsManagement = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDeleteSubject(subject.id)}
-                          className="text-red-600"
+                          className="text-red-400 hover:text-red-300 hover:bg-red-900/30"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -1342,7 +1363,7 @@ const ToolsManagement = () => {
                   </div>
                 ))}
                 {getFilteredSubjects().length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-gray-400">
                     {selectedCategory ? 'No subjects in this category' : 'Select a category to view subjects'}
                   </div>
                 )}
@@ -1928,14 +1949,14 @@ const ToolsManagement = () => {
 
       {/* Important Links Section */}
       {activeTab === 'important-links' && (
-        <div className="space-y-6">
+        <div className="space-y-6 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Important Links Categories */}
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <Link className="w-5 h-5" />
+                    <Link className="w-5 h-5 text-blue-400" />
                     <CardTitle>Link Categories</CardTitle>
                   </div>
                   <Button onClick={() => setIsAddLinksCategoryOpen(true)} size="sm">
@@ -1949,14 +1970,14 @@ const ToolsManagement = () => {
                   {importantLinksCategories.map((category) => {
                     const IconComponent = iconOptions.find(opt => opt.value === category.icon)?.icon || Link;
                     return (
-                      <div key={category.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div key={category.id} className="flex items-center justify-between p-3 bg-slate-700/30 border border-slate-600 rounded-lg">
                         <div className="flex items-center space-x-3">
-                          <div className={`p-2 bg-${category.color}-100 text-${category.color}-600 rounded-lg`}>
+                          <div className={`p-2 bg-${category.color}-900/30 text-${category.color}-400 border border-${category.color}-700 rounded-lg`}>
                             <IconComponent className="w-4 h-4" />
                           </div>
                           <div>
-                            <h4 className="font-medium">{category.name}</h4>
-                            <p className="text-sm text-gray-500">{category.links_count || 0} links</p>
+                            <h4 className="font-medium text-white">{category.name}</h4>
+                            <p className="text-sm text-gray-400">{category.links_count || 0} links</p>
                           </div>
                         </div>
                         <div className="flex space-x-2">
@@ -1967,6 +1988,7 @@ const ToolsManagement = () => {
                               setLinksCategoryForm(category);
                               setIsAddLinksCategoryOpen(true);
                             }}
+                            className="border-blue-400 text-blue-300 hover:bg-blue-600 hover:border-blue-500"
                           >
                             Edit
                           </Button>
@@ -1975,7 +1997,7 @@ const ToolsManagement = () => {
                     );
                   })}
                   {importantLinksCategories.length === 0 && (
-                    <p className="text-gray-500 text-center py-4">No categories yet. Add one to get started!</p>
+                    <p className="text-gray-400 text-center py-4">No categories yet. Add one to get started!</p>
                   )}
                 </div>
               </CardContent>
@@ -1986,7 +2008,7 @@ const ToolsManagement = () => {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <ExternalLink className="w-5 h-5" />
+                    <ExternalLink className="w-5 h-5 text-blue-400" />
                     <CardTitle>Links</CardTitle>
                   </div>
                   <Button onClick={() => setIsAddLinkOpen(true)} size="sm">
@@ -1998,9 +2020,9 @@ const ToolsManagement = () => {
               <CardContent>
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {importantLinks.map((link) => (
-                    <div key={link.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div key={link.id} className="flex items-center justify-between p-3 bg-slate-700/30 border border-slate-600 rounded-lg">
                       <div className="flex items-center space-x-3">
-                        <div className={`p-2 bg-${link.category_color || 'blue'}-100 text-${link.category_color || 'blue'}-600 rounded-lg`}>
+                        <div className={`p-2 bg-${link.category_color || 'blue'}-900/30 text-${link.category_color || 'blue'}-400 border border-${link.category_color || 'blue'}-700 rounded-lg`}>
                           {link.link_type === 'download' ? (
                             <Download className="w-4 h-4" />
                           ) : (
@@ -2008,10 +2030,10 @@ const ToolsManagement = () => {
                           )}
                         </div>
                         <div>
-                          <h4 className="font-medium">{link.title}</h4>
-                          <p className="text-sm text-gray-500">
+                          <h4 className="font-medium text-white">{link.title}</h4>
+                          <p className="text-sm text-gray-400">
                             {link.category_name} • {link.link_type === 'download' ? 'Download' : 'Website'}
-                            {link.click_count > 0 && ` • ${link.click_count} clicks`}
+                            {link.click_count > 0 ? ` • ${link.click_count} clicks` : ''}
                           </p>
                         </div>
                       </div>
@@ -2023,6 +2045,7 @@ const ToolsManagement = () => {
                             setLinkForm(link);
                             setIsEditLinkOpen(true);
                           }}
+                          className="border-blue-400 text-blue-300 hover:bg-blue-600 hover:border-blue-500"
                         >
                           Edit
                         </Button>
@@ -2030,6 +2053,7 @@ const ToolsManagement = () => {
                           variant="destructive"
                           size="sm"
                           onClick={() => handleDeleteLink(link.id)}
+                          className="bg-red-600 hover:bg-red-700 text-white"
                         >
                           Delete
                         </Button>
@@ -2037,7 +2061,7 @@ const ToolsManagement = () => {
                     </div>
                   ))}
                   {importantLinks.length === 0 && (
-                    <p className="text-gray-500 text-center py-4">No links yet. Add one to get started!</p>
+                    <p className="text-gray-400 text-center py-4">No links yet. Add one to get started!</p>
                   )}
                 </div>
               </CardContent>

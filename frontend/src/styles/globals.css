@@ -1,9 +1,10 @@
+@import './admin-mobile.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Import admin mobile responsive styles */
-@import './admin-mobile.css';
+/* Import admin mobile responsive styles after Tailwind directives */
 
 @layer utilities {
   /* Enhanced animations */

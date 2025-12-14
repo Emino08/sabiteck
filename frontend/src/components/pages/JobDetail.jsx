@@ -37,12 +37,13 @@ import ErrorMessage from '../ui/ErrorMessage';
 import { toast } from 'sonner';
 import { useAuth } from '../../contexts/AuthContext';
 import { sanitizeHTML, secureLog } from '../../utils/security';
+import SEOHead from '../SEO/SEOHead';
 
 const JobDetail = () => {
     const { slug } = useParams();
     const navigate = useNavigate();
     const { user, isAuthenticated } = useAuth();
-    
+
     // State management
     const [job, setJob] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -50,7 +51,7 @@ const JobDetail = () => {
     const [applicationStatus, setApplicationStatus] = useState(null);
     const [showApplicationForm, setShowApplicationForm] = useState(false);
     const [submittingApplication, setSubmittingApplication] = useState(false);
-    
+
     // Application form state
     const [applicationForm, setApplicationForm] = useState({
         cover_letter: '',
@@ -61,11 +62,11 @@ const JobDetail = () => {
         available_from: '',
         resume_url: ''
     });
-    
+
     // File upload state
     const [resumeFile, setResumeFile] = useState(null);
     const [uploadingResume, setUploadingResume] = useState(false);
-    
+
     // Helper function to ensure skills are in array format
     const getSkillsArray = (skills) => {
         if (!skills) return [];
@@ -93,7 +94,7 @@ const JobDetail = () => {
             checkApplicationStatus();
         }
     }, [job, user]);
-    
+
     const loadJob = async () => {
         try {
             setLoading(true);
@@ -112,7 +113,7 @@ const JobDetail = () => {
             setLoading(false);
         }
     };
-    
+
     const checkApplicationStatus = async () => {
         if (!job || !user) return;
         try {
@@ -131,35 +132,35 @@ const JobDetail = () => {
             secureLog('error', 'Failed to check application status', { error: err.message });
         }
     };
-    
+
     const handleApplyClick = () => {
         if (!isAuthenticated()) {
             toast.error('Please log in to apply for this job');
             navigate('/login', { state: { returnTo: `/jobs/${slug}` } });
             return;
         }
-        
+
         if (applicationStatus?.has_applied) {
             toast.info('You have already applied for this job');
             return;
         }
-        
+
         setShowApplicationForm(true);
     };
-    
+
     const handleApplicationSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!applicationForm.cover_letter.trim()) {
             toast.error('Please provide a cover letter');
             return;
         }
-        
+
         if (!applicationForm.resume_url) {
             toast.error('Please upload your resume/CV');
             return;
         }
-        
+
         try {
             setSubmittingApplication(true);
             const response = await apiRequest(`/api/jobs/${job.id}/apply`, {
@@ -169,7 +170,7 @@ const JobDetail = () => {
                 },
                 body: JSON.stringify(applicationForm)
             });
-            
+
             if (response.success) {
                 toast.success(response.message || 'Application submitted successfully!');
                 setShowApplicationForm(false);
@@ -180,7 +181,7 @@ const JobDetail = () => {
                         applied_at: new Date().toISOString()
                     }
                 });
-                
+
                 // Reset form
                 setApplicationForm({
                     cover_letter: '',
@@ -220,15 +221,15 @@ const JobDetail = () => {
 
         try {
             setUploadingResume(true);
-            
+
             const formData = new FormData();
             formData.append('file', file);
-            
+
             const response = await fetch('http://localhost:8000/api/upload/resume', {
                 method: 'POST',
                 body: formData
             });
-            
+
             if (response.ok) {
                 const result = await response.json();
                 toast.success('Resume uploaded successfully');
@@ -254,41 +255,41 @@ const JobDetail = () => {
             }
         }
     };
-    
+
     const formatSalary = (min, max, currency = 'SLL', period = 'monthly') => {
         if (!min && !max) return 'Salary negotiable';
-        
+
         const formatAmount = (amount) => {
             if (currency === 'SLL' && amount >= 1000) {
                 return `${(amount / 1000).toFixed(0)}K`;
             }
             return amount.toLocaleString();
         };
-        
-        const range = min && max ? 
-            `${formatAmount(min)} - ${formatAmount(max)}` : 
+
+        const range = min && max ?
+            `${formatAmount(min)} - ${formatAmount(max)}` :
             (min ? `From ${formatAmount(min)}` : `Up to ${formatAmount(max)}`);
-            
+
         return `${range} ${currency}/${period}`;
     };
-    
+
     const formatTimeAgo = (dateString) => {
         if (!dateString) return 'Not specified';
-        
+
         const date = new Date(dateString);
         if (isNaN(date.getTime())) return 'Invalid date';
-        
+
         const now = new Date();
         const diffTime = Math.abs(now - date);
         const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-        
+
         if (diffDays === 0) return 'Today';
         if (diffDays === 1) return '1 day ago';
         if (diffDays < 7) return `${diffDays} days ago`;
         if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
         return `${Math.floor(diffDays / 30)} months ago`;
     };
-    
+
     const getStatusColor = (status) => {
         switch (status) {
             case 'pending': return 'text-yellow-600 bg-yellow-100';
@@ -300,7 +301,7 @@ const JobDetail = () => {
             default: return 'text-gray-600 bg-gray-100';
         }
     };
-    
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 pt-32">
@@ -310,7 +311,7 @@ const JobDetail = () => {
             </div>
         );
     }
-    
+
     if (error || !job) {
         return (
             <div className="min-h-screen bg-gray-50 pt-32">
@@ -332,13 +333,59 @@ const JobDetail = () => {
             </div>
         );
     }
-    
+
     const jobDeadline = job.application_deadline || job.deadline;
     const isDeadlinePassed = jobDeadline && new Date(jobDeadline) < new Date();
     const canApply = !isDeadlinePassed && job.status === 'active';
-    
+
+    // Prepare keywords and schema
+    const keywords = getSkillsArray(job.skills_required).join(', ');
+    const schema = {
+        "@context": "https://schema.org",
+        "@type": "JobPosting",
+        "title": job.title,
+        "description": job.description,
+        "datePosted": job.published_at || job.created_at,
+        "validThrough": jobDeadline,
+        "employmentType": job.job_type ? job.job_type.toUpperCase().replace('-', '_') : "FULL_TIME",
+        "hiringOrganization": {
+            "@type": "Organization",
+            "name": job.company_name,
+            "sameAs": job.company_website,
+            "logo": job.company_logo
+        },
+        "jobLocation": {
+            "@type": "Place",
+            "address": {
+                "@type": "PostalAddress",
+                "addressLocality": job.location
+            }
+        },
+        "baseSalary": (job.salary_min || job.salary_max) ? {
+            "@type": "MonetaryAmount",
+            "currency": job.salary_currency || "USD",
+            "value": {
+                "@type": "QuantitativeValue",
+                "minValue": job.salary_min,
+                "maxValue": job.salary_max,
+                "unitText": job.salary_period || "MONTH"
+            }
+        } : undefined
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900 pt-24 relative overflow-hidden">
+            {job && (
+                <SEOHead
+                    title={`${job.title} | Sabiteck Jobs`}
+                    description={job.short_description || job.description?.replace(/<[^>]*>/g, '').substring(0, 160) || `Join Sabiteck as a ${job.title}`}
+                    image={job.image || job.company_logo || 'https://placehold.co/1200x630?text=Sabiteck+Jobs'}
+                    url={window.location.href}
+                    type="article"
+                    keywords={keywords}
+                    schema={schema}
+                />
+            )}
             {/* Elite Background Effects */}
             <div className="absolute inset-0 overflow-hidden">
                 <div className="absolute -top-40 -right-40 w-80 h-80 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
@@ -360,7 +407,7 @@ const JobDetail = () => {
                     </button>
                 </div>
             </div>
-            
+
             <div className="container mx-auto px-4 py-8 relative z-10">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Main Content */}
@@ -389,11 +436,11 @@ const JobDetail = () => {
                                             </span>
                                         )}
                                     </div>
-                                    
+
                                     <h1 className="text-3xl lg:text-4xl font-black mb-4 bg-gradient-to-r from-white via-indigo-200 to-purple-200 bg-clip-text text-transparent">
                                         {job.title}
                                     </h1>
-                                    
+
                                     <div className="flex flex-wrap items-center gap-6 text-gray-300">
                                         <div className="flex items-center bg-black/40 px-4 py-2 rounded-2xl border border-white/20">
                                             <Building2 className="w-5 h-5 mr-2 text-indigo-400" />
@@ -409,7 +456,7 @@ const JobDetail = () => {
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <div className="text-right">
                                     <div className="text-2xl lg:text-3xl font-black text-green-400 mb-2 flex items-center justify-end">
                                         <DollarSign className="w-8 h-8 mr-2" />
@@ -427,7 +474,7 @@ const JobDetail = () => {
                                     </div>
                                 </div>
                             </div>
-                            
+
                             {/* Elite Job Meta Info */}
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-white/20">
                                 <div className="flex items-center p-4 bg-black/40 rounded-2xl border border-indigo-500/30 hover:border-indigo-500/50 transition-colors">
@@ -472,7 +519,7 @@ const JobDetail = () => {
                                 )}
                             </div>
                         </div>
-                        
+
                         {/* Elite Application Status */}
                         {applicationStatus?.has_applied && (
                             <div className="bg-gradient-to-r from-blue-500/20 to-green-500/20 backdrop-blur-xl border border-blue-500/30 rounded-3xl p-6 shadow-2xl">
@@ -493,7 +540,7 @@ const JobDetail = () => {
                                 </div>
                             </div>
                         )}
-                        
+
                         {/* Elite Job Description */}
                         <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl hover:border-white/20 transition-all duration-500">
                             <div className="flex items-center gap-4 mb-6">
@@ -514,7 +561,7 @@ const JobDetail = () => {
                                 />
                             </div>
                         </div>
-                        
+
                         {/* Elite Requirements */}
                         <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl hover:border-white/20 transition-all duration-500">
                             <div className="flex items-center gap-4 mb-6">
@@ -530,7 +577,7 @@ const JobDetail = () => {
                                 }}
                             />
                         </div>
-                        
+
                         {/* Elite Benefits */}
                         {job.benefits && (
                             <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl hover:border-white/20 transition-all duration-500">
@@ -548,7 +595,7 @@ const JobDetail = () => {
                                 />
                             </div>
                         )}
-                        
+
                         {/* Elite Skills Required */}
                         {job.skills_required && getSkillsArray(job.skills_required).length > 0 && (
                             <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl hover:border-white/20 transition-all duration-500">
@@ -571,7 +618,7 @@ const JobDetail = () => {
                                 </div>
                             </div>
                         )}
-                        
+
                         {/* Elite Similar Jobs */}
                         {job.similar_jobs && job.similar_jobs.length > 0 && (
                             <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl hover:border-white/20 transition-all duration-500">
@@ -610,7 +657,7 @@ const JobDetail = () => {
                             </div>
                         )}
                     </div>
-                    
+
                     {/* Sidebar */}
                     <div className="space-y-6">
                         {/* Elite Apply Section */}
@@ -639,7 +686,7 @@ const JobDetail = () => {
                                     </div>
                                 )}
                             </div>
-                            
+
                             {job.external_application_url && (
                                 <a
                                     href={job.external_application_url}
@@ -662,7 +709,7 @@ const JobDetail = () => {
                                 </a>
                             )}
                         </div>
-                        
+
                         {/* Elite Company Info */}
                         <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-6 shadow-2xl hover:border-white/20 transition-all duration-500">
                             <div className="flex items-center gap-3 mb-6">
@@ -697,7 +744,7 @@ const JobDetail = () => {
                                 )}
                             </div>
                         </div>
-                        
+
                         {/* Elite Job Statistics */}
                         <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-6 shadow-2xl hover:border-white/20 transition-all duration-500">
                             <div className="flex items-center gap-3 mb-6">
@@ -750,7 +797,7 @@ const JobDetail = () => {
                     </div>
                 </div>
             </div>
-            
+
             {/* Application Form Modal */}
             {showApplicationForm && (
                 <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
@@ -767,7 +814,7 @@ const JobDetail = () => {
                                     <XCircle className="w-6 h-6" />
                                 </button>
                             </div>
-                            
+
                             <form onSubmit={handleApplicationSubmit} className="p-6">
                                 <div className="space-y-6">
                                     <div>
@@ -783,7 +830,7 @@ const JobDetail = () => {
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                     </div>
-                                    
+
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
                                             Additional Information
@@ -796,7 +843,7 @@ const JobDetail = () => {
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                     </div>
-                                    
+
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -810,7 +857,7 @@ const JobDetail = () => {
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                             />
                                         </div>
-                                        
+
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                                 LinkedIn Profile
@@ -824,7 +871,7 @@ const JobDetail = () => {
                                             />
                                         </div>
                                     </div>
-                                    
+
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -838,7 +885,7 @@ const JobDetail = () => {
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                             />
                                         </div>
-                                        
+
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                                 Available From
@@ -851,7 +898,7 @@ const JobDetail = () => {
                                             />
                                         </div>
                                     </div>
-                                    
+
                                     {/* Resume Upload */}
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -861,7 +908,7 @@ const JobDetail = () => {
                                             <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
                                                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
                                                     <svg className="w-8 h-8 mb-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
-                                                        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+                                                        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2" />
                                                     </svg>
                                                     {uploadingResume ? (
                                                         <p className="text-sm text-blue-600">Uploading...</p>
@@ -877,9 +924,9 @@ const JobDetail = () => {
                                                         </div>
                                                     )}
                                                 </div>
-                                                <input 
-                                                    type="file" 
-                                                    className="hidden" 
+                                                <input
+                                                    type="file"
+                                                    className="hidden"
                                                     accept=".pdf,.doc,.docx"
                                                     onChange={handleFileChange}
                                                     disabled={uploadingResume}
@@ -891,7 +938,7 @@ const JobDetail = () => {
                                         )}
                                     </div>
                                 </div>
-                                
+
                                 <div className="flex space-x-4 mt-6 pt-6 border-t">
                                     <button
                                         type="button"

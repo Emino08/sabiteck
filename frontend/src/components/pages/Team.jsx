@@ -155,111 +155,171 @@ const Team = () => {
     }
   ];
 
+  // Team stats
+  const stats = [
+    { label: 'Team Members', value: `${teamMembers.length}+` },
+    { label: 'Countries', value: '5+' },
+    { label: 'Years Experience', value: '15+' },
+    { label: 'Projects Delivered', value: '150+' }
+  ];
+
   return (
-    <div className="bg-gradient-to-b from-slate-50 via-blue-50 to-white min-h-screen pt-24">
+    <div className="min-h-screen">
       <SEO
         title="Our Team - Sabiteck"
         description="Meet the talented and dedicated team behind Sabiteck. Our experts are passionate about helping you achieve your goals."
         keywords="team, experts, Sabiteck team, professionals"
       />
 
-      {/* Hero Header Section */}
-      <header className="relative bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 text-white overflow-hidden">
-        {/* Animated Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
-          <div className="absolute top-0 right-0 w-96 h-96 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
-          <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000"></div>
+      {/* Enhanced Hero Section - Matching Portfolio Style */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 pt-24">
+        <div className="absolute inset-0 opacity-20">
+          <div className="w-full h-full bg-repeat bg-[length:60px_60px]"
+               style={{
+                 backgroundImage: `radial-gradient(circle at 30px 30px, white 2px, transparent 2px)`
+               }}>
+          </div>
         </div>
 
-        <div className="container mx-auto px-4 py-24 relative z-10">
-          <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center justify-center p-3 bg-white/10 rounded-full backdrop-blur-sm mb-6 animate-bounce">
-              <Users className="h-8 w-8" />
+        {/* Animated floating elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute top-3/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
+          <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl animate-pulse" style={{animationDelay: '4s'}}></div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 text-white py-12 md:py-20">
+          <div className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 bg-blue-600/20 backdrop-blur-sm rounded-full text-blue-200 text-xs sm:text-sm font-medium mb-6 sm:mb-8 border border-blue-400/20">
+            <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+            Meet Our Team
+          </div>
+
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-4 sm:mb-6 leading-tight px-4">
+            The Brilliant Minds
+            <span className="block bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
+              Behind Our Success
+            </span>
+          </h1>
+
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-blue-100 mb-8 sm:mb-12 leading-relaxed max-w-4xl mx-auto px-4">
+            Meet the passionate innovators, creative thinkers, and dedicated professionals
+            who bring exceptional talent and expertise to every project we undertake.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center mb-12 sm:mb-16 px-4">
+            <button
+              className="w-full sm:w-auto bg-white text-blue-900 hover:bg-blue-50 px-8 sm:px-10 py-4 sm:py-5 rounded-2xl font-bold text-base sm:text-lg shadow-2xl hover:scale-105 transition-all duration-300 group flex items-center justify-center"
+              onClick={() => window.location.href = '/contact'}
+            >
+              <Mail className="mr-3 h-6 w-6" />
+              Join Our Team
+              <ChevronRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
+            </button>
+            <button
+              className="w-full sm:w-auto border-2 border-white text-white hover:bg-white hover:text-blue-900 px-8 sm:px-10 py-4 sm:py-5 rounded-2xl font-bold text-base sm:text-lg backdrop-blur-sm bg-white/5 hover:scale-105 transition-all duration-300 flex items-center justify-center"
+              onClick={() => window.location.href = '/contact'}
+            >
+              <Send className="mr-3 h-6 w-6" />
+              Get In Touch
+            </button>
+          </div>
+
+          {/* Enhanced Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8 max-w-4xl mx-auto px-4">
+            {stats.map((stat, index) => (
+              <div key={index} className="text-center bg-white/10 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-white/20 hover:bg-white/15 transition-all duration-300">
+                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2">
+                  {stat.value}
+                </div>
+                <div className="text-xs sm:text-sm text-blue-200 font-medium">
+                  {stat.label}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Department Filter Section - Matching Portfolio Style */}
+      <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-br from-gray-50 to-blue-50 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-5">
+          <div className="w-full h-full bg-repeat bg-[length:40px_40px]"
+               style={{
+                 backgroundImage: `radial-gradient(circle at 20px 20px, #3B82F6 1px, transparent 1px)`
+               }}>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center mb-12 sm:mb-16">
+            <div className="inline-flex items-center px-4 py-2 bg-purple-600/10 rounded-full text-purple-600 text-sm font-medium mb-6">
+              <Building className="h-4 w-4 mr-2" />
+              Our Departments
             </div>
-            <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
-              Meet Our <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 to-pink-200">Exceptional Team</span>
-            </h1>
-            <p className="text-xl md:text-2xl text-indigo-100 leading-relaxed mb-8">
-              The passionate innovators and talented professionals driving our mission to transform education and create opportunities worldwide.
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 sm:mb-6">
+              Organized Excellence
+            </h2>
+            <p className="text-lg sm:text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
+              Our diverse teams bring together expertise across multiple disciplines
+              to deliver comprehensive solutions.
             </p>
-            <div className="flex flex-wrap justify-center gap-6 text-lg">
-              <div className="flex items-center gap-2 bg-white/10 px-6 py-3 rounded-full backdrop-blur-sm">
-                <Sparkles className="h-5 w-5 text-yellow-300" />
-                <span>Diverse Expertise</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white/10 px-6 py-3 rounded-full backdrop-blur-sm">
-                <Heart className="h-5 w-5 text-red-300" />
-                <span>Passionate Dedication</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white/10 px-6 py-3 rounded-full backdrop-blur-sm">
-                <TrendingUp className="h-5 w-5 text-green-300" />
-                <span>Proven Excellence</span>
-              </div>
+          </div>
+
+          {/* Department Filter Buttons */}
+          <div className="flex justify-center">
+            <div className="inline-flex flex-wrap gap-3 sm:gap-4 bg-white p-4 sm:p-6 rounded-2xl shadow-2xl border border-gray-100">
+              {uiDepartments.map(dept => {
+                const isActive = selectedDepartment === dept.id;
+                const style = getDepartmentStyle(dept.id);
+                return (
+                  <button
+                    key={dept.id}
+                    onClick={() => setSelectedDepartment(dept.id)}
+                    className={`group relative px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-sm sm:text-base font-bold transition-all duration-300 transform hover:scale-105 active:scale-95 whitespace-nowrap overflow-hidden ${
+                      isActive
+                        ? 'text-white shadow-xl'
+                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                    }`}
+                    style={isActive ? { background: `linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)` } : {}}
+                  >
+                    <span className="relative z-10 flex items-center gap-2">
+                      <Building className="h-4 w-4 sm:h-5 sm:w-5" />
+                      <span>{dept.name}</span>
+                      <Badge className={`text-xs ${isActive ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-700'}`}>
+                        {dept.count}
+                      </Badge>
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Bottom Wave */}
-        <div className="absolute bottom-0 left-0 right-0">
-          <svg className="w-full h-16 md:h-24" viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0 120L60 105C120 90 240 60 360 45C480 30 600 30 720 37.5C840 45 960 60 1080 67.5C1200 75 1320 75 1380 75L1440 75V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" fill="rgb(248, 250, 252)"/>
-          </svg>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-4 py-8 sm:py-12 md:py-16">
-        {/* Department Filter with Enhanced Design */}
-        <div className="flex justify-center mb-12 sm:mb-16">
-          <div className="inline-flex flex-wrap gap-2 sm:gap-3 bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 w-full max-w-full sm:max-w-max overflow-x-auto">
-            {uiDepartments.map(dept => {
-              const isActive = selectedDepartment === dept.id;
-              return (
-                <button
-                  key={dept.id}
-                  onClick={() => setSelectedDepartment(dept.id)}
-                  className={`px-4 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95 whitespace-nowrap ${
-                    isActive
-                      ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-300'
-                      : 'bg-gray-50 text-gray-700 hover:bg-purple-50 hover:text-purple-600'
-                  }`}
-                >
-                  <span className="flex items-center gap-1 sm:gap-2">
-                    <Building className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">{dept.name}</span>
-                    <span className="sm:hidden">{dept.name.split(' ')[0]}</span>
-                    <Badge className={`ml-1 sm:ml-2 text-xs ${isActive ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-700'}`}>
-                      {dept.count}
-                    </Badge>
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {loading ? (
-          <div className="text-center py-20">
-            <div className="relative inline-flex">
-              <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-200 border-t-purple-600"></div>
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                <Users className="h-6 w-6 text-purple-600" />
+      {/* Team Members Section */}
+      <section className="py-16 sm:py-20 md:py-24 bg-gradient-to-br from-slate-900 via-blue-900 to-black relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20">
+              <div className="relative">
+                <div className="animate-spin rounded-full h-20 w-20 border-4 border-blue-500/30 border-t-blue-400"></div>
+                <Users className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-8 w-8 text-blue-400" />
+              </div>
+              <p className="mt-6 text-blue-100 text-lg font-medium">Loading our amazing team...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-20">
+              <div className="bg-red-900/20 backdrop-blur-md border border-red-500/30 rounded-2xl p-8 max-w-md mx-auto">
+                <div className="bg-red-500/20 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                  <X className="h-8 w-8 text-red-400" />
+                </div>
+                <h2 className="text-2xl font-bold text-red-800 mb-2">{error}</h2>
+                <p className="text-red-600">Please try again later or contact support.</p>
               </div>
             </div>
-            <p className="mt-6 text-gray-600 text-lg font-medium">Loading our amazing team...</p>
-          </div>
-        ) : error ? (
-          <div className="text-center py-20">
-            <div className="bg-red-50 border border-red-200 rounded-2xl p-8 max-w-md mx-auto">
-              <div className="bg-red-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                <X className="h-8 w-8 text-red-600" />
-              </div>
-              <h2 className="text-2xl font-bold text-red-800 mb-2">{error}</h2>
-              <p className="text-red-600">Please try again later or contact support.</p>
-            </div>
-          </div>
-        ) : filteredTeam.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          ) : filteredTeam.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {filteredTeam.map((member) => {
               const photoUrl = member.photo_url || member.avatar;
               const fullPhotoUrl = photoUrl && (photoUrl.startsWith('http') ? photoUrl : `http://localhost:8002${photoUrl}`);
@@ -296,252 +356,281 @@ const Team = () => {
               }
 
               return (
-                <Card 
+                <div 
                   key={member.id} 
-                  className="bg-white shadow-lg hover:shadow-2xl transition-all duration-300 rounded-2xl overflow-hidden group border-0 transform hover:-translate-y-2"
+                  className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100"
                 >
-                  <CardContent className="p-0">
-                    {/* Photo Section with Gradient Overlay */}
-                    <div className="relative h-72 overflow-hidden bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100">
-                      {fullPhotoUrl ? (
-                        <>
-                          <img
-                            src={fullPhotoUrl}
-                            alt={member.name}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                            onError={(e) => {
-                              e.target.style.display = 'none';
-                              e.target.nextElementSibling.style.display = 'flex';
-                            }}
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                        </>
-                      ) : null}
-                      <div 
-                        className={`${fullPhotoUrl ? 'hidden' : 'flex'} w-full h-full items-center justify-center bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100`}
-                      >
-                        <div className="text-center">
-                          <div className="bg-white/80 p-8 rounded-full mb-4 inline-block">
-                            <User className="h-16 w-16 text-indigo-600" />
-                          </div>
-                          <p className="text-sm text-gray-500">No photo available</p>
+                  {/* Photo Section with Gradient Overlay */}
+                  <div className="relative h-80 overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+                    {fullPhotoUrl ? (
+                      <>
+                        <img
+                          src={fullPhotoUrl}
+                          alt={member.name}
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.nextElementSibling.style.display = 'flex';
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
+                      </>
+                    ) : null}
+                    <div 
+                      className={`${fullPhotoUrl ? 'hidden' : 'flex'} w-full h-full items-center justify-center bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100`}
+                    >
+                      <div className="text-center">
+                        <div className="bg-white/90 backdrop-blur-sm p-10 rounded-full mb-4 inline-block shadow-xl">
+                          <User className="h-20 w-20 text-blue-600" />
                         </div>
+                        <p className="text-gray-500 font-medium">No photo available</p>
                       </div>
-
-                      {/* Featured Badge */}
-                      {member.featured && (
-                        <div className="absolute top-4 right-4">
-                          <Badge className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white border-0 shadow-lg px-3 py-1.5">
-                            <Star className="h-3 w-3 mr-1 fill-white" />
-                            Featured
-                          </Badge>
-                        </div>
-                      )}
-
-                      {/* Department Badge */}
-                      {member.department && (
-                        <div className="absolute top-4 left-4">
-                          <Badge className="bg-white/90 backdrop-blur-sm text-gray-700 border-0 shadow-md px-3 py-1.5">
-                            <Building className="h-3 w-3 mr-1" />
-                            {member.department}
-                          </Badge>
-                        </div>
-                      )}
                     </div>
 
-                    {/* Content Section */}
-                    <div className="p-6 space-y-4">
-                      {/* Name and Position */}
-                      <div className="text-center border-b border-gray-100 pb-4">
-                        <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-purple-600 transition-colors">
-                          {member.name}
-                        </h3>
-                        <p className="text-purple-600 font-semibold text-sm">{member.position}</p>
+                    {/* Featured Badge */}
+                    {member.featured && (
+                      <div className="absolute top-4 right-4 z-10">
+                        <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 font-bold text-sm">
+                          <Star className="h-4 w-4 fill-white" />
+                          Featured
+                        </div>
                       </div>
+                    )}
 
-                      {/* Bio */}
-                      {member.bio && (
-                        <p className="text-gray-600 text-sm leading-relaxed line-clamp-3">
-                          {member.bio}
-                        </p>
-                      )}
+                    {/* Department Badge */}
+                    {member.department && (
+                      <div className="absolute top-4 left-4 z-10">
+                        <div className="bg-white/95 backdrop-blur-sm text-gray-800 px-4 py-2 rounded-full shadow-lg flex items-center gap-2 font-semibold text-sm border border-gray-200">
+                          <Building className="h-4 w-4 text-blue-600" />
+                          {member.department}
+                        </div>
+                      </div>
+                    )}
 
-                      {/* Contact Info */}
+                    {/* Name & Position Overlay - Appears on hover */}
+                    <div className="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                      <h3 className="text-2xl font-bold mb-1 drop-shadow-lg">
+                        {member.name}
+                      </h3>
+                      <p className="text-blue-200 font-semibold text-sm drop-shadow-lg flex items-center gap-2">
+                        <Briefcase className="h-4 w-4" />
+                        {member.position}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Content Section */}
+                  <div className="p-6 space-y-4">
+                    {/* Bio */}
+                    {member.bio && (
+                      <p className="text-gray-600 text-sm leading-relaxed line-clamp-3">
+                        {member.bio}
+                      </p>
+                    )}
+
+                    {/* Skills Section */}
+                    {skills.length > 0 && (
                       <div className="space-y-2">
-                        {member.email && (
-                          <div className="flex items-center text-sm text-gray-600 hover:text-purple-600 transition-colors">
-                            <div className="bg-purple-50 p-2 rounded-lg mr-3">
-                              <Mail className="h-4 w-4 text-purple-600" />
-                            </div>
-                            <a href={`mailto:${member.email}`} className="truncate hover:underline">
-                              {member.email}
-                            </a>
-                          </div>
-                        )}
-                        {member.location && (
-                          <div className="flex items-center text-sm text-gray-600">
-                            <div className="bg-green-50 p-2 rounded-lg mr-3">
-                              <MapPin className="h-4 w-4 text-green-600" />
-                            </div>
-                            <span>{member.location}</span>
-                          </div>
-                        )}
-                        {member.phone && (
-                          <div className="flex items-center text-sm text-gray-600">
-                            <div className="bg-blue-50 p-2 rounded-lg mr-3">
-                              <Phone className="h-4 w-4 text-blue-600" />
-                            </div>
-                            <span>{member.phone}</span>
-                          </div>
-                        )}
-                        {member.years_experience && (
-                          <div className="flex items-center text-sm text-gray-600">
-                            <div className="bg-orange-50 p-2 rounded-lg mr-3">
-                              <Briefcase className="h-4 w-4 text-orange-600" />
-                            </div>
-                            <span>{member.years_experience} years experience</span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Skills - Enhanced Display */}
-                      {skills.length > 0 && (
-                        <div className="pt-3 border-t border-gray-100">
-                          <div className="mb-2 flex items-center gap-2">
-                            <Sparkles className="h-4 w-4 text-purple-500" />
-                            <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wide">Skills & Expertise</h4>
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {skills.slice(0, 5).map((skill, index) => {
-                              const style = getSkillStyle(skill);
-                              const SkillIcon = style.icon;
-                              
-                              return (
-                                <div
-                                  key={index}
-                                  className={`group relative ${style.bg} ${style.border} border rounded-lg px-3 py-2 transition-all duration-300 hover:shadow-lg hover:scale-105 cursor-default`}
-                                >
-                                  <div className="flex items-center gap-1.5">
-                                    <SkillIcon className={`h-3.5 w-3.5 ${style.text}`} />
-                                    <span className={`text-xs font-semibold ${style.text}`}>
-                                      {skill}
-                                    </span>
-                                  </div>
-                                  {/* Hover effect - gradient background */}
-                                  <div className={`absolute inset-0 bg-gradient-to-r ${style.gradient} opacity-0 group-hover:opacity-10 rounded-lg transition-opacity duration-300`}></div>
-                                </div>
-                              );
-                            })}
-                            {skills.length > 5 && (
-                              <div className="bg-gradient-to-r from-gray-100 to-slate-100 border border-gray-300 rounded-lg px-3 py-2 transition-all duration-300 hover:shadow-md hover:scale-105 cursor-pointer group">
-                                <div className="flex items-center gap-1.5">
-                                  <ChevronRight className="h-3.5 w-3.5 text-gray-600 group-hover:translate-x-0.5 transition-transform" />
-                                  <span className="text-xs font-bold text-gray-700">
-                                    +{skills.length - 5} more
-                                  </span>
-                                </div>
+                        <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                          <Zap className="h-4 w-4 text-purple-600" />
+                          <span>Skills</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {skills.slice(0, 4).map((skill, idx) => {
+                            const skillStyle = getSkillStyle(skill);
+                            const SkillIcon = skillStyle.icon;
+                            return (
+                              <div
+                                key={idx}
+                                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ${skillStyle.bg} ${skillStyle.text} ${skillStyle.border} border transition-all hover:scale-105`}
+                              >
+                                <SkillIcon className="h-3 w-3" />
+                                {skill}
                               </div>
-                            )}
-                          </div>
-                          
-                          {/* All skills tooltip on hover - show remaining skills */}
-                          {skills.length > 5 && (
-                            <div className="mt-2 text-xs text-gray-500 italic">
-                              Hover to see: {skills.slice(5).join(', ')}
+                            );
+                          })}
+                          {skills.length > 4 && (
+                            <div className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-700">
+                              +{skills.length - 4} more
                             </div>
                           )}
                         </div>
-                      )}
+                      </div>
+                    )}
 
-                      {/* Social Links */}
-                      <div className="flex justify-center items-center gap-3 pt-4 border-t border-gray-100">
+                    {/* Contact Info */}
+                    <div className="space-y-2 pt-4 border-t border-gray-100">
+                      {member.email && (
+                        <a 
+                          href={`mailto:${member.email}`} 
+                          className="flex items-center gap-3 text-sm text-gray-600 hover:text-blue-600 transition-colors group/link p-2 rounded-lg hover:bg-blue-50"
+                        >
+                          <div className="bg-blue-100 p-2 rounded-lg group-hover/link:bg-blue-600 transition-colors">
+                            <Mail className="h-4 w-4 text-blue-600 group-hover/link:text-white" />
+                          </div>
+                          <span className="truncate font-medium">{member.email}</span>
+                        </a>
+                      )}
+                      {member.location && (
+                        <div className="flex items-center gap-3 text-sm text-gray-600 p-2">
+                          <div className="bg-green-100 p-2 rounded-lg">
+                            <MapPin className="h-4 w-4 text-green-600" />
+                          </div>
+                          <span className="font-medium">{member.location}</span>
+                        </div>
+                      )}
+                      {member.phone && (
+                        <a 
+                          href={`tel:${member.phone}`} 
+                          className="flex items-center gap-3 text-sm text-gray-600 hover:text-purple-600 transition-colors group/link p-2 rounded-lg hover:bg-purple-50"
+                        >
+                          <div className="bg-purple-100 p-2 rounded-lg group-hover/link:bg-purple-600 transition-colors">
+                            <Phone className="h-4 w-4 text-purple-600 group-hover/link:text-white" />
+                          </div>
+                          <span className="font-medium">{member.phone}</span>
+                        </a>
+                      )}
+                    </div>
+
+                    {/* Social Links */}
+                    {(social.linkedin || social.twitter || social.github || member.linkedin_url || member.twitter_url || member.website_url) && (
+                      <div className="flex justify-center gap-2 pt-4 border-t border-gray-100">
                         {(social.linkedin || member.linkedin_url) && (
-                          <a 
-                            href={social.linkedin || member.linkedin_url} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="p-3 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all duration-300 transform hover:scale-110"
+                          <a
+                            href={social.linkedin || member.linkedin_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-300 transform hover:scale-110"
                           >
                             <Linkedin className="h-5 w-5" />
                           </a>
                         )}
                         {(social.twitter || member.twitter_url) && (
-                          <a 
-                            href={social.twitter || member.twitter_url} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="p-3 bg-sky-50 text-sky-600 rounded-xl hover:bg-sky-600 hover:text-white transition-all duration-300 transform hover:scale-110"
+                          <a
+                            href={social.twitter || member.twitter_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center w-10 h-10 rounded-full bg-sky-100 text-sky-600 hover:bg-sky-600 hover:text-white transition-all duration-300 transform hover:scale-110"
                           >
                             <Twitter className="h-5 w-5" />
                           </a>
                         )}
-                        {(social.website || member.website_url) && (
-                          <a 
-                            href={social.website || member.website_url} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="p-3 bg-purple-50 text-purple-600 rounded-xl hover:bg-purple-600 hover:text-white transition-all duration-300 transform hover:scale-110"
+                        {(social.github || member.website_url) && (
+                          <a
+                            href={social.github || member.website_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-800 text-white hover:bg-gray-900 transition-all duration-300 transform hover:scale-110"
                           >
                             <Globe className="h-5 w-5" />
                           </a>
                         )}
-                        {member.email && (
-                          <a 
-                            href={`mailto:${member.email}`} 
-                            className="p-3 bg-green-50 text-green-600 rounded-xl hover:bg-green-600 hover:text-white transition-all duration-300 transform hover:scale-110"
-                          >
-                            <Mail className="h-5 w-5" />
-                          </a>
-                        )}
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    )}
+                  </div>
+                </div>
               );
             })}
           </div>
-        ) : (
-          <div className="text-center py-20">
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-2xl p-12 max-w-lg mx-auto">
-              <div className="bg-gray-200 p-6 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-                <Users className="h-12 w-12 text-gray-500" />
+          ) : (
+            <div className="flex flex-col items-center justify-center py-20">
+              <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-3xl p-12 max-w-lg mx-auto text-center border border-blue-100 shadow-xl">
+                <div className="bg-white p-8 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center shadow-lg">
+                  <Users className="h-12 w-12 text-blue-600" />
+                </div>
+                <h2 className="text-3xl font-bold text-gray-900 mb-3">No Team Members Found</h2>
+                <p className="text-gray-600 text-lg">
+                  We couldn't find any team members for this department. Please try selecting a different department or check back later.
+                </p>
               </div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-3">No Team Members Found</h2>
-              <p className="text-gray-600 text-lg">
-                We couldn't find any team members for this department. Please try selecting a different department or check back later.
-              </p>
+            </div>
+          )}
+
+        </div>
+      </section>
+
+      {/* Our Core Values Section - Matching Portfolio Style */}
+      {filteredTeam.length > 0 && (
+        <section className="py-20 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 relative overflow-hidden">
+          <div className="absolute inset-0 opacity-10">
+            <div className="w-full h-full bg-repeat bg-[length:50px_50px]"
+                 style={{
+                   backgroundImage: `radial-gradient(circle at 25px 25px, white 2px, transparent 2px)`
+                 }}>
             </div>
           </div>
-        )}
 
-        {/* Core Values Section */}
-        {filteredTeam.length > 0 && (
-          <div className="mt-24">
-            <div className="text-center mb-12">
-              <h2 className="text-4xl font-bold text-gray-900 mb-4">Our Core Values</h2>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                The principles that guide our team and drive our success
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center px-4 py-2 bg-blue-600/20 backdrop-blur-sm rounded-full text-blue-200 text-sm font-medium mb-6 border border-blue-400/20">
+                <Heart className="h-4 w-4 mr-2" />
+                Our Core Values
+              </div>
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
+                What Drives Us Forward
+              </h2>
+              <p className="text-xl md:text-2xl text-blue-100 max-w-4xl mx-auto leading-relaxed">
+                The principles that guide our team and drive our success in every project we undertake
               </p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {values.map((value, index) => {
                 const Icon = value.icon;
                 return (
-                  <Card key={index} className="bg-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden group transform hover:-translate-y-2">
-                    <CardContent className="p-8 text-center">
-                      <div className="bg-gradient-to-br from-purple-100 to-indigo-100 p-6 rounded-2xl w-20 h-20 mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                        <Icon className="h-10 w-10 text-purple-600" />
-                      </div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-3">{value.title}</h3>
-                      <p className="text-gray-600 leading-relaxed">{value.description}</p>
-                    </CardContent>
-                  </Card>
+                  <div 
+                    key={index} 
+                    className="group bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 hover:bg-white/15 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl"
+                  >
+                    <div className="bg-gradient-to-br from-blue-500 to-purple-500 p-5 rounded-2xl w-20 h-20 mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                      <Icon className="h-10 w-10 text-white" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-white mb-4 text-center">{value.title}</h3>
+                    <p className="text-blue-100 leading-relaxed text-center">{value.description}</p>
+                  </div>
                 );
               })}
             </div>
           </div>
-        )}
-      </main>
+        </section>
+      )}
+
+      {/* Call to Action Section */}
+      <section className="py-20 bg-gradient-to-br from-gray-50 to-blue-50 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-5">
+          <div className="w-full h-full bg-repeat bg-[length:40px_40px]"
+               style={{
+                 backgroundImage: `radial-gradient(circle at 20px 20px, #3B82F6 1px, transparent 1px)`
+               }}>
+          </div>
+        </div>
+
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+            Want to Join Our Team?
+          </h2>
+          <p className="text-xl text-gray-600 mb-12 leading-relaxed">
+            We're always looking for talented individuals who share our passion for excellence and innovation.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button
+              onClick={() => window.location.href = '/contact'}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-10 py-5 rounded-2xl font-bold text-lg shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3"
+            >
+              <Mail className="h-6 w-6" />
+              Contact Us
+              <ChevronRight className="h-6 w-6" />
+            </button>
+            <button
+              onClick={() => window.location.href = '/careers'}
+              className="border-2 border-gray-300 text-gray-700 hover:border-blue-600 hover:text-blue-600 px-10 py-5 rounded-2xl font-bold text-lg hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3"
+            >
+              <Briefcase className="h-6 w-6" />
+              View Careers
+            </button>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };
